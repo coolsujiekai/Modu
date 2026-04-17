@@ -8,7 +8,8 @@
     "pages/history/history",
     "pages/profile/profile",
     "pages/author/author",
-    "pages/authorSearch/authorSearch"
+    "pages/authorSearch/authorSearch",
+    "pages/bookSearch/bookSearch"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

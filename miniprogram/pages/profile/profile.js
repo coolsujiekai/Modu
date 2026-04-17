@@ -16,6 +16,10 @@ Page({
     wx.navigateTo({ url: '/pages/wishlist/wishlist' });
   },
 
+  goBookSearch() {
+    wx.navigateTo({ url: '/pages/bookSearch/bookSearch' });
+  },
+
   goAuthorSearch() {
     wx.navigateTo({ url: '/pages/authorSearch/authorSearch' });
   },

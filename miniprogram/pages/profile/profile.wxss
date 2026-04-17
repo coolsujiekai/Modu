@@ -2,3 +2,9 @@
   min-height: 100vh;
   padding: 28rpx 24rpx 40rpx;
 }
+
+.muted {
+  margin-top: 6rpx;
+  font-size: 26rpx;
+  color: #999;
+}

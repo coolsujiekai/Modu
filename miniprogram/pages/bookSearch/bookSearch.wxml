@@ -1,0 +1,39 @@
+<view class="page">
+  <view class="weui-search-bar">
+    <view class="weui-search-bar__form">
+      <view class="weui-search-bar__box">
+        <icon class="weui-icon-search_in-box" type="search" size="14"></icon>
+        <input
+          class="weui-search-bar__input"
+          placeholder="输入书名搜索（在读/已读）"
+          value="{{query}}"
+          bindinput="onInput"
+          confirm-type="search"
+        />
+        <view class="weui-icon-clear" wx:if="{{query}}" bindtap="clear">
+          <icon type="clear" size="14"></icon>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="weui-cells" style="margin-top: 10rpx;" wx:if="{{results.length}}">
+    <view class="weui-cell weui-cell_access" wx:for="{{results}}" wx:key="_id" bindtap="openBook" data-id="{{item._id}}">
+      <view class="weui-cell__bd">
+        <view class="title">{{item.bookName}}</view>
+        <view class="sub">
+          <text wx:if="{{item.authorName}}">{{item.authorName}} · </text>
+          <text>{{item.status === 'finished' ? '已读' : '在读'}}</text>
+        </view>
+      </view>
+      <view class="weui-cell__ft"></view>
+    </view>
+  </view>
+
+  <view class="weui-msg" wx:if="{{query && !results.length && !loading}}">
+    <view class="weui-msg__icon-area"><text style="font-size: 80rpx;">🔎</text></view>
+    <view class="weui-msg__title">没有找到书</view>
+    <view class="weui-msg__desc">可以回到“在读”里读本新书</view>
+  </view>
+</view>
+
