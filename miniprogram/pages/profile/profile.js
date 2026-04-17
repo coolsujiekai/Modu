@@ -2,8 +2,6 @@ import { normalizeAuthorName } from '../../utils/author';
 
 const db = wx.cloud.database();
 
-const MOTTO = '以书为伴，不慌不忙，做个有态度的阅读者✨';
-
 function debounce(fn, wait) {
   let t = null;
   return function (...args) {
@@ -18,9 +16,6 @@ function escapeRegExp(s) {
 
 Page({
   data: {
-    version: '0.1.0',
-    motto: MOTTO,
-
     searchVisible: false,
     searchType: 'book',
     searchTitle: '',
@@ -38,12 +33,8 @@ Page({
     wx.navigateTo({ url: '/pages/wishlist/wishlist' });
   },
 
-  openBookSearch() {
+  openShelfSearch() {
     this.openSearch('book');
-  },
-
-  openAuthorSearch() {
-    this.openSearch('author');
   },
 
   openSearch(type) {
@@ -51,7 +42,7 @@ Page({
     this.setData({
       searchVisible: true,
       searchType: isBook ? 'book' : 'author',
-      searchTitle: isBook ? '书名搜索' : '作家搜索',
+      searchTitle: '书架搜索',
       searchPlaceholder: isBook ? '输入书名关键字' : '输入作者名',
       searchQuery: '',
       searchLoading: false,
@@ -80,6 +71,19 @@ Page({
 
   onSearchConfirm() {
     this.runSearch();
+  },
+
+  switchSearchType(e) {
+    const type = e?.currentTarget?.dataset?.type;
+    if (type !== 'book' && type !== 'author') return;
+    if (type === this.data.searchType) return;
+    this.setData({
+      searchType: type,
+      searchPlaceholder: type === 'book' ? '输入书名关键字' : '输入作者名',
+      searchResults: [],
+      searchLoading: false
+    });
+    this.searchDebounced();
   },
 
   searchDebounced: debounce(function () {

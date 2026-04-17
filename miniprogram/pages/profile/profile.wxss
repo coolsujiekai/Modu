@@ -1,27 +1,73 @@
 .page {
   min-height: 100vh;
-  padding: 28rpx 24rpx 40rpx;
+  padding: 28rpx 24rpx 60rpx;
 }
 
-.header {
-  padding: 16rpx 8rpx 10rpx;
+.card {
+  background: #fff;
+  border-radius: 22rpx;
+  overflow: hidden;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 18rpx;
 }
 
-.title {
-  font-size: 40rpx;
+.weui-cells_in-card {
+  margin-top: 0 !important;
+}
+
+.weui-cells_in-card:before,
+.weui-cells_in-card:after {
+  display: none;
+}
+
+.weui-cells_in-card .weui-cell:before {
+  left: 76rpx;
+}
+
+.icon-wrap {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  box-shadow: 0 10rpx 18rpx rgba(0, 0, 0, 0.08);
+}
+
+.icon-wishlist {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 60%, #059669 100%);
+}
+
+.icon-search {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 60%, #2563eb 100%);
+}
+
+.icon-privacy {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 60%, #7c3aed 100%);
+}
+
+.icon-personalize {
+  background: linear-gradient(135deg, #fb7185 0%, #f43f5e 60%, #e11d48 100%);
+}
+
+.icon-danger {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 60%, #dc2626 100%);
+}
+
+.cell-icon {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.danger-text {
+  color: #ef4444;
   font-weight: 700;
-  letter-spacing: 1rpx;
-  color: #111;
-}
-
-.sub {
-  margin-top: 8rpx;
 }
 
 .muted {
-  margin-top: 6rpx;
+  color: #888;
   font-size: 26rpx;
-  color: #999;
 }
 
 .modal-mask {
@@ -68,6 +114,32 @@
   text-align: center;
   font-size: 44rpx;
   color: #666;
+}
+
+.seg {
+  margin: 0 22rpx 10rpx;
+  background: #f3f4f6;
+  border-radius: 999rpx;
+  padding: 6rpx;
+  display: flex;
+  gap: 6rpx;
+}
+
+.seg-item {
+  flex: 1 1 0;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #6b7280;
+  border-radius: 999rpx;
+}
+
+.seg-item.active {
+  background: #fff;
+  color: #111;
+  font-weight: 700;
+  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.06);
 }
 
 .modal-search {
