@@ -63,7 +63,7 @@ Page({
     const confirm = await wx.showModal({
       title: '删除这本书？',
       content: '从书单移除即可，不影响其他记录',
-      confirmColor: '#fa5151',
+      confirmColor: '#C07D6B',
       confirmText: '删除'
     });
     if (!confirm.confirm) return;

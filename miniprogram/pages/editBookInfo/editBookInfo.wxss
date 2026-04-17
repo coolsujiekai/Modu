@@ -1,16 +1,16 @@
 .page {
   min-height: 100vh;
-  padding: 28rpx 24rpx 40rpx;
+  padding: 32rpx 32rpx 40rpx;
 }
 
 .label {
   width: 90rpx;
-  color: #666;
+  color: #8C8279;
   font-size: 28rpx;
 }
 
 .muted {
-  color: #999;
+  color: #8C8279;
 }
 
 .suggest-card {
@@ -34,8 +34,8 @@
   margin: 0 10rpx;
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  background: #D4C4A8;
+  color: #8B7355;
   font-weight: 600;
 }
 

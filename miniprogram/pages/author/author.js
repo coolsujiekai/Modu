@@ -51,7 +51,7 @@ Page({
       title: '删除这本书？',
       content: name ? `《${name}》将被删除，记录不可恢复。` : '该书将被删除，记录不可恢复。',
       confirmText: '删除',
-      confirmColor: '#e64340'
+      confirmColor: '#C07D6B'
     });
     if (!confirm) return;
 

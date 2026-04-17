@@ -28,7 +28,7 @@
         <view>{{item.title}}</view>
         <view class="muted">{{item.createdText}}</view>
       </view>
-      <view class="weui-cell__ft" style="color:#fa5151;" bindtap="remove" data-id="{{item._id}}">删除</view>
+      <view class="weui-cell__ft" style="color:#C07D6B;" bindtap="remove" data-id="{{item._id}}">删除</view>
     </view>
   </view>
 </view>

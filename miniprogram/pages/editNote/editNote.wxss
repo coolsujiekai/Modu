@@ -1,19 +1,20 @@
 .page {
-  background-color: #f5f5f5;
+  background-color: #FAF8F5;
   min-height: 100vh;
-  padding: 24rpx;
+  padding: 32rpx;
 }
 
 .card {
   background: #ffffff;
   border-radius: 20rpx;
   padding: 20rpx;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
+  box-shadow: none;
+  border: 1rpx solid #EDE8E0;
 }
 
 .hint {
   font-size: 26rpx;
-  color: #999;
+  color: #8C8279;
   margin-bottom: 16rpx;
 }
 

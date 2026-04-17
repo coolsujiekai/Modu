@@ -41,8 +41,8 @@
 }
 
 .book-cover {
-  width: 80rpx;
-  height: 120rpx;
+  width: 120rpx;
+  height: 80rpx;
   border-radius: 12rpx;
   background: #FAF8F5;
   margin-right: 18rpx;

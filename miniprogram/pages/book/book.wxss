@@ -1,10 +1,10 @@
 .page {
   min-height: 100vh;
-  padding: 28rpx 24rpx 40rpx;
+  padding: 32rpx 32rpx 40rpx;
 }
 
 .muted {
-  color: #999;
+  color: #8C8279;
   font-size: 26rpx;
 }
 
@@ -17,7 +17,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 18rpx;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
+  box-shadow: none;
+  border: 1rpx solid #EDE8E0;
 }
 
 .mini-card__left {
@@ -30,7 +31,8 @@
   background: #ffffff;
   border-radius: 20rpx;
   overflow: hidden;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
+  box-shadow: none;
+  border: 1rpx solid #EDE8E0;
 }
 
 .section-card__hd {
@@ -40,7 +42,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #111;
+  color: #2D2A26;
 }
 
 .section-sub {
@@ -53,10 +55,11 @@
 
 .note-input {
   width: 100%;
-  font-size: 30rpx;
+  font-size: 28rpx;
   line-height: 1.6;
-  background: rgba(16, 185, 129, 0.06);
-  border-radius: 16rpx;
+  background: #FAF8F5;
+  border-radius: 12rpx;
+  border: 1rpx solid #EDE8E0;
   padding: 16rpx;
   box-sizing: border-box;
 }
@@ -94,7 +97,7 @@
 
 .book-edit {
   flex: none;
-  color: #10b981;
+  color: #8B7355;
   font-size: 28rpx;
   font-weight: 700;
   padding: 6rpx 10rpx;
@@ -107,17 +110,17 @@
 }
 
 .btn-link {
-  color: #10b981;
+  color: #8B7355;
   font-size: 26rpx;
 }
 
 .btn-danger {
-  color: #fa5151;
+  color: #C07D6B;
   font-size: 26rpx;
 }
 
 .link {
-  color: #10b981;
+  color: #8B7355;
   font-weight: 600;
 }
 

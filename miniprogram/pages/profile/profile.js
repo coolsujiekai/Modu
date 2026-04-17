@@ -177,7 +177,7 @@ Page({
     const confirm = await wx.showModal({
       title: '清空书单？',
       content: '将删除你“书单”里的所有条目，此操作不可恢复。',
-      confirmColor: '#fa5151',
+      confirmColor: '#C07D6B',
       confirmText: '确认清空'
     });
     if (!confirm.confirm) return;
@@ -203,7 +203,7 @@ Page({
     const confirm1 = await wx.showModal({
       title: '⚠️ 清空所有数据',
       content: '将删除：在读、已读、书单、以及每本书的所有记录。不可恢复。',
-      confirmColor: '#fa5151',
+      confirmColor: '#C07D6B',
       confirmText: '继续'
     });
     if (!confirm1.confirm) return;
@@ -211,7 +211,7 @@ Page({
     const confirm2 = await wx.showModal({
       title: '最后确认',
       content: '真的要清空所有数据吗？建议先截图/复制重要内容备份。',
-      confirmColor: '#fa5151',
+      confirmColor: '#C07D6B',
       confirmText: '确认清空'
     });
     if (!confirm2.confirm) return;

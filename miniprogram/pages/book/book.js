@@ -164,7 +164,7 @@ Page({
     const confirm = await wx.showModal({
       title: '删除这条记录？',
       content: '删除后不可恢复',
-      confirmColor: '#fa5151',
+      confirmColor: '#C07D6B',
       confirmText: '删除'
     });
     if (!confirm.confirm) return;
