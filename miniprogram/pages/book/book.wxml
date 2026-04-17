@@ -1,0 +1,104 @@
+<view class="page">
+  <block wx:if="{{loading}}">
+    <view class="weui-msg">
+      <view class="weui-msg__icon-area"><text style="font-size: 80rpx;">⏳</text></view>
+      <view class="weui-msg__title">加载中</view>
+    </view>
+  </block>
+
+  <block wx:elif="{{!book}}">
+    <view class="weui-msg">
+      <view class="weui-msg__icon-area"><text style="font-size: 80rpx;">📚</text></view>
+      <view class="weui-msg__title">没找到这本书</view>
+      <view class="weui-msg__desc">可能已被删除或网络异常</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="weui-panel">
+      <view class="weui-panel__hd">📚 {{book.bookName}}</view>
+      <view class="weui-panel__bd">
+        <view class="weui-media-box weui-media-box_text">
+          <view class="weui-media-box__desc">
+            <text class="muted">状态：</text>
+            <text>{{book.status === 'finished' ? '已读' : '在读'}}</text>
+          </view>
+          <view class="weui-media-box__desc muted" style="margin-top: 10rpx;">
+            <text wx:if="{{startedText}}">开始读：{{startedText}}</text>
+            <text wx:if="{{book.status === 'finished' && finishedText}}">　｜　读完：{{finishedText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="mini-card">
+      <view class="mini-card__left muted">单本书复制更好整理</view>
+      <button class="weui-btn weui-btn_default weui-btn_mini" bindtap="copyAllForBook">复制本书内容</button>
+    </view>
+
+    <view class="section-card">
+      <view class="section-card__hd">
+        <view class="section-title">✍️ 心得体会</view>
+        <view class="section-sub muted">想到就记一段</view>
+      </view>
+      <view class="section-card__bd">
+        <textarea class="note-input" placeholder="写下你的心得…" value="{{thoughtText}}" bindinput="onThoughtInput" maxlength="2000" auto-height />
+        <view class="section-actions">
+          <button class="weui-btn weui-btn_primary" data-type="thought" bindtap="addNote">保存心得</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="weui-cells">
+      <block wx:if="{{thoughtNotes.length === 0}}">
+        <view class="weui-cell">
+          <view class="weui-cell__bd muted">还没有心得</view>
+        </view>
+      </block>
+      <view class="weui-cell" wx:for="{{thoughtNotes}}" wx:key="timestamp">
+        <view class="weui-cell__bd">
+          <view style="white-space: pre-wrap;">💭 {{item.text}}</view>
+          <view class="row-actions">
+            <text class="btn-link" bindtap="copyNote" data-text="{{item.text}}">复制</text>
+            <text class="btn-link" bindtap="editNote" data-ts="{{item.timestamp}}">编辑</text>
+            <text class="btn-danger" bindtap="deleteNote" data-ts="{{item.timestamp}}">删除</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-card">
+      <view class="section-card__hd">
+        <view class="section-title">✨ 喜欢的金句</view>
+        <view class="section-sub muted">收藏打动你的句子</view>
+      </view>
+      <view class="section-card__bd">
+        <textarea class="note-input" placeholder="记下一句打动你的话…" value="{{quoteText}}" bindinput="onQuoteInput" maxlength="500" auto-height />
+        <view class="section-actions">
+          <button class="weui-btn weui-btn_primary" data-type="quote" bindtap="addNote">添加金句</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="weui-cells">
+      <block wx:if="{{quoteNotes.length === 0}}">
+        <view class="weui-cell">
+          <view class="weui-cell__bd muted">还没有金句</view>
+        </view>
+      </block>
+      <view class="weui-cell" wx:for="{{quoteNotes}}" wx:key="timestamp">
+        <view class="weui-cell__bd">
+          <view style="white-space: pre-wrap;">📖 {{item.text}}</view>
+          <view class="row-actions">
+            <text class="btn-link" bindtap="copyNote" data-text="{{item.text}}">复制</text>
+            <text class="btn-link" bindtap="editNote" data-ts="{{item.timestamp}}">编辑</text>
+            <text class="btn-danger" bindtap="deleteNote" data-ts="{{item.timestamp}}">删除</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <button wx:if="{{book.status !== 'finished'}}" class="weui-btn weui-btn_warn" style="margin-top: 18rpx;" bindtap="finishReading">标记已读</button>
+  </block>
+</view>
+

@@ -1,19 +1,19 @@
-// app.js
 App({
-  onLaunch: function () {
-    this.globalData = {
-      // env 参数说明：
-      // env 参数决定接下来小程序发起的云开发调用（wx.cloud.xxx）会请求到哪个云环境的资源
-      // 此处请填入环境 ID, 环境 ID 可在微信开发者工具右上顶部工具栏点击云开发按钮打开获取
-      env: "",
-    };
-    if (!wx.cloud) {
-      console.error("请使用 2.2.3 或以上的基础库以使用云能力");
-    } else {
-      wx.cloud.init({
-        env: this.globalData.env,
-        traceUser: true,
-      });
-    }
+  onError(err) {
+    // 捕获脚本错误，便于定位“timeout”来源
+    console.error('[App.onError]', err);
   },
+
+  onUnhandledRejection(res) {
+    // 捕获未处理的 Promise rejection
+    console.error('[App.onUnhandledRejection]', res?.reason || res);
+  },
+
+  onLaunch: function () {
+    wx.cloud.init({
+      env: 'reading-log-6gz8yfff5189799d',   // 请替换为真实环境ID
+      traceUser: true
+    });
+    this.globalData = {};
+  }
 });

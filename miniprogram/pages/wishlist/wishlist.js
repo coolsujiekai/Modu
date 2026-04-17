@@ -1,0 +1,102 @@
+const db = wx.cloud.database();
+
+async function withRetry(fn) {
+  try {
+    return await fn();
+  } catch (e) {
+    const msg = e?.errMsg || '';
+    if (msg.includes('timeout')) {
+      await new Promise(r => setTimeout(r, 500));
+      return await fn();
+    }
+    throw e;
+  }
+}
+
+function formatDateTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${day} ${hh}:${mm}`;
+}
+
+Page({
+  data: {
+    items: []
+  },
+
+  onShow() {
+    this.load();
+  },
+
+  async load() {
+    wx.showLoading({ title: '加载中' });
+    try {
+      const res = await withRetry(() =>
+        db.collection('wishlist').orderBy('createdAt', 'desc').limit(50).get()
+      );
+      const items = (res.data || []).map(i => ({ ...i, createdText: formatDateTime(i.createdAt) }));
+      this.setData({ items });
+      wx.hideLoading();
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: '加载失败', icon: 'none' });
+    }
+  },
+
+  async addItem() {
+    const res = await wx.showModal({
+      title: '添加到书单',
+      content: ' ',
+      editable: true,
+      placeholderText: '输入书名（可加作者）'
+    });
+    if (!res.confirm) return;
+    const title = (res.content || '').trim();
+    if (!title) return;
+
+    wx.showLoading({ title: '保存中', mask: true });
+    try {
+      await db.collection('wishlist').add({
+        data: {
+          title,
+          createdAt: Date.now()
+        }
+      });
+      wx.hideLoading();
+      wx.showToast({ title: '已加入书单', icon: 'success', duration: 700 });
+      this.load();
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    }
+  },
+
+  async remove(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    const confirm = await wx.showModal({
+      title: '删除这本书？',
+      content: '从书单移除即可，不影响其他记录',
+      confirmColor: '#fa5151',
+      confirmText: '删除'
+    });
+    if (!confirm.confirm) return;
+
+    wx.showLoading({ title: '删除中', mask: true });
+    try {
+      await db.collection('wishlist').doc(id).remove();
+      wx.hideLoading();
+      wx.showToast({ title: '已删除', icon: 'success', duration: 700 });
+      this.load();
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: '删除失败', icon: 'none' });
+    }
+  }
+});
+

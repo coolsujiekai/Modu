@@ -1,0 +1,83 @@
+.page {
+  min-height: 100vh;
+  padding: 28rpx 24rpx 40rpx;
+}
+
+.muted {
+  color: #999;
+  font-size: 26rpx;
+}
+
+.mini-card {
+  margin-top: 16rpx;
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 18rpx 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
+}
+
+.mini-card__left {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-card {
+  margin-top: 16rpx;
+  background: #ffffff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
+}
+
+.section-card__hd {
+  padding: 18rpx 18rpx 0;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111;
+}
+
+.section-sub {
+  margin-top: 6rpx;
+}
+
+.section-card__bd {
+  padding: 14rpx 18rpx 18rpx;
+}
+
+.note-input {
+  width: 100%;
+  font-size: 30rpx;
+  line-height: 1.6;
+  background: rgba(16, 185, 129, 0.06);
+  border-radius: 16rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+}
+
+.section-actions {
+  margin-top: 14rpx;
+}
+
+.row-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.btn-link {
+  color: #10b981;
+  font-size: 26rpx;
+}
+
+.btn-danger {
+  color: #fa5151;
+  font-size: 26rpx;
+}
+

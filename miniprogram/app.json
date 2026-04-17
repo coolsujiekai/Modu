@@ -1,16 +1,36 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/example/index"
+    "pages/book/book",
+    "pages/editNote/editNote",
+    "pages/wishlist/wishlist",
+    "pages/history/history",
+    "pages/profile/profile"
   ],
   "window": {
-    "backgroundColor": "#F6F6F6",
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#F6F6F6",
-    "navigationBarTitleText": "云开发 QuickStart",
-    "navigationBarTextStyle": "black"
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "墨读",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f5f5"
   },
-  "sitemapLocation": "sitemap.json",
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#10b981",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "在读"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "已读"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "更多"
+      }
+    ]
+  },
   "style": "v2",
-  "lazyCodeLoading": "requiredComponents"
+  "sitemapLocation": "sitemap.json"
 }
