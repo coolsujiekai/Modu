@@ -65,6 +65,41 @@
   margin-top: 14rpx;
 }
 
+.section-actions--right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mini-action-btn {
+  border-radius: 999rpx;
+  padding: 0 28rpx;
+  font-size: 28rpx;
+}
+
+.book-panel {
+  position: relative;
+}
+
+.book-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.book-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.book-edit {
+  flex: none;
+  color: #10b981;
+  font-size: 28rpx;
+  font-weight: 700;
+  padding: 6rpx 10rpx;
+}
+
 .row-actions {
   display: flex;
   gap: 16rpx;

@@ -1,4 +1,5 @@
 const db = wx.cloud.database();
+const _ = db.command;
 
 async function withRetry(fn) {
   try {
@@ -196,15 +197,47 @@ Page({
   copyAllForBook() {
     const book = this.data.book;
     if (!book) return;
-    const notes = this.data.notes || [];
+    const author = (book.authorName || '未知作者').trim() || '未知作者';
+    const bookName = (book.bookName || '').trim() || '未命名';
+    const statusLine = book.status === 'finished' ? '我已读完。' : '我在读。';
+
+    const thoughtNotes = this.data.thoughtNotes || [];
+    const quoteNotes = this.data.quoteNotes || [];
+
     const lines = [];
-    lines.push(`《${book.bookName}》`);
-    if (book.status === 'finished' && book.endTime) lines.push(`完成：${formatDate(book.endTime)}`);
+    lines.push(`${author}写的《${bookName}》`);
+    lines.push(statusLine);
+
+    // Optional time info (concise)
+    const started = this.data.startedText || formatDate(book.startTime);
+    const finished = this.data.finishedText || formatDate(book.endTime);
+    if (started) lines.push(`开始：${started}`);
+    if (book.status === 'finished' && finished) lines.push(`读完：${finished}`);
+
     lines.push('');
-    notes.forEach(n => {
-      lines.push(`${n.type === 'quote' ? '📖' : '💭'} ${n.text}`);
-      lines.push('');
-    });
+    lines.push('我的心得体会：');
+    if (!thoughtNotes.length) {
+      lines.push('暂无');
+    } else {
+      thoughtNotes.forEach((n, idx) => {
+        const t = String(n.text || '').trim();
+        if (!t) return;
+        lines.push(`${idx + 1}. “${t}”`);
+      });
+    }
+
+    lines.push('');
+    lines.push('我特别喜欢的内容：');
+    if (!quoteNotes.length) {
+      lines.push('暂无');
+    } else {
+      quoteNotes.forEach((n, idx) => {
+        const t = String(n.text || '').trim();
+        if (!t) return;
+        lines.push(`${idx + 1}. “${t}”`);
+      });
+    }
+
     const text = lines.join('\n').trim();
 
     wx.setClipboardData({
@@ -219,9 +252,9 @@ Page({
     if (book.status === 'finished') return;
 
     const confirm = await wx.showModal({
-      title: '标记已读',
+      title: '标记已读完',
       content: '这本书读完啦？',
-      confirmText: '已读'
+      confirmText: '已读完'
     });
     if (!confirm.confirm) return;
 
@@ -244,6 +277,35 @@ Page({
       });
       wx.showToast({ title: '已标记已读', icon: 'success' });
     } catch (e) {
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    }
+  },
+
+  async markUnfinished() {
+    const book = this.data.book;
+    if (!book) return;
+    if (book.status !== 'finished') return;
+
+    const confirm = await wx.showModal({
+      title: '标记未读完',
+      content: '将这本书回到“在读”书架？',
+      confirmText: '确定'
+    });
+    if (!confirm.confirm) return;
+
+    wx.showLoading({ title: '保存中', mask: true });
+    try {
+      await db.collection('books').doc(book._id).update({
+        data: {
+          status: 'reading',
+          endTime: _.remove()
+        }
+      });
+      wx.hideLoading();
+      wx.showToast({ title: '已恢复在读', icon: 'success', duration: 800 });
+      this.loadBook();
+    } catch (e) {
+      wx.hideLoading();
       wx.showToast({ title: '保存失败', icon: 'none' });
     }
   }
