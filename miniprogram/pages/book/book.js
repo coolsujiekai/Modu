@@ -90,6 +90,12 @@ Page({
     wx.navigateTo({ url: `/pages/author/author?id=${id}&name=${encodeURIComponent(name)}` });
   },
 
+  editBookInfo() {
+    const bookId = this.data.bookId;
+    if (!bookId) return;
+    wx.navigateTo({ url: `/pages/editBookInfo/editBookInfo?id=${bookId}` });
+  },
+
   async addNote(e) {
     const type = e.currentTarget.dataset.type;
     const text = (type === 'quote' ? this.data.quoteText : this.data.thoughtText).trim();

@@ -9,7 +9,8 @@
     "pages/profile/profile",
     "pages/author/author",
     "pages/authorSearch/authorSearch",
-    "pages/bookSearch/bookSearch"
+    "pages/bookSearch/bookSearch",
+    "pages/editBookInfo/editBookInfo"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

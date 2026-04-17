@@ -40,6 +40,11 @@
       <button class="weui-btn weui-btn_default weui-btn_mini" bindtap="copyAllForBook">复制本书内容</button>
     </view>
 
+    <view class="mini-card">
+      <view class="mini-card__left muted">补全书名/作者，方便查询与统计</view>
+      <button class="weui-btn weui-btn_default weui-btn_mini" bindtap="editBookInfo">编辑书籍信息</button>
+    </view>
+
     <view class="section-card">
       <view class="section-card__hd">
         <view class="section-title">✍️ 心得体会</view>
