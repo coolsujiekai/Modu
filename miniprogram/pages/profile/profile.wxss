@@ -34,33 +34,39 @@
   justify-content: center;
   margin-right: 16rpx;
   box-shadow: none;
-  background: #FAF8F5;
-  border: 1rpx solid #EDE8E0;
+  background: #D4C4A8;
+  border: 1rpx solid #D4C4A8;
 }
 
 .icon-wishlist {
-  background: #FAF8F5;
+  background: #D4C4A8;
 }
 
 .icon-search {
-  background: #FAF8F5;
+  background: #D4C4A8;
 }
 
 .icon-privacy {
-  background: #FAF8F5;
+  background: #D4C4A8;
 }
 
 .icon-personalize {
-  background: #FAF8F5;
+  background: #D4C4A8;
 }
 
 .icon-danger {
-  background: #FAF8F5;
+  background: #C07D6B;
+  border-color: #C07D6B;
 }
 
 .cell-icon {
   width: 30rpx;
   height: 30rpx;
+}
+
+[data-weui-theme="dark"] .icon-wrap {
+  background: #4a433c;
+  border-color: #3f3a34;
 }
 
 .danger-text {
