@@ -1,7 +1,7 @@
 <view class="page">
   <view class="card">
-    <view class="h1">个性化显示（可选）</view>
-    <view class="p muted">用于在本机显示头像与昵称，不影响书架、笔记与书单功能。</view>
+    <view class="h1">个性化设置</view>
+    <view class="p muted">在本机显示头像与昵称，不影响书架与笔记。</view>
   </view>
 
   <view class="card">
@@ -30,8 +30,7 @@
 
   <view class="card">
     <view class="h2">说明</view>
-    <view class="p">- 开启时将通过微信能力获取你的头像与昵称，用于本小程序内的个性化展示。</view>
-    <view class="p">- 你可以随时关闭；关闭会清除本机保存的头像与昵称。</view>
+    <view class="p muted">开启时获取头像与昵称；关闭即清除本机保存。</view>
   </view>
 </view>
 

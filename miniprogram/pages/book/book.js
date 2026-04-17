@@ -1,27 +1,5 @@
-const db = wx.cloud.database();
-const _ = db.command;
-
-async function withRetry(fn) {
-  try {
-    return await fn();
-  } catch (e) {
-    const msg = e?.errMsg || '';
-    if (msg.includes('timeout')) {
-      await new Promise(r => setTimeout(r, 500));
-      return await fn();
-    }
-    throw e;
-  }
-}
-
-function formatDate(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+import { db, _, withRetry } from '../../utils/db.js';
+import { formatDate } from '../../utils/util.js';
 
 Page({
   data: {
@@ -34,7 +12,9 @@ Page({
     thoughtText: '',
     quoteText: '',
     startedText: '',
-    finishedText: ''
+    finishedText: '',
+    thoughtCount: 0,
+    quoteCount: 0
   },
 
   onLoad(options) {
@@ -67,17 +47,31 @@ Page({
       const notes = Array.isArray(book.notes) ? book.notes : [];
       const thoughtNotes = notes.filter(n => n.type === 'thought');
       const quoteNotes = notes.filter(n => n.type === 'quote');
+      const thoughtCount = thoughtNotes.length;
+      const quoteCount = quoteNotes.length;
 
       this.setData({
         loading: false,
-        book: book,
+        book: { ...book, thoughtCount, quoteCount },
         notes: notes,
         thoughtNotes: thoughtNotes,
         quoteNotes: quoteNotes,
+        thoughtCount,
+        quoteCount,
         startedText: formatDate(book.startTime),
         finishedText: formatDate(book.endTime)
       });
       wx.setNavigationBarTitle({ title: `翻书随手记 · ${book.bookName}` });
+
+      if (
+        notes.length > 0 &&
+        (book.thoughtCount !== thoughtCount || book.quoteCount !== quoteCount)
+      ) {
+        db.collection('books')
+          .doc(bookId)
+          .update({ data: { thoughtCount, quoteCount } })
+          .catch(() => {});
+      }
     } catch (e) {
       this.setData({ loading: false, book: null });
       wx.showToast({ title: '加载失败', icon: 'none' });
@@ -117,13 +111,17 @@ Page({
     });
 
     try {
+      const thoughtCount = newNotes.filter(n => n.type === 'thought').length;
+      const quoteCount = newNotes.filter(n => n.type === 'quote').length;
       await db.collection('books').doc(this.data.book._id).update({
         data: {
           notes: newNotes,
-          notesCount: newNotes.length
+          notesCount: newNotes.length,
+          thoughtCount,
+          quoteCount
         }
       });
-      const updatedBook = { ...this.data.book, notes: newNotes, notesCount: newNotes.length };
+      const updatedBook = { ...this.data.book, notes: newNotes, notesCount: newNotes.length, thoughtCount, quoteCount };
       this.setData({
         book: updatedBook,
         thoughtNotes: newNotes.filter(n => n.type === 'thought'),
@@ -176,13 +174,17 @@ Page({
     this.setData({ notes: newNotes });
 
     try {
+      const thoughtCount = newNotes.filter(n => n.type === 'thought').length;
+      const quoteCount = newNotes.filter(n => n.type === 'quote').length;
       await db.collection('books').doc(this.data.book._id).update({
         data: {
           notes: newNotes,
-          notesCount: newNotes.length
+          notesCount: newNotes.length,
+          thoughtCount,
+          quoteCount
         }
       });
-      const updatedBook = { ...this.data.book, notes: newNotes, notesCount: newNotes.length };
+      const updatedBook = { ...this.data.book, notes: newNotes, notesCount: newNotes.length, thoughtCount, quoteCount };
       this.setData({
         book: updatedBook,
         thoughtNotes: newNotes.filter(n => n.type === 'thought'),

@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "search-modal": "../../components/search-modal/index"
+  },
   "navigationBarTitleText": "翻书随手记 · 更多功能"
 }

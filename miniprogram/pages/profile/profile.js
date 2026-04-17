@@ -1,18 +1,6 @@
 import { normalizeAuthorName } from '../../utils/author';
-
-const db = wx.cloud.database();
-
-function debounce(fn, wait) {
-  let t = null;
-  return function (...args) {
-    if (t) clearTimeout(t);
-    t = setTimeout(() => fn.apply(this, args), wait);
-  };
-}
-
-function escapeRegExp(s) {
-  return String(s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+import { db, withOpenIdFilter } from '../../utils/db.js';
+import { debounce, escapeRegExp, highlightText } from '../../utils/util.js';
 
 Page({
   data: {
@@ -74,7 +62,7 @@ Page({
   },
 
   switchSearchType(e) {
-    const type = e?.currentTarget?.dataset?.type;
+    const type = e?.detail?.type || e?.currentTarget?.dataset?.type;
     if (type !== 'book' && type !== 'author') return;
     if (type === this.data.searchType) return;
     this.setData({
@@ -103,11 +91,15 @@ Page({
         const regContain = db.RegExp({ regexp: escapeRegExp(q), options: 'i' });
         const res = await db
           .collection('books')
-          .where({ bookName: regContain })
+          .where(withOpenIdFilter({ bookName: regContain }))
           .limit(50)
           .field({ notes: false })
           .get();
-        this.setData({ searchResults: res.data || [], searchLoading: false });
+        const results = (res.data || []).map(b => ({
+          ...b,
+          highlightedTitle: highlightText(b.bookName || '', q)
+        }));
+        this.setData({ searchResults: results, searchLoading: false });
         return;
       }
 
@@ -119,8 +111,8 @@ Page({
       const regPrefix = db.RegExp({ regexp: `^${escapeRegExp(qNorm)}`, options: '' });
       const regContain = db.RegExp({ regexp: escapeRegExp(q), options: 'i' });
       const [byNorm, byName] = await Promise.all([
-        db.collection('authors').where({ nameNorm: regPrefix }).limit(50).get(),
-        db.collection('authors').where({ name: regContain }).limit(50).get()
+        db.collection('authors').where(withOpenIdFilter({ nameNorm: regPrefix })).limit(50).get(),
+        db.collection('authors').where(withOpenIdFilter({ name: regContain })).limit(50).get()
       ]);
 
       const seen = new Set();
@@ -132,22 +124,27 @@ Page({
         merged.push(it);
         if (merged.length >= 50) break;
       }
-      this.setData({ searchResults: merged, searchLoading: false });
+      const results = merged.map(it => ({
+        ...it,
+        highlightedTitle: highlightText(it.name || '', q)
+      }));
+      this.setData({ searchResults: results, searchLoading: false });
     } catch (e) {
       this.setData({ searchResults: [], searchLoading: false });
     }
   },
 
   onPickResult(e) {
-    const id = e?.currentTarget?.dataset?.id;
+    const dataset = e?.currentTarget?.dataset || e?.detail || {};
+    const id = dataset.id;
     if (!id) return;
-    const type = e?.currentTarget?.dataset?.type;
+    const type = dataset.type;
     if (type === 'book') {
       this.closeSearch();
       wx.navigateTo({ url: `/pages/book/book?id=${id}` });
       return;
     }
-    const name = e?.currentTarget?.dataset?.name || '';
+    const name = dataset.name || '';
     this.closeSearch();
     wx.navigateTo({ url: `/pages/author/author?id=${id}&name=${encodeURIComponent(name)}` });
   },
@@ -187,9 +184,9 @@ Page({
 
     wx.showLoading({ title: '清空中', mask: true });
     try {
-      // 分页删除（每次最多20条）
+      // 分页删除（每次最多20条），使用 openid 过滤确保仅清理当前用户数据
       while (true) {
-        const res = await db.collection('wishlist').limit(20).get();
+        const res = await db.collection('wishlist').where(withOpenIdFilter({})).limit(20).get();
         const items = res.data || [];
         if (items.length === 0) break;
         await Promise.all(items.map(it => db.collection('wishlist').doc(it._id).remove()));
@@ -223,14 +220,14 @@ Page({
     try {
       // 清空 books
       while (true) {
-        const res = await db.collection('books').limit(20).get();
+        const res = await db.collection('books').where(withOpenIdFilter({})).limit(20).get();
         const items = res.data || [];
         if (items.length === 0) break;
         await Promise.all(items.map(it => db.collection('books').doc(it._id).remove()));
       }
       // 清空 wishlist
       while (true) {
-        const res = await db.collection('wishlist').limit(20).get();
+        const res = await db.collection('wishlist').where(withOpenIdFilter({})).limit(20).get();
         const items = res.data || [];
         if (items.length === 0) break;
         await Promise.all(items.map(it => db.collection('wishlist').doc(it._id).remove()));

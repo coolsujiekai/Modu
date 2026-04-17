@@ -1,13 +1,5 @@
-const db = wx.cloud.database();
-
-function formatDate(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+import { db, withOpenIdFilter } from '../../utils/db.js';
+import { formatDate } from '../../utils/util.js';
 
 Page({
   data: {
@@ -110,14 +102,14 @@ Page({
       const [readingRes, finishedRes] = await Promise.all([
         db
           .collection('books')
-          .where({ authorId, status: 'reading' })
+          .where(withOpenIdFilter({ authorId, status: 'reading' }))
           .orderBy('startTime', 'desc')
           .limit(50)
           .field({ notes: false })
           .get(),
         db
           .collection('books')
-          .where({ authorId, status: 'finished' })
+          .where(withOpenIdFilter({ authorId, status: 'finished' }))
           .orderBy('endTime', 'desc')
           .limit(50)
           .field({ notes: false })

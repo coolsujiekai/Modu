@@ -31,8 +31,8 @@
   </view>
 
   <view class="card">
-    <view class="h2">5. 个性化显示（可选）</view>
-    <view class="p">- 你可以选择开启“头像 / 昵称”用于本地个性化显示。</view>
+    <view class="h2">5. 个性化设置</view>
+    <view class="p">- 你可以选择开启「头像 / 昵称」用于本地展示。</view>
     <view class="p muted">开启时会在使用当次单独征求你的授权；拒绝不影响核心功能。</view>
   </view>
 

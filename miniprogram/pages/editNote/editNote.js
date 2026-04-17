@@ -1,17 +1,4 @@
-const db = wx.cloud.database();
-
-async function withRetry(fn) {
-  try {
-    return await fn();
-  } catch (e) {
-    const msg = e?.errMsg || '';
-    if (msg.includes('timeout')) {
-      await new Promise(r => setTimeout(r, 500));
-      return await fn();
-    }
-    throw e;
-  }
-}
+import { db, withRetry } from '../../utils/db.js';
 
 Page({
   data: {
@@ -59,8 +46,17 @@ Page({
         return;
       }
       notes[idx] = { ...notes[idx], text };
+      const thoughtCount = notes.filter(n => n.type === 'thought').length;
+      const quoteCount = notes.filter(n => n.type === 'quote').length;
 
-      await db.collection('books').doc(bookId).update({ data: { notes } });
+      await db.collection('books').doc(bookId).update({ 
+        data: { 
+          notes, 
+          notesCount: notes.length,
+          thoughtCount,
+          quoteCount 
+        } 
+      });
       wx.showToast({ title: '已保存', icon: 'success', duration: 700 });
       wx.navigateBack();
     } catch (e) {

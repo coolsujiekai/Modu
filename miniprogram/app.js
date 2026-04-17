@@ -15,5 +15,26 @@ App({
       traceUser: true
     });
     this.globalData = {};
+
+    // Fetch openid for client-side security filtering (defense in depth)
+    // Note: Requires cloud function `quickstartFunctions` to be deployed
+    const fetchOpenId = () => {
+      wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: { type: 'getOpenId' },
+        success: (res) => {
+          if (res.result?.openid) {
+            this.globalData.openid = res.result.openid;
+            console.log('[App] openid loaded successfully:', res.result.openid.substring(0, 8) + '...');
+          }
+        },
+        fail: (err) => {
+          console.warn('[App] failed to get openid (cloud function may not be deployed yet):', err.errMsg || err);
+          // Non-fatal: security rules still protect data. User should deploy cloud function.
+        }
+      });
+    };
+
+    fetchOpenId();
   }
 });

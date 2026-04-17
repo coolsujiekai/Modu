@@ -1,14 +1,6 @@
 import { normalizeAuthorName, buildAuthorTokens } from '../../utils/author';
-
-const db = wx.cloud.database();
-
-function debounce(fn, wait) {
-  let t = null;
-  return function (...args) {
-    if (t) clearTimeout(t);
-    t = setTimeout(() => fn.apply(this, args), wait);
-  };
-}
+import { db, withOpenIdFilter } from '../../utils/db.js';
+import { debounce, escapeRegExp } from '../../utils/util.js';
 
 Page({
   data: {
@@ -47,8 +39,8 @@ Page({
       const regContain = db.RegExp({ regexp: escapeRegExp(q), options: 'i' });
 
       const [byNorm, byName] = await Promise.all([
-        db.collection('authors').where({ nameNorm: regPrefix }).limit(10).get(),
-        db.collection('authors').where({ name: regContain }).limit(10).get()
+        db.collection('authors').where(withOpenIdFilter({ nameNorm: regPrefix })).limit(10).get(),
+        db.collection('authors').where(withOpenIdFilter({ name: regContain })).limit(10).get()
       ]);
 
       const merged = [];
@@ -99,7 +91,7 @@ Page({
       if (!authorNorm) throw new Error('invalid author');
 
       // Strict: if exact normalized match exists, strongly prefer it even if user typed.
-      const exactRes = await db.collection('authors').where({ nameNorm: authorNorm }).limit(1).get();
+      const exactRes = await db.collection('authors').where(withOpenIdFilter({ nameNorm: authorNorm })).limit(1).get();
       if (exactRes.data && exactRes.data[0]) {
         const a = exactRes.data[0];
         author = { _id: a._id, name: a.name, nameNorm: a.nameNorm };
@@ -130,6 +122,8 @@ Page({
           status: 'reading',
           notes: [],
           notesCount: 0,
+          thoughtCount: 0,
+          quoteCount: 0,
           durationMin: 0
         }
       });
@@ -151,8 +145,4 @@ Page({
     wx.navigateBack();
   }
 });
-
-function escapeRegExp(s) {
-  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 

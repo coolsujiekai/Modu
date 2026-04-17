@@ -61,7 +61,7 @@ Page({
 
   async disable() {
     const { confirm } = await wx.showModal({
-      title: '关闭个性化显示？',
+      title: '关闭头像与昵称？',
       content: '将清除本机保存的头像与昵称，不影响你的阅读数据。',
       confirmText: '关闭',
     });

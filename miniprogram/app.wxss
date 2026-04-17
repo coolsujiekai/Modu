@@ -23,3 +23,96 @@ page {
 .weui-cells {
   margin-top: 16rpx;
 }
+
+/* 深色模式支持 (配合 app.json 的 darkmode: true 和系统 prefers-color-scheme) 
+   WeUI 已内置 [data-weui-theme="dark"] 支持，下面是自定义样式增强 */
+[data-weui-theme="dark"] page,
+[data-weui-theme="dark"] .page {
+  background-color: #111827;
+}
+
+[data-weui-theme="dark"] .card,
+[data-weui-theme="dark"] .weui-panel,
+[data-weui-theme="dark"] .weui-cells,
+[data-weui-theme="dark"] .modal,
+[data-weui-theme="dark"] .weui-msg {
+  background: #1f2937;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.4);
+}
+
+[data-weui-theme="dark"] .weui-cell {
+  background: #1f2937;
+}
+
+[data-weui-theme="dark"] .h1,
+[data-weui-theme="dark"] .h2,
+[data-weui-theme="dark"] .label,
+[data-weui-theme="dark"] .name,
+[data-weui-theme="dark"] .result-title,
+[data-weui-theme="dark"] .empty-title,
+[data-weui-theme="dark"] .modal-title,
+[data-weui-theme="dark"] .section-title,
+[data-weui-theme="dark"] .hero-title,
+[data-weui-theme="dark"] .cell-title {
+  color: #f3f4f6;
+}
+
+[data-weui-theme="dark"] .p,
+[data-weui-theme="dark"] .muted,
+[data-weui-theme="dark"] .weui-media-box__desc,
+[data-weui-theme="dark"] .empty-desc,
+[data-weui-theme="dark"] .result-sub,
+[data-weui-theme="dark"] .hero-sub,
+[data-weui-theme="dark"] .book-meta {
+  color: #9ca3af;
+}
+
+/* Stats panel specific (the green bold text should stay vibrant in dark mode) */
+[data-weui-theme="dark"] .stats-text {
+  color: #34d399 !important;
+}
+
+[data-weui-theme="dark"] .modal {
+  background: #1f2937;
+  box-shadow: 0 -12rpx 40rpx rgba(0, 0, 0, 0.5);
+}
+
+[data-weui-theme="dark"] .modal-input,
+[data-weui-theme="dark"] .seg {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+[data-weui-theme="dark"] .seg-item {
+  color: #9ca3af;
+}
+
+[data-weui-theme="dark"] .seg-item.active {
+  background: #4b5563;
+  color: #f3f4f6;
+  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.3);
+}
+
+[data-weui-theme="dark"] .result-item:active,
+[data-weui-theme="dark"] .weui-cell_access:active {
+  background: #374151;
+}
+
+[data-weui-theme="dark"] .highlight {
+  color: #34d399;
+  background-color: #064e3b;
+}
+
+[data-weui-theme="dark"] .weui-btn_primary {
+  background-color: #10b981 !important;
+}
+
+[data-weui-theme="dark"] .weui-btn_default {
+  background-color: #4b5563 !important;
+  color: #f3f4f6;
+}
+
+/* 空状态和加载图标适配 */
+[data-weui-theme="dark"] .weui-msg__icon-area text {
+  filter: brightness(1.2);
+}

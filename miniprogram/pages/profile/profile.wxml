@@ -58,61 +58,18 @@
   </view>
 </view>
 
-<!-- Half-screen search modal -->
-<view class="modal-mask" wx:if="{{searchVisible}}" catchtap="closeSearch"></view>
-<view class="modal" wx:if="{{searchVisible}}">
-  <view class="modal-header">
-    <view class="modal-title">{{searchTitle}}</view>
-    <view class="modal-close" catchtap="closeSearch">×</view>
-  </view>
-
-  <view class="seg">
-    <view class="seg-item {{searchType === 'book' ? 'active' : ''}}" catchtap="switchSearchType" data-type="book">书名</view>
-    <view class="seg-item {{searchType === 'author' ? 'active' : ''}}" catchtap="switchSearchType" data-type="author">作家</view>
-  </view>
-
-  <view class="modal-search">
-    <input
-      class="modal-input"
-      value="{{searchQuery}}"
-      placeholder="{{searchPlaceholder}}"
-      placeholder-class="placeholder"
-      confirm-type="search"
-      bindinput="onSearchInput"
-      bindconfirm="onSearchConfirm"
-      focus="{{true}}"
-    />
-    <view class="modal-clear" wx:if="{{searchQuery}}" catchtap="clearSearch">清空</view>
-  </view>
-
-  <view class="modal-body">
-    <view class="loading muted" wx:if="{{searchLoading}}">搜索中…</view>
-
-    <scroll-view scroll-y class="result-list" wx:if="{{!searchLoading && searchResults.length}}">
-      <view
-        class="result-item"
-        wx:for="{{searchResults}}"
-        wx:key="_id"
-        catchtap="onPickResult"
-        data-id="{{item._id}}"
-        data-type="{{searchType}}"
-        data-name="{{item.name}}"
-      >
-        <view class="result-title">
-          <text wx:if="{{searchType === 'book'}}">{{item.bookName}}</text>
-          <text wx:if="{{searchType === 'author'}}">{{item.name}}</text>
-        </view>
-        <view class="result-sub muted" wx:if="{{searchType === 'book'}}">
-          <text wx:if="{{item.authorName}}">{{item.authorName}} · </text>
-          <text>{{item.status === 'finished' ? '已读' : '在读'}}</text>
-        </view>
-      </view>
-    </scroll-view>
-
-    <view class="empty" wx:if="{{!searchLoading && searchQuery && !searchResults.length}}">
-      <view class="empty-icon">🔎</view>
-      <view class="empty-title">没有找到</view>
-      <view class="empty-desc muted">换个关键词试试</view>
-    </view>
-  </view>
-</view>
+<search-modal
+  visible="{{searchVisible}}"
+  search-type="{{searchType}}"
+  title="{{searchTitle}}"
+  placeholder="{{searchPlaceholder}}"
+  query="{{searchQuery}}"
+  loading="{{searchLoading}}"
+  results="{{searchResults}}"
+  bind:input="onSearchInput"
+  bind:confirm="onSearchConfirm"
+  bind:clear="clearSearch"
+  bind:switchtype="switchSearchType"
+  bind:pick="onPickResult"
+  bind:close="closeSearch"
+/>

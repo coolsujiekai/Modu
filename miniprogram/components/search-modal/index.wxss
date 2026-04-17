@@ -1,75 +1,3 @@
-.page {
-  min-height: 100vh;
-  padding: 28rpx 24rpx 60rpx;
-}
-
-.card {
-  background: #fff;
-  border-radius: 22rpx;
-  overflow: hidden;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
-  margin-bottom: 18rpx;
-}
-
-.weui-cells_in-card {
-  margin-top: 0 !important;
-}
-
-.weui-cells_in-card:before,
-.weui-cells_in-card:after {
-  display: none;
-}
-
-.weui-cells_in-card .weui-cell:before {
-  left: 76rpx;
-}
-
-.icon-wrap {
-  width: 52rpx;
-  height: 52rpx;
-  border-radius: 16rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16rpx;
-  box-shadow: 0 10rpx 18rpx rgba(0, 0, 0, 0.08);
-}
-
-.icon-wishlist {
-  background: linear-gradient(135deg, #34d399 0%, #10b981 60%, #059669 100%);
-}
-
-.icon-search {
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 60%, #2563eb 100%);
-}
-
-.icon-privacy {
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 60%, #7c3aed 100%);
-}
-
-.icon-personalize {
-  background: linear-gradient(135deg, #fb7185 0%, #f43f5e 60%, #e11d48 100%);
-}
-
-.icon-danger {
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 60%, #dc2626 100%);
-}
-
-.cell-icon {
-  width: 30rpx;
-  height: 30rpx;
-}
-
-.danger-text {
-  color: #ef4444;
-  font-weight: 700;
-}
-
-.muted {
-  color: #888;
-  font-size: 26rpx;
-}
-
 .modal-mask {
   position: fixed;
   left: 0;
@@ -199,21 +127,6 @@
   color: #111;
 }
 
-.result-title rich-text {
-  display: inline-block;
-  font-size: inherit;
-  font-weight: inherit;
-  color: inherit;
-}
-
-.highlight {
-  color: #10b981;
-  background-color: #ecfdf5;
-  padding: 1rpx 6rpx;
-  border-radius: 4rpx;
-  font-weight: 700;
-}
-
 .result-sub {
   margin-top: 8rpx;
   font-size: 26rpx;
@@ -238,4 +151,9 @@
 
 .empty-desc {
   margin-top: 8rpx;
+}
+
+.muted {
+  color: #888;
+  font-size: 26rpx;
 }

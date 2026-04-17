@@ -1,38 +1,5 @@
-const db = wx.cloud.database();
-
-async function withRetry(fn) {
-  try {
-    return await fn();
-  } catch (e) {
-    const msg = e?.errMsg || '';
-    if (msg.includes('timeout')) {
-      await new Promise(r => setTimeout(r, 500));
-      return await fn();
-    }
-    throw e;
-  }
-}
-
-async function traced(label, fn) {
-  const start = Date.now();
-  try {
-    const res = await fn();
-    console.log(`[ok] ${label} ${Date.now() - start}ms`);
-    return res;
-  } catch (e) {
-    console.error(`[fail] ${label} ${Date.now() - start}ms`, e);
-    throw e;
-  }
-}
-
-function formatDate(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
+import { formatDate } from '../../utils/util.js';
 
 Page({
   data: {
@@ -123,7 +90,7 @@ Page({
           withRetry(() =>
             db
               .collection('books')
-              .where({ status: 'reading' })
+              .where(withOpenIdFilter({ status: 'reading' }))
               .orderBy('startTime', 'desc')
               .limit(50)
               .field({ notes: false })
@@ -140,7 +107,7 @@ Page({
           withRetry(() =>
             db
               .collection('books')
-              .where({ status: 'reading' })
+              .where(withOpenIdFilter({ status: 'reading' }))
               .limit(50)
               .field({ notes: false })
               .get()

@@ -34,6 +34,9 @@
             <text wx:if="{{startedText}}">开始读：{{startedText}}</text>
             <text wx:if="{{book.status === 'finished' && finishedText}}">　｜　读完：{{finishedText}}</text>
           </view>
+          <view class="weui-media-box__desc muted">
+            灵感 {{thoughtCount}} 条 · 金句 {{quoteCount}} 条
+          </view>
         </view>
       </view>
     </view>

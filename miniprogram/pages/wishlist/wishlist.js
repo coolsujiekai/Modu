@@ -1,28 +1,5 @@
-const db = wx.cloud.database();
-
-async function withRetry(fn) {
-  try {
-    return await fn();
-  } catch (e) {
-    const msg = e?.errMsg || '';
-    if (msg.includes('timeout')) {
-      await new Promise(r => setTimeout(r, 500));
-      return await fn();
-    }
-    throw e;
-  }
-}
-
-function formatDateTime(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${y}-${m}-${day} ${hh}:${mm}`;
-}
+import { db, withRetry, withOpenIdFilter } from '../../utils/db.js';
+import { formatDateTime } from '../../utils/util.js';
 
 Page({
   data: {
@@ -37,7 +14,11 @@ Page({
     wx.showLoading({ title: '加载中' });
     try {
       const res = await withRetry(() =>
-        db.collection('wishlist').orderBy('createdAt', 'desc').limit(50).get()
+        db.collection('wishlist')
+          .where(withOpenIdFilter({}))
+          .orderBy('createdAt', 'desc')
+          .limit(50)
+          .get()
       );
       const items = (res.data || []).map(i => ({ ...i, createdText: formatDateTime(i.createdAt) }));
       this.setData({ items });

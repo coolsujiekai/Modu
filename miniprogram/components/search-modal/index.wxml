@@ -1,0 +1,56 @@
+<view class="modal-mask" wx:if="{{visible}}" catchtap="closeSearch"></view>
+<view class="modal" wx:if="{{visible}}">
+  <view class="modal-header">
+    <view class="modal-title">{{title}}</view>
+    <view class="modal-close" catchtap="closeSearch">×</view>
+  </view>
+
+  <view class="seg">
+    <view class="seg-item {{searchType === 'book' ? 'active' : ''}}" catchtap="switchSearchType" data-type="book">书名</view>
+    <view class="seg-item {{searchType === 'author' ? 'active' : ''}}" catchtap="switchSearchType" data-type="author">作家</view>
+  </view>
+
+  <view class="modal-search">
+    <input
+      class="modal-input"
+      value="{{query}}"
+      placeholder="{{placeholder}}"
+      placeholder-class="placeholder"
+      confirm-type="search"
+      bindinput="onSearchInput"
+      bindconfirm="onSearchConfirm"
+      focus="{{true}}"
+    />
+    <view class="modal-clear" wx:if="{{query}}" catchtap="clearSearch">清空</view>
+  </view>
+
+  <view class="modal-body">
+    <view class="loading muted" wx:if="{{loading}}">搜索中…</view>
+
+    <scroll-view scroll-y class="result-list" wx:if="{{!loading && results.length}}">
+      <view
+        class="result-item"
+        wx:for="{{results}}"
+        wx:key="_id"
+        catchtap="onPickResult"
+        data-id="{{item._id}}"
+        data-type="{{searchType}}"
+        data-name="{{item.name}}"
+      >
+        <view class="result-title">
+          <rich-text nodes="{{item.highlightedTitle || (searchType === 'book' ? item.bookName : item.name)}}" />
+        </view>
+        <view class="result-sub muted" wx:if="{{searchType === 'book'}}">
+          <text wx:if="{{item.authorName}}">{{item.authorName}} · </text>
+          <text>{{item.status === 'finished' ? '已读' : '在读'}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="empty" wx:if="{{!loading && query && !results.length}}">
+      <view class="empty-icon">🔎</view>
+      <view class="empty-title">没有找到</view>
+      <view class="empty-desc muted">换个关键词试试</view>
+    </view>
+  </view>
+</view>

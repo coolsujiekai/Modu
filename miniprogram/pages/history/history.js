@@ -1,50 +1,20 @@
-const db = wx.cloud.database();
-
-async function withRetry(fn) {
-  try {
-    return await fn();
-  } catch (e) {
-    const msg = e?.errMsg || '';
-    if (msg.includes('timeout')) {
-      await new Promise(r => setTimeout(r, 500));
-      return await fn();
-    }
-    throw e;
-  }
-}
-
-async function traced(label, fn) {
-  const start = Date.now();
-  try {
-    const res = await fn();
-    console.log(`[ok] ${label} ${Date.now() - start}ms`);
-    return res;
-  } catch (e) {
-    console.error(`[fail] ${label} ${Date.now() - start}ms`, e);
-    throw e;
-  }
-}
-
-function formatDate(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
+import { formatDate, countNoteTypes } from '../../utils/util.js';
 
 Page({
   data: {
     groupedBooks: [],
     readingCount: 0,
     finishedCount: 0,
+    totalThoughts: 0,
+    totalQuotes: 0,
     openSlideId: null
   },
 
   onShow() {
     this.loadOverview();
     this.loadFinishedBooks();
+    this.loadStats();
   },
 
   onPageTap() {
@@ -85,7 +55,7 @@ Page({
       wx.hideLoading();
       this.setData({ openSlideId: null });
       wx.showToast({ title: '已删除', icon: 'success', duration: 800 });
-      await Promise.all([this.loadOverview(), this.loadFinishedBooks()]);
+      await Promise.all([this.loadOverview(), this.loadFinishedBooks(), this.loadStats()]);
     } catch (err) {
       wx.hideLoading();
       wx.showModal({
@@ -104,8 +74,8 @@ Page({
   async loadOverview() {
     try {
       const [readingRes, finishedRes] = await Promise.all([
-        traced('books.reading.count', () => withRetry(() => db.collection('books').where({ status: 'reading' }).count())),
-        traced('books.finished.count', () => withRetry(() => db.collection('books').where({ status: 'finished' }).count()))
+        traced('books.reading.count', () => withRetry(() => db.collection('books').where(withOpenIdFilter({ status: 'reading' })).count())),
+        traced('books.finished.count', () => withRetry(() => db.collection('books').where(withOpenIdFilter({ status: 'finished' })).count()))
       ]);
       this.setData({
         readingCount: readingRes.total || 0,
@@ -116,6 +86,75 @@ Page({
     }
   },
 
+  sumNoteStatsFromBooks(books) {
+    let totalThoughts = 0;
+    let totalQuotes = 0;
+    (books || []).forEach(b => {
+      if (Array.isArray(b.notes) && b.notes.length > 0) {
+        const { thoughtCount, quoteCount } = countNoteTypes(b.notes);
+        totalThoughts += thoughtCount;
+        totalQuotes += quoteCount;
+      } else {
+        totalThoughts += Number(b.thoughtCount || 0);
+        totalQuotes += Number(b.quoteCount || 0);
+      }
+    });
+    return { totalThoughts, totalQuotes };
+  },
+
+  async loadStats() {
+    try {
+      let totalThoughts = 0;
+      let totalQuotes = 0;
+      const batchSize = 100;
+      let skip = 0;
+      try {
+        while (true) {
+          const res = await traced(`books.stats(skip=${skip})`, () =>
+            withRetry(() =>
+              db
+                .collection('books')
+                .where(withOpenIdFilter({}))
+                .orderBy('_id', 'asc')
+                .field({ notes: true, thoughtCount: true, quoteCount: true })
+                .skip(skip)
+                .limit(batchSize)
+                .get()
+            )
+          );
+          const books = res.data || [];
+          if (books.length === 0) break;
+          const part = this.sumNoteStatsFromBooks(books);
+          totalThoughts += part.totalThoughts;
+          totalQuotes += part.totalQuotes;
+          if (books.length < batchSize) break;
+          skip += batchSize;
+        }
+      } catch (pagErr) {
+        console.warn('Stats pagination failed, fallback single batch', pagErr);
+        const res = await traced('books.stats(fallback no order)', () =>
+          withRetry(() =>
+            db
+              .collection('books')
+              .where(withOpenIdFilter({}))
+              .field({ notes: true, thoughtCount: true, quoteCount: true })
+              .limit(100)
+              .get()
+          )
+        );
+        const part = this.sumNoteStatsFromBooks(res.data || []);
+        totalThoughts = part.totalThoughts;
+        totalQuotes = part.totalQuotes;
+      }
+      this.setData({
+        totalThoughts,
+        totalQuotes
+      });
+    } catch (e) {
+      console.warn('Stats load failed', e);
+    }
+  },
+
   async loadFinishedBooks() {
     wx.showLoading({ title: '加载中' });
     try {
@@ -123,7 +162,7 @@ Page({
         withRetry(() =>
           db
             .collection('books')
-            .where({ status: 'finished' })
+            .where(withOpenIdFilter({ status: 'finished' }))
             .orderBy('endTime', 'desc')
             .limit(50)
             .field({ notes: false })
