@@ -39,6 +39,9 @@
             bind:buttontap="onSlideButtonTap"
           >
             <view class="weui-cell weui-cell_access" catchtap="openBook" data-id="{{item._id}}">
+              <view class="weui-cell__hd">
+                <image class="book-cover" src="/images/book-cover.png" mode="aspectFill" />
+              </view>
               <view class="weui-cell__bd">
                 <view class="cell-title">{{item.bookName}}</view>
                 <view class="cell-sub">已记录 {{item.notesCount}} 条 · 开始 {{item.startText}}</view>

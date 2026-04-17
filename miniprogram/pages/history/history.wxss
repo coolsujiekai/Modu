@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  padding: 28rpx 24rpx 40rpx;
+  padding: 32rpx 32rpx 40rpx;
 }
 
 .slide-row {
@@ -8,7 +8,7 @@
 }
 
 .slide-btn-delete {
-  background: #e64340;
+  background: #C07D6B;
   color: #fff;
   display: flex;
   align-items: center;
@@ -22,5 +22,5 @@
 .book-meta {
   margin-top: 6rpx;
   font-size: 26rpx;
-  color: #999;
+  color: #8C8279;
 }

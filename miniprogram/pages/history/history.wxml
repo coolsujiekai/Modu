@@ -3,10 +3,10 @@
     <view class="weui-panel__hd">📊 阅读统计</view>
     <view class="weui-panel__bd">
       <view class="weui-media-box weui-media-box_text">
-        <view class="stats-text weui-media-box__desc" style="font-size: 32rpx; font-weight: bold; color: #07c160; line-height: 1.6;">
+        <view class="stats-text weui-media-box__desc" style="font-size: 32rpx; font-weight: bold; color: #7D9B76; line-height: 1.6;">
           累计阅读 {{finishedCount}} 本
         </view>
-        <view class="stats-text weui-media-box__desc" style="font-size: 32rpx; font-weight: bold; color: #07c160; line-height: 1.6; margin-top: 4rpx;">
+        <view class="stats-text weui-media-box__desc" style="font-size: 32rpx; font-weight: bold; color: #7D9B76; line-height: 1.6; margin-top: 4rpx;">
           产生灵感 {{totalThoughts}} 条 · 收集金句 {{totalQuotes}} 条
         </view>
       </view>
