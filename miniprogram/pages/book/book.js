@@ -76,7 +76,7 @@ Page({
         startedText: formatDate(book.startTime),
         finishedText: formatDate(book.endTime)
       });
-      wx.setNavigationBarTitle({ title: `墨读 · ${book.bookName}` });
+      wx.setNavigationBarTitle({ title: `翻书随手记 · ${book.bookName}` });
     } catch (e) {
       this.setData({ loading: false, book: null });
       wx.showToast({ title: '加载失败', icon: 'none' });

@@ -1,4 +1,4 @@
-<view class="page">
+<view class="page" bindtap="onPageTap">
   <view class="hero">
     <view class="hero-title">在读书架</view>
     <view class="hero-sub">以书为伴，不慌不忙，做个有态度的阅读者✨</view>
@@ -21,7 +21,7 @@
       <view class="weui-msg__title">开读一本新书吧</view>
       <view class="weui-msg__desc">这里会放下你正在读的每一本书</view>
       <view class="weui-msg__opr-area">
-        <button class="weui-btn weui-btn_primary" bindtap="startReading">新建一本</button>
+        <button class="weui-btn weui-btn_primary" bindtap="startReading">读本新书</button>
       </view>
     </view>
   </block>
@@ -29,17 +29,28 @@
   <block wx:else>
     <view class="list-card">
       <view class="weui-cells" style="margin-top:0;">
-        <view class="weui-cell weui-cell_access" wx:for="{{readingBooks}}" wx:key="_id" bindtap="openBook" data-id="{{item._id}}">
-          <view class="weui-cell__bd">
-            <view class="cell-title">{{item.bookName}}</view>
-            <view class="cell-sub">已记录 {{item.notesCount}} 条 · 开始 {{item.startText}}</view>
-          </view>
-          <view class="weui-cell__ft"></view>
+        <view wx:for="{{readingBooks}}" wx:key="_id" class="slide-row">
+          <slideview
+            buttons="{{item.slideButtons}}"
+            show="{{openSlideId === item._id}}"
+            data-id="{{item._id}}"
+            bind:show="onSlideShow"
+            bind:hide="onSlideHide"
+            bind:buttontap="onSlideButtonTap"
+          >
+            <view class="weui-cell weui-cell_access" catchtap="openBook" data-id="{{item._id}}">
+              <view class="weui-cell__bd">
+                <view class="cell-title">{{item.bookName}}</view>
+                <view class="cell-sub">已记录 {{item.notesCount}} 条 · 开始 {{item.startText}}</view>
+              </view>
+              <view class="weui-cell__ft"></view>
+            </view>
+          </slideview>
         </view>
       </view>
     </view>
     <view class="fab">
-      <button class="weui-btn weui-btn_primary" bindtap="startReading">＋ 新建一本</button>
+      <button class="weui-btn weui-btn_primary" bindtap="startReading">读本新书</button>
     </view>
   </block>
 </view>

@@ -55,3 +55,19 @@
 .fab {
   margin-top: 18rpx;
 }
+
+.slide-row {
+  overflow: hidden;
+}
+
+.slide-btn-delete {
+  background: #e64340;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 40rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+}

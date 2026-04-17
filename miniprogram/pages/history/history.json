@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "墨读 · 已读"
+  "usingComponents": {
+    "slideview": "weui-miniprogram/slideview/slideview"
+  },
+  "navigationBarTitleText": "翻书随手记 · 已读"
 }

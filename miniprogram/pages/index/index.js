@@ -37,11 +37,66 @@ function formatDate(ts) {
 Page({
   data: {
     loading: true,
-    readingBooks: []
+    readingBooks: [],
+    openSlideId: null
   },
 
   onShow() {
     this.loadReadingBooks();
+  },
+
+  onPageTap() {
+    if (!this.data.openSlideId) return;
+    this.setData({ openSlideId: null });
+  },
+
+  onSlideShow(e) {
+    const id = e?.currentTarget?.dataset?.id;
+    if (!id) return;
+    if (this.data.openSlideId === id) return;
+    this.setData({ openSlideId: id });
+  },
+
+  onSlideHide(e) {
+    const id = e?.currentTarget?.dataset?.id;
+    if (!id) return;
+    if (this.data.openSlideId !== id) return;
+    this.setData({ openSlideId: null });
+  },
+
+  async deleteBookById(id, name) {
+    if (!id) return;
+
+    const { confirm } = await wx.showModal({
+      title: '删除这本书？',
+      content: name ? `《${name}》将从书架删除，记录不可恢复。` : '该书将从书架删除，记录不可恢复。',
+      confirmText: '删除',
+      confirmColor: '#e64340'
+    });
+    if (!confirm) return;
+
+    wx.showLoading({ title: '删除中', mask: true });
+    try {
+      await traced('books.remove(reading)', () =>
+        withRetry(() => db.collection('books').doc(id).remove())
+      );
+      wx.hideLoading();
+      this.setData({ openSlideId: null });
+      wx.showToast({ title: '已删除', icon: 'success', duration: 800 });
+      await this.loadReadingBooks();
+    } catch (err) {
+      wx.hideLoading();
+      wx.showModal({
+        title: '删除失败',
+        content: err?.errMsg || JSON.stringify(err),
+        showCancel: false
+      });
+    }
+  },
+
+  async onSlideButtonTap(e) {
+    const data = e?.detail?.data || {};
+    await this.deleteBookById(data.id, data.name);
   },
 
   async startReading() {
@@ -87,6 +142,10 @@ Page({
   openBook(e) {
     const id = e.currentTarget.dataset.id;
     if (!id) return;
+    if (this.data.openSlideId) {
+      this.setData({ openSlideId: null });
+      return;
+    }
     wx.navigateTo({ url: `/pages/book/book?id=${id}` });
   },
 
@@ -128,9 +187,16 @@ Page({
       const readingBooks = books.map(b => ({
         ...b,
         notesCount: Number(b.notesCount || 0),
-        startText: formatDate(b.startTime)
+        startText: formatDate(b.startTime),
+        slideButtons: [
+          {
+            text: '删除',
+            extClass: 'slide-btn-delete',
+            data: { id: b._id, name: b.bookName }
+          }
+        ]
       }));
-      this.setData({ loading: false, readingBooks });
+      this.setData({ loading: false, readingBooks, openSlideId: null });
     } catch (e) {
       this.setData({ loading: false, readingBooks: [] });
       wx.showModal({

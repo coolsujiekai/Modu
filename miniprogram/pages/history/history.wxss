@@ -2,3 +2,25 @@
   min-height: 100vh;
   padding: 28rpx 24rpx 40rpx;
 }
+
+.slide-row {
+  overflow: hidden;
+}
+
+.slide-btn-delete {
+  background: #e64340;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 40rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.book-meta {
+  margin-top: 6rpx;
+  font-size: 26rpx;
+  color: #999;
+}

@@ -38,12 +38,67 @@ Page({
   data: {
     groupedBooks: [],
     readingCount: 0,
-    finishedCount: 0
+    finishedCount: 0,
+    openSlideId: null
   },
 
   onShow() {
     this.loadOverview();
     this.loadFinishedBooks();
+  },
+
+  onPageTap() {
+    if (!this.data.openSlideId) return;
+    this.setData({ openSlideId: null });
+  },
+
+  onSlideShow(e) {
+    const id = e?.currentTarget?.dataset?.id;
+    if (!id) return;
+    if (this.data.openSlideId === id) return;
+    this.setData({ openSlideId: id });
+  },
+
+  onSlideHide(e) {
+    const id = e?.currentTarget?.dataset?.id;
+    if (!id) return;
+    if (this.data.openSlideId !== id) return;
+    this.setData({ openSlideId: null });
+  },
+
+  async deleteFinishedBookById(id, name) {
+    if (!id) return;
+
+    const { confirm } = await wx.showModal({
+      title: '删除这本书？',
+      content: name ? `《${name}》将从已读书架删除，记录不可恢复。` : '该书将从已读书架删除，记录不可恢复。',
+      confirmText: '删除',
+      confirmColor: '#e64340'
+    });
+    if (!confirm) return;
+
+    wx.showLoading({ title: '删除中', mask: true });
+    try {
+      await traced('books.remove(finished)', () =>
+        withRetry(() => db.collection('books').doc(id).remove())
+      );
+      wx.hideLoading();
+      this.setData({ openSlideId: null });
+      wx.showToast({ title: '已删除', icon: 'success', duration: 800 });
+      await Promise.all([this.loadOverview(), this.loadFinishedBooks()]);
+    } catch (err) {
+      wx.hideLoading();
+      wx.showModal({
+        title: '删除失败',
+        content: err?.errMsg || JSON.stringify(err),
+        showCancel: false
+      });
+    }
+  },
+
+  async onFinishedSlideButtonTap(e) {
+    const data = e?.detail?.data || {};
+    await this.deleteFinishedBookById(data.id, data.name);
   },
 
   async loadOverview() {
@@ -78,7 +133,14 @@ Page({
       const books = (res.data || []).map(b => ({
         ...b,
         notesCount: Number(b.notesCount || 0),
-        endText: formatDate(b.endTime)
+        endText: formatDate(b.endTime),
+        slideButtons: [
+          {
+            text: '删除',
+            extClass: 'slide-btn-delete',
+            data: { id: b._id, name: b.bookName }
+          }
+        ]
       }));
       const groups = {};
       books.forEach(book => {
@@ -108,6 +170,10 @@ Page({
 
   viewBookDetail(e) {
     const book = e.currentTarget.dataset.book;
+    if (this.data.openSlideId) {
+      this.setData({ openSlideId: null });
+      return;
+    }
     wx.navigateTo({
       url: `/pages/book/book?id=${book._id}`
     });

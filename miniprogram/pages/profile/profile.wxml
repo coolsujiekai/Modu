@@ -7,7 +7,7 @@
     </view>
   </view>
 
-  <view class="weui-cells__title">ℹ️ 关于墨读</view>
+  <view class="weui-cells__title">ℹ️ 关于翻书随手记</view>
   <view class="weui-cells">
     <view class="weui-cell">
       <view class="weui-cell__bd">版本</view>
