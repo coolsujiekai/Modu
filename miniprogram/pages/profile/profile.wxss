@@ -3,8 +3,152 @@
   padding: 28rpx 24rpx 40rpx;
 }
 
+.header {
+  padding: 16rpx 8rpx 10rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  color: #111;
+}
+
+.sub {
+  margin-top: 8rpx;
+}
+
 .muted {
   margin-top: 6rpx;
   font-size: 26rpx;
   color: #999;
+}
+
+.modal-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 998;
+}
+
+.modal {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 72vh;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -12rpx 40rpx rgba(0, 0, 0, 0.12);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22rpx 22rpx 10rpx;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111;
+}
+
+.modal-close {
+  width: 64rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  font-size: 44rpx;
+  color: #666;
+}
+
+.modal-search {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 22rpx 16rpx;
+}
+
+.modal-input {
+  flex: 1 1 auto;
+  height: 76rpx;
+  background: #f3f4f6;
+  border-radius: 14rpx;
+  padding: 0 20rpx;
+  font-size: 30rpx;
+  color: #111;
+}
+
+.placeholder {
+  color: #9ca3af;
+}
+
+.modal-clear {
+  flex: 0 0 auto;
+  margin-left: 14rpx;
+  font-size: 28rpx;
+  color: #10b981;
+  padding: 10rpx 10rpx;
+}
+
+.modal-body {
+  flex: 1 1 auto;
+  padding: 0 12rpx 18rpx;
+  overflow: hidden;
+}
+
+.loading {
+  padding: 18rpx 10rpx;
+}
+
+.result-list {
+  height: 100%;
+}
+
+.result-item {
+  padding: 18rpx 18rpx;
+  border-radius: 16rpx;
+}
+
+.result-item:active {
+  background: #f6f7f9;
+}
+
+.result-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111;
+}
+
+.result-sub {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+}
+
+.empty {
+  padding: 40rpx 18rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 90rpx;
+  line-height: 1;
+}
+
+.empty-title {
+  margin-top: 12rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111;
+}
+
+.empty-desc {
+  margin-top: 8rpx;
 }

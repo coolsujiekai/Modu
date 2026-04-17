@@ -7,9 +7,9 @@
     "pages/wishlist/wishlist",
     "pages/history/history",
     "pages/profile/profile",
+    "pages/privacy/privacy",
+    "pages/personalize/personalize",
     "pages/author/author",
-    "pages/authorSearch/authorSearch",
-    "pages/bookSearch/bookSearch",
     "pages/editBookInfo/editBookInfo"
   ],
   "window": {

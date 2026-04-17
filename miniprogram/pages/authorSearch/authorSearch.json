@@ -1,7 +1,0 @@
-{
-  "usingComponents": {
-    "searchbar": "weui-miniprogram/searchbar/searchbar"
-  },
-  "navigationBarTitleText": "翻书随手记 · 作者查询"
-}
-

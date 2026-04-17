@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="card">
+    <view class="h1">个性化显示（可选）</view>
+    <view class="p muted">用于在本机显示头像与昵称，不影响书架、笔记与书单功能。</view>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <view class="left">
+        <view class="label">状态</view>
+        <view class="muted">{{enabled ? '已开启' : '未开启'}}</view>
+      </view>
+      <view class="right">
+        <button class="weui-btn weui-btn_mini weui-btn_primary" bindtap="enable" wx:if="{{!enabled}}">开启</button>
+        <button class="weui-btn weui-btn_mini weui-btn_default" bindtap="disable" wx:if="{{enabled}}">关闭</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{enabled}}">
+    <view class="h2">当前显示</view>
+    <view class="profile">
+      <image class="avatar" src="{{profile.avatarUrl || defaultAvatar}}" mode="aspectFill" />
+      <view class="info">
+        <view class="name">{{profile.nickName || '未设置昵称'}}</view>
+        <view class="muted">仅用于本机展示，可随时关闭。</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">说明</view>
+    <view class="p">- 开启时将通过微信能力获取你的头像与昵称，用于本小程序内的个性化展示。</view>
+    <view class="p">- 你可以随时关闭；关闭会清除本机保存的头像与昵称。</view>
+  </view>
+</view>
+

@@ -1,0 +1,45 @@
+.page {
+  min-height: 100vh;
+  padding: 28rpx 24rpx 60rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 26rpx 24rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 18rpx;
+}
+
+.h1 {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #111;
+}
+
+.h2 {
+  margin-top: 6rpx;
+  margin-bottom: 10rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111;
+}
+
+.p {
+  font-size: 28rpx;
+  line-height: 1.65;
+  color: #333;
+  margin-top: 10rpx;
+  white-space: pre-wrap;
+}
+
+.muted {
+  color: #888;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 20rpx;
+  font-size: 24rpx;
+}
+
