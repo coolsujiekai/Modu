@@ -100,43 +100,7 @@ Page({
   },
 
   async startReading() {
-    const res = await wx.showModal({
-      title: '写下书名',
-      content: ' ',
-      editable: true,
-      placeholderText: '例如：活着'
-    });
-    if (!res.confirm) return;
-    const bookName = (res.content || '').trim();
-    if (!bookName) return;
-
-    wx.showLoading({ title: '创建中', mask: true });
-    try {
-      const startTime = Date.now();
-      const addRes = await db.collection('books').add({
-        data: {
-          bookName: bookName,
-          startTime: startTime,
-          status: 'reading',
-          notes: [],
-          notesCount: 0,
-          durationMin: 0
-        }
-      });
-      wx.hideLoading();
-      wx.showToast({ title: '开读！', icon: 'success', duration: 700 });
-      this.loadReadingBooks();
-      wx.navigateTo({
-        url: `/pages/book/book?id=${addRes._id}`
-      });
-    } catch (err) {
-      wx.hideLoading();
-      wx.showModal({
-        title: '创建失败',
-        content: err.errMsg || JSON.stringify(err),
-        showCancel: false
-      });
-    }
+    wx.navigateTo({ url: '/pages/createBook/createBook' });
   },
 
   openBook(e) {

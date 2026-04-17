@@ -83,6 +83,13 @@ Page({
     }
   },
 
+  openAuthor(e) {
+    const id = e.currentTarget?.dataset?.id;
+    const name = e.currentTarget?.dataset?.name || '';
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/author/author?id=${id}&name=${encodeURIComponent(name)}` });
+  },
+
   async addNote(e) {
     const type = e.currentTarget.dataset.type;
     const text = (type === 'quote' ? this.data.quoteText : this.data.thoughtText).trim();

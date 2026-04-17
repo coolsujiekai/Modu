@@ -16,6 +16,10 @@ Page({
     wx.navigateTo({ url: '/pages/wishlist/wishlist' });
   },
 
+  goAuthorSearch() {
+    wx.navigateTo({ url: '/pages/authorSearch/authorSearch' });
+  },
+
   async openDangerZone() {
     try {
       const res = await wx.showActionSheet({

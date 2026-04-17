@@ -1,11 +1,14 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/createBook/createBook",
     "pages/book/book",
     "pages/editNote/editNote",
     "pages/wishlist/wishlist",
     "pages/history/history",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/author/author",
+    "pages/authorSearch/authorSearch"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

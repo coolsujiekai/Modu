@@ -23,6 +23,10 @@
             <text class="muted">状态：</text>
             <text>{{book.status === 'finished' ? '已读' : '在读'}}</text>
           </view>
+          <view class="weui-media-box__desc" wx:if="{{book.authorName}}">
+            <text class="muted">作者：</text>
+            <text class="link" bindtap="openAuthor" data-id="{{book.authorId}}" data-name="{{book.authorName}}">{{book.authorName}}</text>
+          </view>
           <view class="weui-media-box__desc muted" style="margin-top: 10rpx;">
             <text wx:if="{{startedText}}">开始读：{{startedText}}</text>
             <text wx:if="{{book.status === 'finished' && finishedText}}">　｜　读完：{{finishedText}}</text>

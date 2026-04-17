@@ -81,3 +81,8 @@
   font-size: 26rpx;
 }
 
+.link {
+  color: #10b981;
+  font-weight: 600;
+}
+

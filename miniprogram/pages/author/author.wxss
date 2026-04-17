@@ -1,0 +1,65 @@
+.page {
+  min-height: 100vh;
+  padding: 28rpx 24rpx 40rpx;
+}
+
+.muted {
+  color: #999;
+}
+
+.hero {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  margin-bottom: 18rpx;
+}
+
+.hero-title {
+  font-size: 38rpx;
+  font-weight: 800;
+  color: #111;
+}
+
+.hero-sub {
+  margin-top: 10rpx;
+  font-size: 28rpx;
+}
+
+.section {
+  margin-top: 12rpx;
+}
+
+.section-hd {
+  padding: 14rpx 8rpx 10rpx;
+  color: #666;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111;
+}
+
+.meta {
+  margin-top: 6rpx;
+  font-size: 26rpx;
+}
+
+.slide-row {
+  overflow: hidden;
+}
+
+.slide-btn-delete {
+  background: #e64340;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 40rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+

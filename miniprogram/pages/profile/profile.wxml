@@ -5,6 +5,10 @@
       <view class="weui-cell__bd">打开书单</view>
       <view class="weui-cell__ft"></view>
     </view>
+    <view class="weui-cell weui-cell_access" bindtap="goAuthorSearch">
+      <view class="weui-cell__bd">作者查询</view>
+      <view class="weui-cell__ft"></view>
+    </view>
   </view>
 
   <view class="weui-cells__title">ℹ️ 关于翻书随手记</view>
