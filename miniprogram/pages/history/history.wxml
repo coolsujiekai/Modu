@@ -1,16 +1,7 @@
 <view class="page" bindtap="onPageTap">
-  <view class="weui-panel weui-panel_access" style="margin-top: 0;">
-    <view class="weui-panel__hd">📊 阅读统计</view>
-    <view class="weui-panel__bd">
-      <view class="weui-media-box weui-media-box_text">
-        <view class="stats-text weui-media-box__desc" style="font-size: 32rpx; font-weight: bold; color: #7D9B76; line-height: 1.6;">
-          累计阅读 {{finishedCount}} 本
-        </view>
-        <view class="stats-text weui-media-box__desc" style="font-size: 32rpx; font-weight: bold; color: #7D9B76; line-height: 1.6; margin-top: 4rpx;">
-          产生灵感 {{totalThoughts}} 条 · 收集金句 {{totalQuotes}} 条
-        </view>
-      </view>
-    </view>
+  <view class="hero">
+    <view class="hero-title">已读回顾</view>
+    <view class="hero-sub">累计读完 {{finishedCount}} 本 · 心得 {{totalThoughts}} 条 · 金句 {{totalQuotes}} 条</view>
   </view>
 
   <block wx:if="{{groupedBooks.length === 0}}">
@@ -22,10 +13,10 @@
   </block>
   <block wx:else>
     <view wx:for="{{groupedBooks}}" wx:for-item="group" wx:key="yearMonth">
-      <view style="padding: 18rpx 8rpx 10rpx; color:#666; font-size: 28rpx; font-weight: 600;">
+      <view class="group-title">
         📅 {{group.yearMonthText}}
       </view>
-      <view class="weui-cells" style="margin-top:0;">
+      <view class="weui-cells cells-no-top-margin">
         <view wx:for="{{group.books}}" wx:for-item="book" wx:key="_id" class="slide-row">
           <slideview
             buttons="{{book.slideButtons}}"

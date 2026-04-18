@@ -1,18 +1,48 @@
 <view class="page">
   <view class="card">
-    <view class="h1">个性化设置</view>
-    <view class="p muted">在本机显示头像与昵称，不影响书架与笔记。</view>
+    <view class="h1">个性化</view>
+    <view class="p muted">仅在本机显示头像与昵称，不影响阅读数据。</view>
   </view>
 
   <view class="card">
     <view class="row">
       <view class="left">
-        <view class="label">状态</view>
+        <view class="label">头像与昵称</view>
         <view class="muted">{{enabled ? '已开启' : '未开启'}}</view>
       </view>
       <view class="right">
         <button class="weui-btn weui-btn_mini weui-btn_primary" bindtap="enable" wx:if="{{!enabled}}">开启</button>
         <button class="weui-btn weui-btn_mini weui-btn_default" bindtap="disable" wx:if="{{enabled}}">关闭</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">阅读体验</view>
+    <view class="setting-row">
+      <view class="setting-title">首页视图</view>
+      <view class="seg">
+        <view class="seg-item {{settings.homeViewMode === 'grid' ? 'active' : ''}}" data-mode="grid" bindtap="setHomeViewMode">书封</view>
+        <view class="seg-item {{settings.homeViewMode === 'list' ? 'active' : ''}}" data-mode="list" bindtap="setHomeViewMode">列表</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">记录习惯</view>
+    <view class="setting-row">
+      <view class="setting-title">时间显示</view>
+      <view class="seg seg-3">
+        <view class="seg-item {{settings.noteTimeMode === 'both' ? 'active' : ''}}" data-mode="both" bindtap="setNoteTimeMode">两者</view>
+        <view class="seg-item {{settings.noteTimeMode === 'relative' ? 'active' : ''}}" data-mode="relative" bindtap="setNoteTimeMode">相对</view>
+        <view class="seg-item {{settings.noteTimeMode === 'absolute' ? 'active' : ''}}" data-mode="absolute" bindtap="setNoteTimeMode">日期</view>
+      </view>
+    </view>
+    <view class="setting-row">
+      <view class="setting-title">保存后输入框</view>
+      <view class="seg">
+        <view class="seg-item {{settings.saveInputMode === 'clear' ? 'active' : ''}}" data-mode="clear" bindtap="setSaveInputMode">清空</view>
+        <view class="seg-item {{settings.saveInputMode === 'keep' ? 'active' : ''}}" data-mode="keep" bindtap="setSaveInputMode">保留</view>
       </view>
     </view>
   </view>
@@ -30,7 +60,7 @@
 
   <view class="card">
     <view class="h2">说明</view>
-    <view class="p muted">开启时获取头像与昵称；关闭即清除本机保存。</view>
+    <view class="p muted">设置项仅在本机生效，不影响云端阅读数据。</view>
   </view>
 </view>
 

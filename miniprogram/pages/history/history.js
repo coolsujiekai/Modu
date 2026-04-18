@@ -17,6 +17,11 @@ Page({
     this.loadStats();
   },
 
+  onPullDownRefresh() {
+    Promise.all([this.loadOverview(), this.loadFinishedBooks(), this.loadStats()])
+      .finally(() => wx.stopPullDownRefresh());
+  },
+
   onPageTap() {
     if (!this.data.openSlideId) return;
     this.setData({ openSlideId: null });

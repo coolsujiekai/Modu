@@ -1,34 +1,25 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
-import { formatDate } from '../../utils/util.js';
+import { getPersonalizeSettings } from '../../utils/personalize';
 
 Page({
   data: {
     loading: true,
     readingBooks: [],
-    openSlideId: null
+    readingCount: 0,
+    heroSub: '从一本书开始今天的阅读',
+    homeViewMode: 'grid'
   },
 
   onShow() {
+    this.applyPersonalizeSettings();
     this.loadReadingBooks();
   },
 
-  onPageTap() {
-    if (!this.data.openSlideId) return;
-    this.setData({ openSlideId: null });
-  },
-
-  onSlideShow(e) {
-    const id = e?.currentTarget?.dataset?.id;
-    if (!id) return;
-    if (this.data.openSlideId === id) return;
-    this.setData({ openSlideId: id });
-  },
-
-  onSlideHide(e) {
-    const id = e?.currentTarget?.dataset?.id;
-    if (!id) return;
-    if (this.data.openSlideId !== id) return;
-    this.setData({ openSlideId: null });
+  applyPersonalizeSettings() {
+    const settings = getPersonalizeSettings();
+    this.setData({
+      homeViewMode: settings.homeViewMode
+    });
   },
 
   async deleteBookById(id, name) {
@@ -48,7 +39,6 @@ Page({
         withRetry(() => db.collection('books').doc(id).remove())
       );
       wx.hideLoading();
-      this.setData({ openSlideId: null });
       wx.showToast({ title: '已删除', icon: 'success', duration: 800 });
       await this.loadReadingBooks();
     } catch (err) {
@@ -61,11 +51,6 @@ Page({
     }
   },
 
-  async onSlideButtonTap(e) {
-    const data = e?.detail?.data || {};
-    await this.deleteBookById(data.id, data.name);
-  },
-
   async startReading() {
     wx.navigateTo({ url: '/pages/createBook/createBook' });
   },
@@ -73,11 +58,42 @@ Page({
   openBook(e) {
     const id = e.currentTarget.dataset.id;
     if (!id) return;
-    if (this.data.openSlideId) {
-      this.setData({ openSlideId: null });
-      return;
-    }
     wx.navigateTo({ url: `/pages/book/book?id=${id}` });
+  },
+
+  async onBookLongPress(e) {
+    const id = e?.currentTarget?.dataset?.id;
+    const name = e?.currentTarget?.dataset?.name || '';
+    if (!id) return;
+    try {
+      const res = await wx.showActionSheet({
+        itemList: ['删除这本书'],
+        itemColor: '#C07D6B'
+      });
+      if (res.tapIndex === 0) {
+        await this.deleteBookById(id, name);
+      }
+    } catch (err) {
+      // user canceled
+    }
+  },
+
+  coverToneClassById(id = '') {
+    const tones = ['cover-tone-1', 'cover-tone-2', 'cover-tone-3', 'cover-tone-4', 'cover-tone-5'];
+    let sum = 0;
+    const text = String(id);
+    for (let i = 0; i < text.length; i++) sum += text.charCodeAt(i);
+    return tones[sum % tones.length];
+  },
+
+  getCoverShortName(bookName = '') {
+    const text = String(bookName).replace(/\s+/g, '').trim();
+    if (!text) return '未命名';
+    return text.slice(0, 8);
+  },
+
+  onPullDownRefresh() {
+    this.loadReadingBooks().finally(() => wx.stopPullDownRefresh());
   },
 
   async loadReadingBooks() {
@@ -115,21 +131,33 @@ Page({
         );
       }
       const books = res.data || [];
-      const readingBooks = books.map(b => ({
+      const normalizedBooks = books.map(b => ({
         ...b,
         notesCount: Number(b.notesCount || 0),
-        startText: formatDate(b.startTime),
-        slideButtons: [
-          {
-            text: '删除',
-            extClass: 'slide-btn-delete',
-            data: { id: b._id, name: b.bookName }
-          }
-        ]
+        coverText: this.getCoverShortName(b.bookName),
+        coverToneClass: this.coverToneClassById(b._id)
       }));
-      this.setData({ loading: false, readingBooks, openSlideId: null });
+      normalizedBooks.sort((a, b) => Number(b.startTime || 0) - Number(a.startTime || 0));
+      const readingCount = normalizedBooks.length;
+      let heroSub = '今天想读哪一本？';
+      if (readingCount === 1) {
+        heroSub = '1 本在读，打开它继续读';
+      } else if (readingCount > 1) {
+        heroSub = `${readingCount} 本在读，先从最想读的那本开始`;
+      }
+      this.setData({
+        loading: false,
+        readingBooks: normalizedBooks,
+        readingCount,
+        heroSub
+      });
     } catch (e) {
-      this.setData({ loading: false, readingBooks: [] });
+      this.setData({
+        loading: false,
+        readingBooks: [],
+        readingCount: 0,
+        heroSub: '今天想读哪一本？'
+      });
       wx.showModal({
         title: '在读加载失败',
         content: e?.errMsg || JSON.stringify(e),

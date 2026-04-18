@@ -1,3 +1,8 @@
+import {
+  getPersonalizeSettings,
+  savePersonalizeSettings
+} from '../../utils/personalize';
+
 const STORAGE_KEY = 'personalize_profile_v1';
 
 function safeGetStorage(key) {
@@ -24,6 +29,7 @@ Page({
   data: {
     enabled: false,
     profile: {},
+    settings: getPersonalizeSettings(),
     defaultAvatar:
       'data:image/svg+xml;utf8,' +
       encodeURIComponent(
@@ -41,7 +47,35 @@ Page({
     this.setData({
       enabled,
       profile: saved?.profile || {},
+      settings: getPersonalizeSettings()
     });
+  },
+
+  updateSettings(patch) {
+    const settings = savePersonalizeSettings(patch);
+    this.setData({ settings });
+    wx.showToast({ title: '已更新', icon: 'success', duration: 600 });
+  },
+
+  setHomeViewMode(e) {
+    const mode = e?.currentTarget?.dataset?.mode;
+    if (mode !== 'grid' && mode !== 'list') return;
+    if (this.data.settings.homeViewMode === mode) return;
+    this.updateSettings({ homeViewMode: mode });
+  },
+
+  setNoteTimeMode(e) {
+    const mode = e?.currentTarget?.dataset?.mode;
+    if (mode !== 'both' && mode !== 'relative' && mode !== 'absolute') return;
+    if (this.data.settings.noteTimeMode === mode) return;
+    this.updateSettings({ noteTimeMode: mode });
+  },
+
+  setSaveInputMode(e) {
+    const mode = e?.currentTarget?.dataset?.mode;
+    if (mode !== 'clear' && mode !== 'keep') return;
+    if (this.data.settings.saveInputMode === mode) return;
+    this.updateSettings({ saveInputMode: mode });
   },
 
   async enable() {

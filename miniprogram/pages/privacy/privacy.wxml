@@ -1,9 +1,7 @@
 <view class="page">
   <view class="card">
-    <view class="h1">隐私指引与说明</view>
-    <view class="p muted">
-      本说明用于帮助你了解我们如何处理你的信息，以及你对信息的控制方式。
-    </view>
+    <view class="h1">隐私说明</view>
+    <view class="p muted">你输入的阅读数据只用于保存与同步，你可以随时清理。</view>
   </view>
 
   <view class="card">

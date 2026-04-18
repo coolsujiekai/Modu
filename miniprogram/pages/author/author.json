@@ -2,6 +2,7 @@
   "usingComponents": {
     "slideview": "weui-miniprogram/slideview/slideview"
   },
-  "navigationBarTitleText": "作者"
+  "navigationBarTitleText": "作者",
+  "enablePullDownRefresh": true
 }
 

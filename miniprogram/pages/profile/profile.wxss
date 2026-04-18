@@ -3,6 +3,22 @@
   padding: 32rpx 32rpx 60rpx;
 }
 
+.page-head {
+  margin-bottom: 14rpx;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #2D2A26;
+}
+
+.page-sub {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #8C8279;
+}
+
 .card {
   background: #fff;
   border-radius: 22rpx;
@@ -175,7 +191,7 @@
   flex: 0 0 auto;
   margin-left: 14rpx;
   font-size: 28rpx;
-  color: #10b981;
+  color: #8B7355;
   padding: 10rpx 10rpx;
 }
 
@@ -216,8 +232,8 @@
 }
 
 .highlight {
-  color: #10b981;
-  background-color: #ecfdf5;
+  color: #8B7355;
+  background-color: #F6EFE4;
   padding: 1rpx 6rpx;
   border-radius: 4rpx;
   font-weight: 700;

@@ -20,9 +20,14 @@
 
 .editor {
   width: 100%;
-  min-height: 520rpx;
-  font-size: 32rpx;
+  min-height: 420rpx;
+  font-size: 30rpx;
   line-height: 1.6;
+  background: #FFFCF8;
+  border: 1rpx solid #EDE8E0;
+  border-radius: 14rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
 }
 
 .actions {

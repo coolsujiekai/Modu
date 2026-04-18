@@ -36,7 +36,7 @@
 }
 
 .section-card__hd {
-  padding: 18rpx 18rpx 0;
+  padding: 18rpx 18rpx 8rpx;
 }
 
 .section-title {
@@ -45,12 +45,23 @@
   color: #2D2A26;
 }
 
-.section-sub {
-  margin-top: 6rpx;
+.section-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.section-link {
+  flex: none;
+  color: #8B7355;
+  font-size: 26rpx;
+  font-weight: 600;
+  padding: 6rpx 0;
 }
 
 .section-card__bd {
-  padding: 14rpx 18rpx 18rpx;
+  padding: 10rpx 18rpx 18rpx;
 }
 
 .note-input {
@@ -62,10 +73,21 @@
   border: 1rpx solid #EDE8E0;
   padding: 16rpx;
   box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease, min-height 0.2s ease;
+}
+
+.note-input--compact {
+  min-height: 92rpx;
+}
+
+.note-input--focused {
+  min-height: 200rpx;
+  border-color: #D4C4A8;
+  background: #FFFCF8;
 }
 
 .section-actions {
-  margin-top: 14rpx;
+  margin-top: 12rpx;
 }
 
 .section-actions--right {
@@ -73,10 +95,16 @@
   justify-content: flex-end;
 }
 
+.saved-inline {
+  margin-top: 10rpx;
+  text-align: right;
+}
+
 .mini-action-btn {
   border-radius: 999rpx;
-  padding: 0 28rpx;
-  font-size: 28rpx;
+  min-width: 128rpx;
+  padding: 0 24rpx;
+  font-size: 26rpx;
 }
 
 .book-panel {
@@ -107,6 +135,115 @@
   display: flex;
   gap: 16rpx;
   margin-top: 16rpx;
+}
+
+.latest-text {
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #2D2A26;
+}
+
+.ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.export-card {
+  margin-top: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  background: #FFFCF8;
+  border-radius: 20rpx;
+  border: 1rpx solid #EDE8E0;
+  padding: 16rpx 18rpx;
+}
+
+.soft-divider {
+  margin-top: 16rpx;
+  height: 1rpx;
+  background: #EFE8DE;
+}
+
+.export-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.export-head {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.export-icon {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 10rpx;
+  background: #F3ECE2;
+  color: #8B7355;
+  font-size: 22rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.export-title {
+  color: #2D2A26;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.export-sub {
+  margin-top: 6rpx;
+}
+
+.export-btn {
+  flex: none;
+  border-radius: 999rpx;
+  padding: 0 24rpx;
+  font-size: 26rpx;
+  color: #8B7355;
+  border-color: #D4C4A8;
+  background: #FAF8F5;
+}
+
+.export-btn.weui-btn {
+  margin: 0;
+}
+
+.export-btn--disabled {
+  color: #B4A99A !important;
+  border-color: #E8E1D8 !important;
+  background: #F8F4EF !important;
+}
+
+.btn-finish {
+  background: #8B7355;
+  color: #fff;
+  border-radius: 999rpx;
+  border: 1rpx solid #8B7355;
+  font-weight: 700;
+}
+
+.btn-finish:active {
+  opacity: 0.92;
+}
+
+.btn-finish-outline {
+  background: transparent;
+  color: #8B7355;
+  border-radius: 999rpx;
+  border: 1rpx solid #D4C4A8;
+  font-weight: 700;
+}
+
+.btn-finish-outline:active {
+  opacity: 0.92;
 }
 
 .btn-link {

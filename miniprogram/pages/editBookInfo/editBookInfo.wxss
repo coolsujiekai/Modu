@@ -3,6 +3,37 @@
   padding: 32rpx 32rpx 40rpx;
 }
 
+.hero {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 24rpx 22rpx;
+  margin-bottom: 16rpx;
+  border: 1rpx solid #EDE8E0;
+}
+
+.hero-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2D2A26;
+}
+
+.hero-sub {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #8C8279;
+}
+
+.form-panel {
+  margin-top: 0;
+  border-radius: 20rpx;
+  overflow: hidden;
+  border: 1rpx solid #EDE8E0;
+}
+
+.cells-no-top-margin {
+  margin-top: 0 !important;
+}
+
 .label {
   width: 90rpx;
   color: #8C8279;
@@ -24,9 +55,17 @@
   padding: 14rpx 10rpx 4rpx;
 }
 
+.suggest-cells {
+  margin-top: 10rpx !important;
+}
+
 .selected {
   margin-top: 16rpx;
   font-size: 28rpx;
+}
+
+.clear-link {
+  color: #8C8279;
 }
 
 .author-pill {

@@ -1,5 +1,6 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "翻书随手记 · 书单"
+  "navigationBarTitleText": "翻书随手记 · 书单",
+  "enablePullDownRefresh": true
 }
 

@@ -3,6 +3,37 @@
   padding: 32rpx 32rpx 40rpx;
 }
 
+.hero {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 24rpx 22rpx;
+  margin-bottom: 14rpx;
+  border: 1rpx solid #EDE8E0;
+}
+
+.hero-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2D2A26;
+}
+
+.hero-sub {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #8C8279;
+}
+
+.group-title {
+  padding: 18rpx 8rpx 10rpx;
+  color: #8C8279;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.cells-no-top-margin {
+  margin-top: 0 !important;
+}
+
 .slide-row {
   overflow: hidden;
 }

@@ -13,7 +13,7 @@
 }
 
 .h1 {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 700;
   color: #2D2A26;
 }
@@ -49,6 +49,43 @@
   font-size: 30rpx;
   font-weight: 700;
   color: #2D2A26;
+}
+
+.setting-row {
+  margin-top: 14rpx;
+}
+
+.setting-title {
+  font-size: 28rpx;
+  color: #2D2A26;
+  margin-bottom: 10rpx;
+}
+
+.seg {
+  display: flex;
+  gap: 8rpx;
+  background: #F3EFE8;
+  border-radius: 999rpx;
+  padding: 6rpx;
+}
+
+.seg-3 .seg-item {
+  min-width: 0;
+}
+
+.seg-item {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  color: #8C8279;
+  border-radius: 999rpx;
+  padding: 8rpx 6rpx;
+}
+
+.seg-item.active {
+  background: #ffffff;
+  color: #8B7355;
+  font-weight: 700;
 }
 
 .profile {

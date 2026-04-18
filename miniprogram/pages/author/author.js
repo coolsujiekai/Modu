@@ -22,6 +22,10 @@ Page({
     this.loadData();
   },
 
+  onPullDownRefresh() {
+    this.loadData().finally(() => wx.stopPullDownRefresh());
+  },
+
   onPageTap() {
     if (!this.data.openSlideId) return;
     this.setData({ openSlideId: null });

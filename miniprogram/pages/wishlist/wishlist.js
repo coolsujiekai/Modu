@@ -10,6 +10,10 @@ Page({
     this.load();
   },
 
+  onPullDownRefresh() {
+    this.load().finally(() => wx.stopPullDownRefresh());
+  },
+
   async load() {
     wx.showLoading({ title: '加载中' });
     try {

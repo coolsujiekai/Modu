@@ -1,12 +1,12 @@
 <view class="page" bindtap="onPageTap">
   <view class="hero">
-    <view class="hero-title">👤 {{authorName}}</view>
+    <view class="hero-title">{{authorName}}</view>
     <view class="hero-sub muted">在读 {{readingBooks.length}} 本 · 已读 {{finishedBooks.length}} 本</view>
   </view>
 
   <view class="section" wx:if="{{readingBooks.length}}">
     <view class="section-hd">在读</view>
-    <view class="weui-cells" style="margin-top:0;">
+    <view class="weui-cells cells-no-top-margin">
       <view wx:for="{{readingBooks}}" wx:key="_id" class="slide-row">
         <slideview
           buttons="{{item.slideButtons}}"
@@ -30,7 +30,7 @@
 
   <view class="section" wx:if="{{finishedBooks.length}}">
     <view class="section-hd">已读</view>
-    <view class="weui-cells" style="margin-top:0;">
+    <view class="weui-cells cells-no-top-margin">
       <view wx:for="{{finishedBooks}}" wx:key="_id" class="slide-row">
         <slideview
           buttons="{{item.slideButtons}}"

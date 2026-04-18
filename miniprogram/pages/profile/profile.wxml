@@ -1,4 +1,9 @@
 <view class="page">
+  <view class="page-head">
+    <view class="page-title">更多</view>
+    <view class="page-sub">工具与设置</view>
+  </view>
+
   <view class="card">
     <view class="weui-cells weui-cells_in-card">
     <view class="weui-cell weui-cell_access" bindtap="goWishlist">
@@ -7,7 +12,7 @@
           <image class="cell-icon" src="/assets/icons/bookmark.svg" mode="aspectFit" />
         </view>
       </view>
-      <view class="weui-cell__bd">书单</view>
+      <view class="weui-cell__bd">想读书单</view>
       <view class="weui-cell__ft"></view>
     </view>
 
@@ -51,7 +56,7 @@
           <image class="cell-icon" src="/assets/icons/warning.svg" mode="aspectFit" />
         </view>
       </view>
-      <view class="weui-cell__bd danger-text">危险操作</view>
+      <view class="weui-cell__bd danger-text">数据管理</view>
       <view class="weui-cell__ft"></view>
     </view>
     </view>

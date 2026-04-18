@@ -1,7 +1,10 @@
-<view class="page" bindtap="onPageTap">
+<view class="page">
   <view class="hero">
-    <view class="hero-title">在读书架</view>
-    <view class="hero-sub">以书为伴，不慌不忙，做个有态度的阅读者✨</view>
+    <view class="hero-top">
+      <view class="hero-title">正在阅读</view>
+      <view class="hero-count">{{readingCount}} 本</view>
+    </view>
+    <view class="hero-sub">{{heroSub}}</view>
   </view>
 
   <block wx:if="{{loading}}">
@@ -18,42 +21,47 @@
       <view class="weui-msg__icon-area">
         <text style="font-size: 84rpx;">📖</text>
       </view>
-      <view class="weui-msg__title">开读一本新书吧</view>
-      <view class="weui-msg__desc">这里会放下你正在读的每一本书</view>
+      <view class="weui-msg__title">今天想读哪一本？</view>
+      <view class="weui-msg__desc">先把第一本放进书架</view>
       <view class="weui-msg__opr-area">
-        <button class="weui-btn weui-btn_primary" bindtap="startReading">读本新书</button>
+        <button class="weui-btn weui-btn_primary" bindtap="startReading">新增第一本</button>
       </view>
     </view>
   </block>
 
   <block wx:else>
-    <view class="list-card">
-      <view class="weui-cells" style="margin-top:0;">
-        <view wx:for="{{readingBooks}}" wx:key="_id" class="slide-row">
-          <slideview
-            buttons="{{item.slideButtons}}"
-            show="{{openSlideId === item._id}}"
-            data-id="{{item._id}}"
-            bind:show="onSlideShow"
-            bind:hide="onSlideHide"
-            bind:buttontap="onSlideButtonTap"
-          >
-            <view class="weui-cell weui-cell_access" catchtap="openBook" data-id="{{item._id}}">
-              <view class="weui-cell__hd">
-                <image class="book-cover" src="/images/book-cover.png" mode="aspectFill" />
-              </view>
-              <view class="weui-cell__bd">
-                <view class="cell-title">{{item.bookName}}</view>
-                <view class="cell-sub">已记录 {{item.notesCount}} 条 · 开始 {{item.startText}}</view>
-              </view>
-              <view class="weui-cell__ft"></view>
-            </view>
-          </slideview>
+    <block wx:if="{{homeViewMode === 'grid'}}">
+      <view class="cover-grid">
+        <view wx:for="{{readingBooks}}" wx:key="_id" class="cover-item" catchtap="openBook" bindlongpress="onBookLongPress" data-id="{{item._id}}" data-name="{{item.bookName}}" hover-class="tap-active" hover-stay-time="70">
+          <view class="book-cover-large {{item.coverToneClass}}">
+            <view class="cover-spine"></view>
+            <text class="cover-text-large">{{item.coverText}}</text>
+          </view>
+        </view>
+
+        <view class="cover-item" catchtap="startReading" hover-class="tap-active" hover-stay-time="70">
+          <view class="add-cover">
+            <view class="add-plus">+</view>
+            <view class="add-text">新增一本</view>
+          </view>
         </view>
       </view>
-    </view>
-    <view class="fab">
-      <button class="weui-btn weui-btn_primary" bindtap="startReading">读本新书</button>
-    </view>
+    </block>
+    <block wx:else>
+      <view class="list-card">
+        <view class="weui-cells list-cells">
+          <view wx:for="{{readingBooks}}" wx:key="_id" class="weui-cell weui-cell_access" catchtap="openBook" bindlongpress="onBookLongPress" data-id="{{item._id}}" data-name="{{item.bookName}}" hover-class="tap-active" hover-stay-time="70">
+            <view class="weui-cell__bd">
+              <view class="list-title">{{item.bookName}}</view>
+            </view>
+            <view class="weui-cell__ft"></view>
+          </view>
+          <view class="weui-cell weui-cell_access" catchtap="startReading" hover-class="tap-active" hover-stay-time="70">
+            <view class="weui-cell__bd list-add">+ 新增一本</view>
+            <view class="weui-cell__ft"></view>
+          </view>
+        </view>
+      </view>
+    </block>
   </block>
 </view>

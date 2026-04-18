@@ -3,6 +3,7 @@
     "pages/index/index",
     "pages/createBook/createBook",
     "pages/book/book",
+    "pages/bookNotes/bookNotes",
     "pages/editNote/editNote",
     "pages/wishlist/wishlist",
     "pages/history/history",
@@ -21,7 +22,7 @@
   "darkmode": true,
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#10b981",
+    "selectedColor": "#8B7355",
     "list": [
       {
         "pagePath": "pages/index/index",

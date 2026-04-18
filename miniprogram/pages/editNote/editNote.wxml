@@ -1,7 +1,7 @@
 <view class="page">
   <view class="card">
-    <view class="hint">{{typeText}} · 修改后点保存</view>
-    <textarea class="editor" value="{{text}}" placeholder="请输入内容" bindinput="onInput" maxlength="2000" auto-height />
+    <view class="hint">编辑{{typeText}}</view>
+    <textarea class="editor" value="{{text}}" placeholder="写下内容…" bindinput="onInput" maxlength="2000" auto-height />
     <view class="actions">
       <button class="weui-btn weui-btn_primary" bindtap="save" loading="{{saving}}" disabled="{{saving}}">保存</button>
     </view>

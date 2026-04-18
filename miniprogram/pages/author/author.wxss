@@ -30,6 +30,10 @@
   margin-top: 12rpx;
 }
 
+.cells-no-top-margin {
+  margin-top: 0 !important;
+}
+
 .section-hd {
   padding: 14rpx 8rpx 10rpx;
   color: #8C8279;

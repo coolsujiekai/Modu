@@ -1,0 +1,44 @@
+<view class="page">
+  <block wx:if="{{loading}}">
+    <view class="weui-msg">
+      <view class="weui-msg__icon-area"><text style="font-size: 80rpx;">⏳</text></view>
+      <view class="weui-msg__title">加载中</view>
+    </view>
+  </block>
+
+  <block wx:elif="{{!book}}">
+    <view class="weui-msg">
+      <view class="weui-msg__icon-area"><text style="font-size: 80rpx;">📚</text></view>
+      <view class="weui-msg__title">没找到这本书</view>
+      <view class="weui-msg__desc">可能已被删除或网络异常</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="weui-panel header-panel">
+      <view class="weui-panel__hd header-hd">
+        <view class="header-title">{{book.bookName}}</view>
+        <view class="header-sub muted">{{typeText}} · 共 {{notes.length}} 条</view>
+      </view>
+    </view>
+
+    <view class="weui-cells" style="margin-top: 0;">
+      <block wx:if="{{notes.length === 0}}">
+        <view class="weui-cell">
+          <view class="weui-cell__bd muted">还没有{{typeText}}</view>
+        </view>
+      </block>
+      <view class="weui-cell" wx:for="{{notes}}" wx:key="timestamp">
+        <view class="weui-cell__bd">
+          <view class="note-text" style="white-space: pre-wrap;">{{item.type === 'quote' ? '📖' : '💭'}} {{item.text}}</view>
+          <view class="note-meta muted">{{item.timeText}}</view>
+          <view class="row-actions">
+            <text class="btn-link" bindtap="editNote" data-ts="{{item.timestamp}}">编辑</text>
+            <text class="btn-link" bindtap="openNoteMore" data-ts="{{item.timestamp}}" data-text="{{item.text}}">更多</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>
+

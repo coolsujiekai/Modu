@@ -1,8 +1,12 @@
 <view class="page">
-  <view class="weui-panel" style="margin-top: 0;">
-    <view class="weui-panel__hd">📘 新建一本书</view>
+  <view class="hero">
+    <view class="hero-title">开始一本新书</view>
+    <view class="hero-sub">填好书名和作者，马上进入记录页面。</view>
+  </view>
+
+  <view class="weui-panel form-panel">
     <view class="weui-panel__bd">
-      <view class="weui-cells" style="margin-top:0;">
+      <view class="weui-cells cells-no-top-margin">
         <view class="weui-cell">
           <view class="weui-cell__hd"><view class="label">书名</view></view>
           <view class="weui-cell__bd">
@@ -19,7 +23,7 @@
 
       <view class="suggest-card" wx:if="{{authorQuery && authorSuggestions.length}}">
         <view class="suggest-title muted">建议选择已有作者</view>
-        <view class="weui-cells" style="margin-top: 10rpx;">
+        <view class="weui-cells suggest-cells">
           <view class="weui-cell weui-cell_access" wx:for="{{authorSuggestions}}" wx:key="_id" bindtap="selectAuthor" data-author="{{item}}">
             <view class="weui-cell__bd">{{item.name}}</view>
             <view class="weui-cell__ft"></view>
@@ -30,11 +34,11 @@
       <view class="selected" wx:if="{{selectedAuthor}}">
         <text class="muted">已选择作者：</text>
         <text class="author-pill" bindtap="clearSelectedAuthor">{{selectedAuthor.name}}</text>
-        <text class="muted">（点作者名可更换）</text>
+        <text class="muted">（点作者可更换）</text>
       </view>
 
       <view class="actions">
-        <button class="weui-btn weui-btn_primary" bindtap="submit">开始在读</button>
+        <button class="weui-btn weui-btn_primary" bindtap="submit">开始阅读</button>
         <button class="weui-btn weui-btn_default" bindtap="cancel">取消</button>
       </view>
     </view>
