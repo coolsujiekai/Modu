@@ -34,15 +34,21 @@
       <view class="cover-grid">
         <view wx:for="{{readingBooks}}" wx:key="_id" class="cover-item" catchtap="openBook" bindlongpress="onBookLongPress" data-id="{{item._id}}" data-name="{{item.bookName}}" hover-class="tap-active" hover-stay-time="70">
           <view class="book-cover-large {{item.coverToneClass}}">
+            <view class="cover-skeuo-shadow" aria-hidden="true"></view>
             <view class="cover-spine"></view>
-            <text class="cover-text-large">{{item.coverText}}</text>
+            <view class="cover-page-edge" aria-hidden="true"></view>
+            <view class="cover-shine" aria-hidden="true"></view>
+            <view class="cover-inner">
+              <text class="cover-title">{{item.bookName}}</text>
+              <text wx:if="{{item.authorName}}" class="cover-author">{{item.authorName}}</text>
+            </view>
           </view>
         </view>
 
         <view class="cover-item" catchtap="startReading" hover-class="tap-active" hover-stay-time="70">
           <view class="add-cover">
             <view class="add-plus">+</view>
-            <view class="add-text">新增一本</view>
+            <view class="add-text">再读一本</view>
           </view>
         </view>
       </view>
@@ -53,11 +59,12 @@
           <view wx:for="{{readingBooks}}" wx:key="_id" class="weui-cell weui-cell_access" catchtap="openBook" bindlongpress="onBookLongPress" data-id="{{item._id}}" data-name="{{item.bookName}}" hover-class="tap-active" hover-stay-time="70">
             <view class="weui-cell__bd">
               <view class="list-title">{{item.bookName}}</view>
+              <view wx:if="{{item.authorName}}" class="list-author">{{item.authorName}}</view>
             </view>
             <view class="weui-cell__ft"></view>
           </view>
           <view class="weui-cell weui-cell_access" catchtap="startReading" hover-class="tap-active" hover-stay-time="70">
-            <view class="weui-cell__bd list-add">+ 新增一本</view>
+            <view class="weui-cell__bd list-add">+ 再读一本</view>
             <view class="weui-cell__ft"></view>
           </view>
         </view>

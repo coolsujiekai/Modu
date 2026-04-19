@@ -86,12 +86,6 @@ Page({
     return tones[sum % tones.length];
   },
 
-  getCoverShortName(bookName = '') {
-    const text = String(bookName).replace(/\s+/g, '').trim();
-    if (!text) return '未命名';
-    return text.slice(0, 8);
-  },
-
   onPullDownRefresh() {
     this.loadReadingBooks().finally(() => wx.stopPullDownRefresh());
   },
@@ -131,12 +125,20 @@ Page({
         );
       }
       const books = res.data || [];
-      const normalizedBooks = books.map(b => ({
-        ...b,
-        notesCount: Number(b.notesCount || 0),
-        coverText: this.getCoverShortName(b.bookName),
-        coverToneClass: this.coverToneClassById(b._id)
-      }));
+      const seen = new Set();
+      const normalizedBooks = [];
+      for (const b of books) {
+        const id = b._id;
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        const authorName = (b.authorName || '').trim();
+        normalizedBooks.push({
+          ...b,
+          notesCount: Number(b.notesCount || 0),
+          coverToneClass: this.coverToneClassById(b._id),
+          authorName: authorName || ''
+        });
+      }
       normalizedBooks.sort((a, b) => Number(b.startTime || 0) - Number(a.startTime || 0));
       const readingCount = normalizedBooks.length;
       let heroSub = '今天想读哪一本？';

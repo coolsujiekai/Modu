@@ -127,6 +127,10 @@
 
     <button wx:if="{{book.status !== 'finished'}}" class="weui-btn btn-finish" style="margin-top: 18rpx;" bindtap="finishReading">我读完了</button>
     <button wx:else class="weui-btn btn-finish-outline" style="margin-top: 18rpx;" bindtap="markUnfinished">恢复在读</button>
+
+    <view class="share-card-section" wx:if="{{book.status === 'finished' && quoteCount > 0}}">
+      <button class="btn-share-card" bindtap="generateShareCard">生成阅读分享卡</button>
+    </view>
   </block>
 </view>
 

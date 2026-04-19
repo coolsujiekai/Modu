@@ -95,7 +95,8 @@ Page({
     let totalThoughts = 0;
     let totalQuotes = 0;
     (books || []).forEach(b => {
-      if (Array.isArray(b.notes) && b.notes.length > 0) {
+      // 有 notes 数组时以数组为准（含空数组），避免已删笔记但 thoughtCount/quoteCount 未同步导致虚高
+      if (Array.isArray(b.notes)) {
         const { thoughtCount, quoteCount } = countNoteTypes(b.notes);
         totalThoughts += thoughtCount;
         totalQuotes += quoteCount;
@@ -113,13 +114,15 @@ Page({
       let totalQuotes = 0;
       const batchSize = 100;
       let skip = 0;
+      // 与「已读回顾」一致：只统计已读完书籍上的心得 / 金句（不含在读、想读等）
+      const finishedWhere = withOpenIdFilter({ status: 'finished' });
       try {
         while (true) {
           const res = await traced(`books.stats(skip=${skip})`, () =>
             withRetry(() =>
               db
                 .collection('books')
-                .where(withOpenIdFilter({}))
+                .where(finishedWhere)
                 .orderBy('_id', 'asc')
                 .field({ notes: true, thoughtCount: true, quoteCount: true })
                 .skip(skip)
@@ -141,7 +144,7 @@ Page({
           withRetry(() =>
             db
               .collection('books')
-              .where(withOpenIdFilter({}))
+              .where(finishedWhere)
               .field({ notes: true, thoughtCount: true, quoteCount: true })
               .limit(100)
               .get()

@@ -1,0 +1,212 @@
+/* pages/shareCard/shareCard.wxss */
+
+.hidden-canvas {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 900;
+}
+
+.modal-content {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #F5F0E8;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 0 0 env(safe-area-inset-bottom);
+  z-index: 901;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 36rpx 32rpx 24rpx;
+  text-align: center;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2C3E50;
+}
+
+.book-info-section {
+  padding: 24rpx 32rpx;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.book-info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.book-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.book-info-label {
+  font-size: 28rpx;
+  color: #666;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+
+.book-info-input {
+  flex: 1;
+  font-size: 30rpx;
+  color: #2C3E50;
+  border-bottom: 1px solid rgba(44,62,80,0.2);
+  padding: 8rpx 0;
+}
+
+.quote-section {
+  padding: 24rpx 32rpx;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+.quote-list {
+  flex: 1;
+  max-height: 320rpx;
+}
+
+.quote-empty {
+  font-size: 28rpx;
+  text-align: center;
+  padding: 40rpx 0;
+}
+
+.quote-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  margin-bottom: 12rpx;
+  background: rgba(44,62,80,0.04);
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.quote-item--selected {
+  border-color: #2C3E50;
+  background: rgba(44,62,80,0.08);
+}
+
+.quote-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #444;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.quote-text--selected {
+  color: #2C3E50;
+  font-weight: 500;
+}
+
+.quote-check {
+  font-size: 28rpx;
+  color: #2C3E50;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 20rpx;
+  padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.btn-cancel {
+  flex: 1;
+  font-size: 30rpx;
+  color: #999;
+  background: transparent;
+  border: 1px solid #ddd;
+  border-radius: 16rpx;
+  padding: 0;
+  line-height: 2.6;
+}
+
+.btn-confirm {
+  flex: 1;
+  font-size: 30rpx;
+  color: #fff;
+  background: #2C3E50;
+  border-radius: 16rpx;
+  border: none;
+  padding: 0;
+  line-height: 2.6;
+}
+
+.btn-disabled {
+  background: #ccc;
+}
+
+/* 生成中 overlay */
+.generating-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.generating-box {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 64rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.spinner {
+  width: 56rpx;
+  height: 56rpx;
+  border: 4rpx solid rgba(44,62,80,0.2);
+  border-top-color: #2C3E50;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.generating-text {
+  font-size: 28rpx;
+  color: #666;
+}

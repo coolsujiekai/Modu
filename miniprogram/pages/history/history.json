@@ -2,6 +2,9 @@
   "usingComponents": {
     "slideview": "weui-miniprogram/slideview/slideview"
   },
+  "componentPlaceholder": {
+    "slideview": "view"
+  },
   "navigationBarTitleText": "翻书随手记 · 已读",
   "enablePullDownRefresh": true
 }

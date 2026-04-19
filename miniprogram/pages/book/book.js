@@ -311,7 +311,7 @@ Page({
     if (idx < 0) return;
 
     const confirm = await wx.showModal({
-      title: '删除这条记录？',
+      title: '删除这条记录?',
       content: '删除后不可恢复',
       confirmColor: '#C07D6B',
       confirmText: '删除'
@@ -367,7 +367,7 @@ Page({
       .map(n => String(n?.text || '').trim())
       .filter(Boolean);
     if (cleanNotes.length === 0) {
-      return ['（暂无）'];
+      return ['(暂无)'];
     }
     return cleanNotes.map((text, idx) => `${idx + 1}. ${text}`);
   },
@@ -388,20 +388,20 @@ Page({
 
     const lines = [];
     lines.push(`《${bookName}》阅读记录`);
-    lines.push(`作者：${author}`);
-    lines.push(`状态：${statusText}`);
+    lines.push(`作者:${author}`);
+    lines.push(`状态:${statusText}`);
 
     const started = this.data.startedText || formatDate(book.startTime);
     const finished = this.data.finishedText || formatDate(book.endTime);
-    if (started) lines.push(`开始：${started}`);
-    if (book.status === 'finished' && finished) lines.push(`读完：${finished}`);
-    lines.push(`统计：心得 ${thoughtNotes.length} 条 · 金句 ${quoteNotes.length} 条`);
+    if (started) lines.push(`开始:${started}`);
+    if (book.status === 'finished' && finished) lines.push(`读完:${finished}`);
+    lines.push(`统计:心得 ${thoughtNotes.length} 条 · 金句 ${quoteNotes.length} 条`);
 
     lines.push('');
-    lines.push('—— 心得 ——');
+    lines.push('-- 心得 --');
     lines.push(...this.formatExportItems(thoughtNotes));
     lines.push('');
-    lines.push('—— 金句 ——');
+    lines.push('-- 金句 --');
     lines.push(...this.formatExportItems(quoteNotes));
 
     const text = lines.join('\n').trim();
@@ -423,7 +423,7 @@ Page({
 
     const confirm = await wx.showModal({
       title: '我读完了',
-      content: '这本书读完啦？',
+      content: '这本书读完啦?',
       confirmText: '完成'
     });
     if (!confirm.confirm) return;
@@ -458,7 +458,7 @@ Page({
 
     const confirm = await wx.showModal({
       title: '恢复在读',
-      content: '将这本书回到“在读”书架？',
+      content: '将这本书回到"在读"书架？',
       confirmText: '恢复'
     });
     if (!confirm.confirm) return;
@@ -478,6 +478,23 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: '保存失败', icon: 'none' });
     }
+  },
+
+
+  generateShareCard() {
+    const book = this.data.book;
+    if (!book || book.status !== 'finished') return;
+    const quoteNotes = this.data.quoteNotes || [];
+    if (quoteNotes.length === 0) {
+      wx.showToast({ title: '这本书还没有金句', icon: 'none' });
+      return;
+    }
+    const bookName = encodeURIComponent(book.bookName || '');
+    const authorName = encodeURIComponent(book.authorName || '');
+    const quotes = encodeURIComponent(JSON.stringify(quoteNotes));
+    wx.navigateTo({
+      url: `/pages/shareCard/shareCard?bookId=${book._id}&bookName=${bookName}&authorName=${authorName}&quotes=${quotes}`
+    });
   }
 });
 

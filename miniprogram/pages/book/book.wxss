@@ -246,6 +246,21 @@
   opacity: 0.92;
 }
 
+.share-card-section {
+  padding: 0 30rpx 24rpx;
+}
+
+.btn-share-card {
+  background: #2C3E50;
+  color: #fff;
+  border-radius: 999rpx;
+  border: none;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 0;
+  line-height: 2.6;
+}
+
 .btn-link {
   color: #8B7355;
   font-size: 26rpx;

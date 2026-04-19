@@ -11,7 +11,8 @@
     "pages/privacy/privacy",
     "pages/personalize/personalize",
     "pages/author/author",
-    "pages/editBookInfo/editBookInfo"
+    "pages/editBookInfo/editBookInfo",
+    "pages/shareCard/shareCard"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",
@@ -39,5 +40,6 @@
     ]
   },
   "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }

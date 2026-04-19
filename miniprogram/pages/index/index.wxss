@@ -63,6 +63,13 @@
   color: #2D2A26;
 }
 
+.list-author {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #8C8279;
+  font-weight: 500;
+}
+
 .list-add {
   color: #8B7355;
   font-size: 28rpx;
@@ -84,14 +91,28 @@
 
 .book-cover-large {
   width: 100%;
-  padding: 24rpx 20rpx 20rpx 30rpx;
+  padding: 0;
   box-sizing: border-box;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: flex-start;
-  border: 1rpx solid #E6DDD2;
+  border: 1rpx solid rgba(90, 75, 58, 0.22);
   position: relative;
   overflow: hidden;
+  box-shadow:
+    0 4rpx 6rpx rgba(62, 48, 36, 0.06),
+    0 12rpx 28rpx rgba(62, 48, 36, 0.1),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.65);
+}
+
+.cover-skeuo-shadow {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent 0%, rgba(45, 35, 28, 0.07) 100%);
+  pointer-events: none;
 }
 
 .cover-spine {
@@ -99,41 +120,111 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 10rpx;
-  background: rgba(109, 90, 70, 0.12);
-  border-right: 1rpx solid rgba(109, 90, 70, 0.16);
+  width: 14rpx;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    rgba(55, 42, 32, 0.2) 0%,
+    rgba(109, 90, 70, 0.14) 45%,
+    rgba(109, 90, 70, 0.06) 100%
+  );
+  border-right: 1rpx solid rgba(70, 55, 42, 0.22);
+  box-shadow: inset -2rpx 0 4rpx rgba(0, 0, 0, 0.06);
 }
 
-.cover-text-large {
-  font-size: 30rpx;
-  line-height: 1.45;
-  font-weight: 600;
-  color: #6D5A46;
+.cover-page-edge {
+  position: absolute;
+  right: 10rpx;
+  top: 16rpx;
+  bottom: 16rpx;
+  width: 5rpx;
+  border-radius: 2rpx;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(240, 232, 220, 0.35) 50%,
+    rgba(220, 208, 192, 0.45) 100%
+  );
+  box-shadow: -1rpx 0 2rpx rgba(62, 48, 36, 0.08);
+  pointer-events: none;
+}
+
+.cover-shine {
+  position: absolute;
+  left: 18rpx;
+  top: 0;
+  right: 0;
+  height: 42%;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0) 58%);
+  pointer-events: none;
+}
+
+.cover-inner {
+  flex: 1;
+  min-width: 0;
+  padding: 26rpx 22rpx 22rpx 34rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 10rpx;
+  z-index: 2;
+}
+
+.cover-title {
+  font-size: 28rpx;
+  line-height: 1.42;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #4a3d32;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 6;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+  word-break: break-word;
+  text-shadow: 0 1rpx 0 rgba(255, 255, 255, 0.35);
+}
+
+.cover-author {
+  font-size: 22rpx;
+  line-height: 1.35;
+  font-weight: 500;
+  color: rgba(74, 61, 50, 0.62);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
   word-break: break-all;
 }
 
 .cover-tone-1 {
-  background: linear-gradient(160deg, #F8F1E7 0%, #EFE3D4 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.9) 0%, transparent 32%),
+    linear-gradient(160deg, #f3e9dc 0%, #e8d9c6 48%, #dcccb8 100%);
 }
 
 .cover-tone-2 {
-  background: linear-gradient(160deg, #F2EFE6 0%, #E7E2D6 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.85) 0%, transparent 30%),
+    linear-gradient(160deg, #ebe6dc 0%, #dfd8cb 52%, #d2c9bb 100%);
 }
 
 .cover-tone-3 {
-  background: linear-gradient(160deg, #F6ECE4 0%, #ECDCCF 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 250, 246, 0.88) 0%, transparent 28%),
+    linear-gradient(160deg, #f0e4db 0%, #e5d3c6 50%, #dbc4b5 100%);
 }
 
 .cover-tone-4 {
-  background: linear-gradient(160deg, #F1EDE9 0%, #E5DFD8 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 254, 252, 0.82) 0%, transparent 28%),
+    linear-gradient(160deg, #e8e4de 0%, #dbd5cd 52%, #cec7be 100%);
 }
 
 .cover-tone-5 {
-  background: linear-gradient(160deg, #F4EFEA 0%, #E8E1D8 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 251, 246, 0.86) 0%, transparent 30%),
+    linear-gradient(160deg, #efe8e0 0%, #e3dcd4 50%, #d6cec6 100%);
 }
 
 .add-cover {

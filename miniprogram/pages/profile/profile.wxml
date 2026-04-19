@@ -26,16 +26,6 @@
       <view class="weui-cell__ft"></view>
     </view>
 
-    <view class="weui-cell weui-cell_access" bindtap="goPrivacy">
-      <view class="weui-cell__hd">
-        <view class="icon-wrap icon-privacy">
-          <image class="cell-icon" src="/assets/icons/shield.svg" mode="aspectFit" />
-        </view>
-      </view>
-      <view class="weui-cell__bd">隐私指引与说明</view>
-      <view class="weui-cell__ft"></view>
-    </view>
-
     <view class="weui-cell weui-cell_access" bindtap="goPersonalize">
       <view class="weui-cell__hd">
         <view class="icon-wrap icon-personalize">
@@ -43,6 +33,16 @@
         </view>
       </view>
       <view class="weui-cell__bd">个性化设置</view>
+      <view class="weui-cell__ft"></view>
+    </view>
+
+    <view class="weui-cell weui-cell_access" bindtap="goPrivacy">
+      <view class="weui-cell__hd">
+        <view class="icon-wrap icon-privacy">
+          <image class="cell-icon" src="/assets/icons/shield.svg" mode="aspectFit" />
+        </view>
+      </view>
+      <view class="weui-cell__bd">隐私指引与说明</view>
       <view class="weui-cell__ft"></view>
     </view>
     </view>
