@@ -1,6 +1,6 @@
 <!-- pages/shareCard/shareCard.wxml -->
-<!-- 隐藏 canvas 用于绘制（不可见） -->
-<canvas type="2d" canvas-id="cardCanvas" class="hidden-canvas" />
+<!-- 绘制用 canvas（视觉透明，用 positioning 移出屏幕） -->
+<canvas canvas-id="cardCanvas" class="card-canvas" />
 
 <!-- 遮罩层 -->
 <view class="modal-mask" bindtap="onMaskTap"></view>
