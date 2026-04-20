@@ -650,7 +650,7 @@ Page({
     }
 
     // 底部：只保留一句转化文案
-    const cta1 = '我在用微信小程序「翻书随手记」记下每次读书的触动';
+    const cta1 = '我用微信小程序「翻书随手记」记下每次读书的触动';
     const footerY = cvHeight - bottomPad - 18;
     ctx.setFillStyle(palette.muted);
     ctx.setFontSize(12);

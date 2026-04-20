@@ -7,8 +7,8 @@
   <view class="card">
     <view class="h2">1. 我们会收集哪些信息</view>
     <view class="p">- 你在小程序内主动输入的内容：书名、作者、阅读状态、笔记、书单等。</view>
-    <view class="p">- 为实现不同用户的数据隔离，系统会使用微信提供的用户身份标识（OpenID，对应云开发环境的用户标识）用于区分数据归属。</view>
-    <view class="p muted">说明：本小程序默认不强制获取你的头像、昵称等公开资料。</view>
+    <view class="p">- 为实现不同用户的数据隔离，系统会使用微信提供的用户身份标识OpenID用于区分数据归属。</view>
+    <view class="p">- 默认不强制获取你的头像、昵称等公开资料。</view>
   </view>
 
   <view class="card">
@@ -20,20 +20,17 @@
   <view class="card">
     <view class="h2">3. 信息存储与保护</view>
     <view class="p">- 数据存储在微信云开发提供的云数据库中。</view>
-    <view class="p">- 我们通过访问控制规则限制数据读写权限：仅数据创建者可读写自己的数据。</view>
+    <view class="p">-通过访问控制规则限制数据读写权限：仅数据创建者可读写自己的数据。</view>
   </view>
 
   <view class="card">
     <view class="h2">4. 你对信息的控制</view>
-    <view class="p">- 你可以在“更多”页面使用“清空书单 / 清空所有数据”等功能删除你的数据（删除后不可恢复）。</view>
+    <view class="p">- 你可以在“更多”页面——数据管理功能，执行清空数据操作。</view>
+     <view class="p">- 请务必谨慎，不可恢复。</view>
   </view>
 
-  <view class="card">
-    <view class="h2">5. 个性化设置</view>
-    <view class="p">- 你可以选择开启「头像 / 昵称」用于本地展示。</view>
-    <view class="p muted">开启时会在使用当次单独征求你的授权；拒绝不影响核心功能。</view>
-  </view>
 
-  <view class="footer muted">最后更新：2026-04-17</view>
+
+  <view class="footer muted">最后更新：2026-04-20</view>
 </view>
 

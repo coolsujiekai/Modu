@@ -10,7 +10,7 @@
         <view class="weui-cell">
           <view class="weui-cell__hd"><view class="label">书名</view></view>
           <view class="weui-cell__bd">
-            <input class="weui-input" placeholder="例如：活着" value="{{bookName}}" bindinput="onBookNameInput" maxlength="60" />
+            <input class="weui-input" placeholder="例如：百年孤独" value="{{bookName}}" bindinput="onBookNameInput" maxlength="60" />
           </view>
         </view>
         <view class="weui-cell">

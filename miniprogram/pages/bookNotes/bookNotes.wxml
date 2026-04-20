@@ -30,9 +30,18 @@
       </block>
       <view wx:for="{{notes}}" wx:key="timestamp" class="slide-row">
         <slideview buttons="{{item.slideButtons}}" bind:buttontap="onSlideButtonTap" data-ts="{{item.timestamp}}" data-text="{{item.text}}">
-          <view class="weui-cell">
+          <view class="weui-cell note-cell">
             <view class="weui-cell__bd">
-              <view class="note-text" style="white-space: pre-wrap;">{{item.text}}</view>
+              <view class="corner-tag corner-tag--{{item.type}}">
+                <text class="corner-tag__text">{{item.type === 'quote' ? '摘' : '思'}}</text>
+              </view>
+              <view
+                class="note-text"
+                style="white-space: pre-wrap;"
+                bindtap="onNoteDoubleTapCopy"
+                data-ts="{{item.timestamp}}"
+                data-text="{{item.text}}"
+              >{{item.text}}</view>
               <view class="note-meta muted">{{item.timeText}}</view>
             </view>
           </view>

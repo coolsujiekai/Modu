@@ -41,7 +41,18 @@ App({
       // #endregion
 
       if (readingCount === 0 && finishedCount === 0) {
-        wx.redirectTo({ url: '/pages/onboarding/onboarding' });
+        const onboardingSeen = wx.getStorageSync('_onboarding_v1_seen') === '1';
+        const emptyShelfSeen = wx.getStorageSync('_empty_shelf_v1_seen') === '1';
+
+        if (!onboardingSeen) {
+          wx.redirectTo({ url: '/pages/onboarding/onboarding' });
+          return;
+        }
+        if (!emptyShelfSeen) {
+          wx.redirectTo({ url: '/pages/emptyShelf/emptyShelf' });
+          return;
+        }
+        // Both intro pages have been shown once; do not force redirect.
       }
     } catch (e) {
       // #region agent log

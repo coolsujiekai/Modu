@@ -20,17 +20,17 @@
       <view class="weui-panel__hd book-hd">
         <view class="book-title">📚 {{book.bookName}}</view>
         <view class="book-actions">
-          <view class="book-edit" bindtap="editBookInfo">修改</view>
+          <view class="meta-pill" bindtap="editBookInfo">修改</view>
         </view>
       </view>
       <view class="weui-panel__bd">
         <view class="weui-media-box weui-media-box_text">
           <view class="weui-media-box__desc meta-row">
-            <text class="meta-label">状态</text>
+            <text class="meta-label">状态：</text>
             <text class="meta-pill">{{book.status === 'finished' ? '已读' : '在读'}}</text>
           </view>
           <view class="weui-media-box__desc meta-row" wx:if="{{book.authorName}}">
-            <text class="meta-label">作者</text>
+            <text class="meta-label">作者：</text>
             <text class="meta-link" bindtap="openAuthor" data-id="{{book.authorId}}" data-name="{{book.authorName}}">{{book.authorName}}</text>
           </view>
           <view class="weui-media-box__desc muted" style="margin-top: 10rpx;" wx:if="{{startedText}}">
@@ -48,7 +48,7 @@
       <view wx:if="{{book.status === 'finished' && quoteCount > 0}}" class="share-entry" hover-class="share-entry--active" bindtap="generateShareCard">
         <view class="share-entry__icon">✦</view>
         <view class="share-entry__main">
-          <view class="share-entry__title">生成分享卡</view>
+          <view class="share-entry__title">生成分享图片</view>
           <view class="share-entry__desc">加深阅读记忆</view>
         </view>
         <view class="share-entry__arrow">›</view>
@@ -62,7 +62,7 @@
         </view>
       </view>
       <view class="section-card__bd">
-        <textarea class="note-input {{noteFocused ? 'note-input--focused' : 'note-input--compact'}}" placeholder="写下刚刚触动你的一句话…" value="{{noteDraft}}" focus="{{autoFocusNote}}" bindinput="onNoteInput" bindfocus="onNoteFocus" bindblur="onNoteBlur" maxlength="2000" auto-height />
+        <textarea class="note-input {{noteFocused ? 'note-input--focused' : 'note-input--compact'}}" placeholder="写下刚刚打动你的一句话…" value="{{noteDraft}}" focus="{{autoFocusNote}}" bindinput="onNoteInput" bindfocus="onNoteFocus" bindblur="onNoteBlur" maxlength="2000" auto-height />
         <view class="section-actions section-actions--right" wx:if="{{canSaveDraft}}">
           <button class="weui-btn btn-finish" bindtap="chooseNoteTypeAndSave">保存</button>
         </view>
@@ -73,13 +73,13 @@
     <view class="section-card">
       <view class="section-card__hd">
         <view class="section-title-row">
-          <view class="section-title">记录时间流</view>
+          <view class="section-title">独家记忆</view>
           <view class="section-link">共 {{notes.length}} 条</view>
         </view>
       </view>
       <view class="section-card__bd">
         <block wx:if="{{timelineGroups.length === 0}}">
-          <view class="muted">还没有记录，先写下一句吧</view>
+          <view class="muted">还没有记录，赶紧写一句吧</view>
         </block>
         <block wx:else>
           <block wx:for="{{timelineGroups}}" wx:key="key" wx:for-item="g">
@@ -100,16 +100,19 @@
                       hover-class="tap-active"
                       hover-stay-time="70"
                       bindlongpress="onTimelineLongPress"
+                      bindtap="onTimelineDoubleTapCopy"
                       data-ts="{{n.timestamp}}"
                       data-text="{{n.text}}"
                     >
                       <view class="timeline-item__bd">
+                        <view class="corner-tag corner-tag--{{n.type}}">
+                          <text class="corner-tag__text">{{n.type === 'quote' ? '摘' : '思'}}</text>
+                        </view>
                         <view class="timeline-item__text">
                           <text>{{n.text}}</text>
                         </view>
                         <view class="timeline-item__meta">
                           <text class="timeline-item__time muted">{{n.shortTime}}</text>
-                          <text class="type-tag type-tag--{{n.type}}">{{n.typeLabel}}</text>
                         </view>
                       </view>
                     </view>

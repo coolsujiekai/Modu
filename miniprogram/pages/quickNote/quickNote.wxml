@@ -23,6 +23,14 @@
     </view>
 
     <view class="qn-bar__bottom">
+      <button
+        class="qn-voice {{isRecording ? 'qn-voice--recording' : ''}}"
+        disabled="{{saving}}"
+        catchtouchstart="onVoiceHoldStart"
+        catchtouchend="onVoiceHoldEnd"
+        catchtouchcancel="onVoiceHoldEnd"
+      >{{isRecording ? '松开结束' : '按住说话'}}</button>
+
       <view
         class="qn-type qn-type--quote {{type === 'quote' ? 'qn-type--active' : ''}}"
         bindtap="onTypeChange"

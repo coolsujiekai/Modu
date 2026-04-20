@@ -10,14 +10,14 @@
         <view class="step__dot"></view>
         <view class="step__main">
           <view class="step__title">添加一本在读书</view>
-          <view class="step__desc muted">从今天想读的那本开始</view>
+          <view class="step__desc muted">从你脑海中出现的那本书开始</view>
         </view>
       </view>
       <view class="step">
         <view class="step__dot"></view>
         <view class="step__main">
           <view class="step__title">记下一句</view>
-          <view class="step__desc muted">金句或想法，都算数</view>
+          <view class="step__desc muted">金句或想法，都可以</view>
         </view>
       </view>
       <view class="step">

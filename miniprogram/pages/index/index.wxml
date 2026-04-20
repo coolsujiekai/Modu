@@ -89,8 +89,10 @@
         wx:for="{{recentNotes}}"
         wx:key="key"
         class="recent-item"
-        catchtap="openBookFromNote"
-        data-id="{{item.bookId}}"
+        catchtap="onRecentNoteTap"
+        data-bookid="{{item.bookId}}"
+        data-text="{{item.text}}"
+        data-key="{{item.key}}"
         hover-class="tap-active"
         hover-stay-time="70"
       >

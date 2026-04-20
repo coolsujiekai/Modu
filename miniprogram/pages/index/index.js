@@ -14,6 +14,9 @@ Page({
     recentNotes: []
   },
 
+  _recentTap: { key: '', at: 0, timer: null },
+  _shelfTipTimer: null,
+
   async onShow() {
     this.applyPersonalizeSettings();
     await this.loadReadingBooks();
@@ -69,6 +72,38 @@ Page({
     const id = e.currentTarget.dataset.id;
     if (!id) return;
     wx.navigateTo({ url: `/pages/book/book?id=${id}` });
+  },
+
+  onRecentNoteTap(e) {
+    const bookId = e?.currentTarget?.dataset?.bookid;
+    const text = e?.currentTarget?.dataset?.text || '';
+    const key = e?.currentTarget?.dataset?.key || '';
+    if (!bookId) return;
+
+    const now = Date.now();
+    const isDouble = key && this._recentTap.key === key && now - this._recentTap.at < 260;
+
+    if (this._recentTap.timer) {
+      clearTimeout(this._recentTap.timer);
+      this._recentTap.timer = null;
+    }
+
+    if (isDouble) {
+      this._recentTap = { key: '', at: 0, timer: null };
+      if (!text) return;
+      wx.setClipboardData({
+        data: text,
+        success: () => wx.showToast({ title: '已复制', duration: 600 })
+      });
+      return;
+    }
+
+    this._recentTap.key = key;
+    this._recentTap.at = now;
+    this._recentTap.timer = setTimeout(() => {
+      this._recentTap.timer = null;
+      this.openBookFromNote({ currentTarget: { dataset: { id: bookId } } });
+    }, 260);
   },
 
   openPrimaryBook() {
@@ -248,6 +283,9 @@ Page({
         primaryBook,
         heroSub
       });
+
+      // One-time lightweight shelf tip (WeChat-like).
+      this.maybeShowShelfTip(readingCount);
     } catch (e) {
       this.setData({
         loading: false,
@@ -261,6 +299,27 @@ Page({
         content: e?.errMsg || JSON.stringify(e),
         showCancel: false
       });
+    }
+  }
+  ,
+
+  maybeShowShelfTip(readingCount) {
+    if (readingCount <= 0) return;
+    try {
+      const seen = wx.getStorageSync('_shelf_tip_v1_seen') === '1';
+      if (seen) return;
+      wx.setStorageSync('_shelf_tip_v1_seen', '1');
+
+      if (this._shelfTipTimer) clearTimeout(this._shelfTipTimer);
+      this._shelfTipTimer = setTimeout(() => {
+        wx.showToast({
+          title: '提示：长按书籍可编辑/标记读完/删除',
+          icon: 'none',
+          duration: 1800
+        });
+      }, 600);
+    } catch (err) {
+      // ignore storage failures
     }
   }
 });

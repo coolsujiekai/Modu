@@ -4,7 +4,7 @@
 <view class="modal-mask" bindtap="onMaskTap"></view>
 <view class="modal-content">
   <view class="modal-header">
-    <text class="modal-title">生成阅读分享卡</text>
+    <text class="modal-title">生成阅读分享图片</text>
     <text class="modal-sub">默认样式可在「更多-个性化」调整</text>
   </view>
 

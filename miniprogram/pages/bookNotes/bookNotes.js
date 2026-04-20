@@ -22,6 +22,8 @@ Page({
     noteTimeMode: 'both'
   },
 
+  _dblTap: { key: '', at: 0 },
+
   onLoad(options) {
     const bookId = options.bookId || '';
     const type = normalizeType(options.type || '');
@@ -78,6 +80,20 @@ Page({
       data: text,
       success: () => wx.showToast({ title: '已复制', duration: 600 })
     });
+  },
+
+  onNoteDoubleTapCopy(e) {
+    const ts = Number(e.currentTarget?.dataset?.ts || 0);
+    const text = e.currentTarget?.dataset?.text || '';
+    if (!ts || !text) return;
+
+    const now = Date.now();
+    const key = String(ts);
+    const isDouble = this._dblTap.key === key && now - this._dblTap.at < 260;
+    this._dblTap = { key, at: now };
+    if (!isDouble) return;
+
+    this.copyNote({ currentTarget: { dataset: { text } } });
   },
 
   editNote(e) {

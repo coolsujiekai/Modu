@@ -272,6 +272,44 @@ border: 1rpx solid var(--border-warm);
   border: 1rpx solid var(--border-muted);
   border-radius: var(--radius-md);
   padding: 18rpx 18rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-item__bd {
+  position: relative;
+}
+
+.corner-tag {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 72rpx;
+  height: 72rpx;
+  pointer-events: none;
+}
+
+.corner-tag--quote {
+  background: linear-gradient(315deg, var(--bg-surface-tag) 0 50%, transparent 50%);
+}
+
+.corner-tag--thought {
+  background: linear-gradient(315deg, var(--bg-surface-subtle) 0 50%, transparent 50%);
+}
+
+.corner-tag__text {
+  position: absolute;
+  bottom: 10rpx;
+  right: 10rpx;
+  font-size: 18rpx;
+  line-height: 1;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.corner-tag--quote .corner-tag__text {
+  color: var(--accent-strong);
 }
 
 .timeline-item__text {
@@ -305,26 +343,6 @@ border: 1rpx solid var(--border-warm);
 .timeline-item__action {
   flex: none;
   font-size: 22rpx;
-}
-
-.type-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40rpx;
-  padding: 0 16rpx;
-  border-radius: var(--radius-md);
-  font-size: 24rpx;
-  color: var(--text-secondary);
-  background: var(--bg-surface-subtle);
-}
-
-.type-tag--quote {
-  background: var(--bg-surface-tag);
-}
-
-.type-tag--thought {
-  background: var(--bg-surface-subtle);
 }
 
 .ellipsis-2 {
