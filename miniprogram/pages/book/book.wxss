@@ -105,6 +105,8 @@ border: 1rpx solid var(--border-warm);
   display: flex;
   align-items: center;
   gap: 14rpx;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .note-voice-btn.weui-btn,
@@ -124,6 +126,7 @@ border: 1rpx solid var(--border-warm);
   align-items: center;
   justify-content: center;
   gap: 8rpx;
+  min-width: 156rpx;
 }
 
 .note-voice-btn::after {
@@ -167,6 +170,7 @@ border: 1rpx solid var(--border-warm);
   align-items: center;
   justify-content: center;
   gap: 8rpx;
+  min-width: 156rpx;
 }
 
 .note-ocr-btn::after {

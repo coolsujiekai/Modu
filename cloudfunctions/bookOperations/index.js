@@ -220,10 +220,16 @@ async function recognizeText(event) {
   if (!fileID) throw new Error('fileID is required');
 
   // Note: openapi permission required in config.json: ocr.printedText
-  const res = await cloud.openapi.ocr.printedText({
-    type: 'photo',
-    imgUrl: fileID
-  });
+  // Some environments do not accept fileID directly as imgUrl; convert to a temp URL first.
+  let imgUrl = String(fileID);
+  if (imgUrl.startsWith('cloud://')) {
+    const tmp = await cloud.getTempFileURL({ fileList: [imgUrl] });
+    const url = tmp?.fileList?.[0]?.tempFileURL;
+    if (!url) throw new Error('failed to get tempFileURL');
+    imgUrl = url;
+  }
+
+  const res = await cloud.openapi.ocr.printedText({ type: 'photo', imgUrl });
 
   const items = Array.isArray(res?.items) ? res.items : [];
   const lines = items.map((it) => String(it?.text || '').trim()).filter(Boolean);
