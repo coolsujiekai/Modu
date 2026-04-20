@@ -209,6 +209,27 @@ async function deleteNote(event) {
   return { thoughtCount, quoteCount, notesCount: notes.length };
 }
 
+// ─── OCR（拍照识字） ──────────────────────────────────────────
+
+/**
+ * OCR printed text from a cloud fileID
+ * event: { fileID }
+ */
+async function recognizeText(event) {
+  const { fileID } = event;
+  if (!fileID) throw new Error('fileID is required');
+
+  // Note: openapi permission required in config.json: ocr.printedText
+  const res = await cloud.openapi.ocr.printedText({
+    type: 'photo',
+    imgUrl: fileID
+  });
+
+  const items = Array.isArray(res?.items) ? res.items : [];
+  const lines = items.map((it) => String(it?.text || '').trim()).filter(Boolean);
+  return { text: lines.join('\n') };
+}
+
 // ─── 作者操作 ────────────────────────────────────────────────
 
 /**
@@ -294,6 +315,7 @@ exports.main = async (event, context) => {
       case 'addNote':          return await addNote(event);
       case 'editNote':         return await editNote(event);
       case 'deleteNote':       return await deleteNote(event);
+      case 'recognizeText':    return await recognizeText(event);
       case 'findOrCreateAuthor': return await findOrCreateAuthor(event);
       default:
         return { error: `unknown action: ${action}` };

@@ -175,6 +175,34 @@
   border-color: var(--border-gold-soft) !important;
 }
 
+.qn-ocr {
+  flex: none;
+  margin: 0 !important;
+  padding: 0 18rpx !important;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: var(--radius-md) !important;
+  background: var(--bg-surface-soft) !important;
+  color: var(--text-title) !important;
+  font-size: 26rpx !important;
+  font-weight: 650 !important;
+  border: 1rpx solid var(--border-overlay-soft) !important;
+  min-width: 168rpx;
+}
+
+.qn-ocr::after {
+  border: none;
+}
+
+.qn-ocr:active {
+  background: var(--tap-active-bg) !important;
+  transform: scale(0.985);
+}
+
+.qn-ocr[disabled] {
+  opacity: 0.6;
+}
+
 .qn-save {
   flex: 1;
   margin: 0 !important;

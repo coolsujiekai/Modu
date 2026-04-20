@@ -1,5 +1,6 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { addNote as addNoteToCloud } from '../../services/noteService.js';
+import { recognizePrintedText } from '../../services/noteService.js';
 
 const DRAFT_KEY = '_quickNote_draft';
 
@@ -165,6 +166,50 @@ Page({
       siManager?.stop?.();
     } catch (e) {
       this.setData({ isRecording: false, _voiceBaseDraft: '' });
+    }
+  },
+
+  async onOcrPick() {
+    try {
+      const chooseRes = await wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['camera', 'album'],
+        sizeType: ['compressed']
+      });
+      const tempFilePath = chooseRes?.tempFiles?.[0]?.tempFilePath;
+      if (!tempFilePath) return;
+
+      wx.showLoading({ title: '识别中…', mask: true });
+
+      const cloudPath = `ocr_temp/${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`;
+      const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath: tempFilePath });
+      const fileID = uploadRes?.fileID;
+      if (!fileID) throw new Error('上传失败');
+
+      const ocrRes = await recognizePrintedText(fileID);
+      const text = String(ocrRes?.text || '').trim();
+      if (!text) {
+        wx.hideLoading();
+        wx.showToast({ title: '没识别到文字', icon: 'none' });
+        return;
+      }
+
+      const base = String(this.data.draft || '').trimEnd();
+      const merged = base ? `${base}\n${text}` : text;
+      this.setData({
+        draft: merged,
+        draftLength: merged.length,
+        canSave: Boolean(merged.trim()) && Boolean(this.data.currentBookId)
+      });
+
+      wx.hideLoading();
+      wx.showToast({ title: '已识别', icon: 'success', duration: 700 });
+
+      wx.cloud.deleteFile({ fileList: [fileID] }).catch(() => {});
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: e?.message ? `识别失败：${e.message}` : '识别失败', icon: 'none' });
     }
   },
 

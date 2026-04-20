@@ -1,7 +1,7 @@
 <view class="qn-page">
   <textarea
     class="qn-input"
-    placeholder="写下刚刚触动你的那句话，或闪过的念头…"
+    placeholder="快速记下刚打动你的那句话，或闪过的念头…"
     value="{{draft}}"
     focus="{{autoFocus}}"
     maxlength="2000"
@@ -31,12 +31,18 @@
         catchtouchcancel="onVoiceHoldEnd"
       >{{isRecording ? '松开结束' : '按住说话'}}</button>
 
+      <button
+        class="qn-ocr"
+        disabled="{{saving}}"
+        bindtap="onOcrPick"
+      >拍照识字</button>
+
       <view
         class="qn-type qn-type--quote {{type === 'quote' ? 'qn-type--active' : ''}}"
         bindtap="onTypeChange"
         data-type="quote"
       >
-        <text class="qn-type__icon">📖</text>
+       
         <text class="qn-type__label">金句</text>
       </view>
       <view
@@ -44,7 +50,7 @@
         bindtap="onTypeChange"
         data-type="thought"
       >
-        <text class="qn-type__icon">💭</text>
+       
         <text class="qn-type__label">想法</text>
       </view>
 

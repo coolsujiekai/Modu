@@ -93,6 +93,20 @@ export async function deleteNote(bookId, timestamp) {
 }
 
 /**
+ * OCR：从云存储 fileID 识别印刷体文字（走云函数）
+ * @param {string} fileID
+ * @returns {Promise<{ text: string }>}
+ */
+export async function recognizePrintedText(fileID) {
+  if (!fileID) throw new Error('fileID is required');
+  const res = await callCloudFunctionWithRetry('bookOperations', {
+    action: 'recognizeText',
+    fileID
+  }, { retries: 1, baseDelayMs: 600 });
+  return assertCloudCallResult(res);
+}
+
+/**
  * 重新计算并同步书籍的笔记计数（写操作，走云函数）
  * @param {string} bookId
  */

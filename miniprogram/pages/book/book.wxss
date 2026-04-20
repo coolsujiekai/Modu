@@ -136,10 +136,28 @@ border: 1rpx solid var(--border-warm);
   border-color: var(--border-gold-soft);
 }
 
-.note-voice-hint {
-  flex: 1;
-  min-width: 0;
-  font-size: 22rpx;
+.note-ocr-btn.weui-btn,
+.note-ocr-btn {
+  flex: none;
+  margin: 0;
+  padding: 0 18rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-soft);
+  color: var(--text-title);
+  font-size: 24rpx;
+  font-weight: 650;
+  border: 1rpx solid var(--border-overlay-soft);
+}
+
+.note-ocr-btn::after {
+  border: none;
+}
+
+.note-ocr-btn:active {
+  background: var(--tap-active-bg);
+  transform: scale(0.985);
 }
 
 .mini-action-btn {
