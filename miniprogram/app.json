@@ -1,6 +1,9 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/onboarding/onboarding",
+    "pages/emptyShelf/emptyShelf",
+    "pages/quickNote/quickNote",
     "pages/createBook/createBook",
     "pages/book/book",
     "pages/bookNotes/bookNotes",

@@ -1,0 +1,27 @@
+<view class="page empty-page">
+  <view class="empty-hero">
+    <view class="empty-title">书架还空着</view>
+    <view class="empty-sub muted">先添加第一本书，之后这里会显示你的在读与已读。</view>
+  </view>
+
+  <view class="empty-card card">
+    <view class="empty-card__row">
+      <view class="empty-card__label muted">第一步</view>
+      <view class="empty-card__text">添加一本正在读的书</view>
+    </view>
+    <view class="empty-card__row">
+      <view class="empty-card__label muted">第二步</view>
+      <view class="empty-card__text">记下金句或想法</view>
+    </view>
+    <view class="empty-card__row">
+      <view class="empty-card__label muted">第三步</view>
+      <view class="empty-card__text">读完后回看与导出</view>
+    </view>
+  </view>
+
+  <view class="empty-actions">
+    <button class="weui-btn weui-btn_primary" bindtap="onCreateBook">添加第一本书</button>
+    <button class="weui-btn weui-btn_default" bindtap="onBackToOnboarding">回到引导页</button>
+  </view>
+</view>
+

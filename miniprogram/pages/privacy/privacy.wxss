@@ -1,46 +1,47 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
 .page {
   min-height: 100vh;
-  padding: 32rpx 32rpx 60rpx;
 }
 
 .card {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 26rpx 24rpx;
-  box-shadow: none;
-  border: 1rpx solid #EDE8E0;
-  margin-bottom: 24rpx;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 32rpx 16rpx;
+border: 1rpx solid var(--border-warm);
+  margin-bottom: 16rpx;
 }
 
 .h1 {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 700;
-  color: #2D2A26;
+  color: var(--text-title);
 }
 
 .h2 {
-  margin-top: 6rpx;
-  margin-bottom: 10rpx;
+  margin-top: 16rpx;
+  margin-bottom: 16rpx;
   font-size: 32rpx;
   font-weight: 700;
-  color: #2D2A26;
+  color: var(--text-title);
 }
 
 .p {
-  font-size: 28rpx;
+  font-size: 24rpx;
   line-height: 1.65;
-  color: #2D2A26;
-  margin-top: 10rpx;
+  color: var(--text-title);
+  margin-top: 16rpx;
   white-space: pre-wrap;
 }
 
 .muted {
-  color: #8C8279;
+  color: var(--text-warm-muted);
 }
 
 .footer {
   text-align: center;
-  margin-top: 20rpx;
+  margin-top: 16rpx;
   font-size: 24rpx;
 }
 

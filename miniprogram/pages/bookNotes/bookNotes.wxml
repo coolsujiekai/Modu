@@ -28,15 +28,15 @@
           <view class="weui-cell__bd muted">还没有{{typeText}}</view>
         </view>
       </block>
-      <view class="weui-cell" wx:for="{{notes}}" wx:key="timestamp">
-        <view class="weui-cell__bd">
-          <view class="note-text" style="white-space: pre-wrap;">{{item.type === 'quote' ? '📖' : '💭'}} {{item.text}}</view>
-          <view class="note-meta muted">{{item.timeText}}</view>
-          <view class="row-actions">
-            <text class="btn-link" bindtap="editNote" data-ts="{{item.timestamp}}">编辑</text>
-            <text class="btn-link" bindtap="openNoteMore" data-ts="{{item.timestamp}}" data-text="{{item.text}}">更多</text>
+      <view wx:for="{{notes}}" wx:key="timestamp" class="slide-row">
+        <slideview buttons="{{item.slideButtons}}" bind:buttontap="onSlideButtonTap" data-ts="{{item.timestamp}}" data-text="{{item.text}}">
+          <view class="weui-cell">
+            <view class="weui-cell__bd">
+              <view class="note-text" style="white-space: pre-wrap;">{{item.text}}</view>
+              <view class="note-meta muted">{{item.timeText}}</view>
+            </view>
           </view>
-        </view>
+        </slideview>
       </view>
     </view>
   </block>

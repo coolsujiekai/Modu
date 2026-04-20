@@ -1,18 +1,13 @@
 <!-- pages/shareCard/shareCard.wxml -->
-<!-- 绘制用 canvas（视觉透明，用 positioning 移出屏幕） -->
 <canvas canvas-id="cardCanvas" class="card-canvas" />
 
-<!-- 遮罩层 -->
 <view class="modal-mask" bindtap="onMaskTap"></view>
-
-<!-- 主内容 -->
 <view class="modal-content">
-  <!-- 顶部标题 -->
   <view class="modal-header">
     <text class="modal-title">生成阅读分享卡</text>
+    <text class="modal-sub">默认样式可在「更多-个性化」调整</text>
   </view>
 
-  <!-- 书本信息确认 -->
   <view class="book-info-section">
     <view class="book-info-row">
       <text class="book-info-label">书名</text>
@@ -24,37 +19,69 @@
     </view>
   </view>
 
-  <!-- 金句选择 -->
-  <view class="quote-section">
-    <view class="section-label">选择一条金句</view>
-    <block wx:if="{{quotes.length === 0}}">
-      <view class="quote-empty muted">这本书还没有金句，去添加一条吧</view>
-    </block>
-    <scroll-view class="quote-list" scroll-y>
-      <view
-        wx:for="{{quotes}}"
-        wx:key="timestamp"
-        class="quote-item {{selectedQuoteIdx === index ? 'quote-item--selected' : ''}}"
-        bindtap="onQuoteSelect"
-        data-idx="{{index}}"
-      >
-        <view class="quote-text {{selectedQuoteIdx === index ? 'quote-text--selected' : ''}}">{{item.text}}</view>
-        <view wx:if="{{selectedQuoteIdx === index}}" class="quote-check">✓</view>
+  <view class="control-section">
+    <view class="control-title">选择模板</view>
+    <scroll-view class="template-list" scroll-x show-scrollbar="{{false}}">
+      <view class="template-inner">
+        <view
+          wx:for="{{templates}}"
+          wx:key="id"
+          class="template-pill {{templateId === item.id ? 'template-pill--active' : ''}}"
+          bindtap="onTemplateChange"
+          data-id="{{item.id}}"
+        >
+          {{item.name}}
+        </view>
       </view>
     </scroll-view>
   </view>
 
-  <!-- 按钮组 -->
+  <view class="quote-section">
+    <view class="section-head">
+      <view class="section-label">选择金句（可多选）</view>
+      <view class="section-count">已选 {{selectedCount}} 条</view>
+    </view>
+    <view class="section-sub">{{limitHint}}</view>
+    <view wx:if="{{layoutHint}}" class="section-sub section-sub--info">{{layoutHint}}</view>
+    <block wx:if="{{quotes.length === 0}}">
+      <view class="quote-empty muted">这本书还没有金句，去添加一条吧</view>
+    </block>
+    <scroll-view class="quote-list" scroll-y show-scrollbar="{{true}}" enhanced>
+      <view
+        wx:for="{{displayQuotes}}"
+        wx:key="timestamp"
+        class="quote-item {{item.selected ? 'quote-item--selected' : ''}}"
+        bindtap="onQuoteSelect"
+        data-idx="{{index}}"
+      >
+        <view class="quote-main">
+          <view class="quote-text {{item.selected ? 'quote-text--selected' : ''}}">{{item.text}}</view>
+        </view>
+        <view wx:if="{{item.selected}}" class="quote-check">✓</view>
+      </view>
+    </scroll-view>
+  </view>
+
   <view class="modal-actions">
     <button class="btn-cancel" bindtap="onCancel">取消</button>
     <button class="btn-confirm {{!canGenerate ? 'btn-disabled' : ''}}" bindtap="onConfirm" disabled="{{!canGenerate}}">生成图片</button>
   </view>
 </view>
 
-<!-- 生成中 loading -->
 <view wx:if="{{generating}}" class="generating-overlay">
   <view class="generating-box">
     <view class="spinner"></view>
     <text class="generating-text">正在生成…</text>
+  </view>
+</view>
+
+<view wx:if="{{previewVisible}}" class="preview-overlay" catchtouchmove="noop">
+  <image class="preview-image" src="{{previewSrc}}" />
+  <view class="preview-footer">
+    <text class="preview-hint">{{previewSavedHint}}</text>
+    <view class="preview-btns">
+      <button class="preview-btn preview-btn--secondary" bindtap="onPreviewOpenImage">打开原图</button>
+      <button class="preview-btn preview-btn--primary" bindtap="onPreviewClose">完成</button>
+    </view>
   </view>
 </view>

@@ -15,10 +15,13 @@
   </block>
 
   <block wx:else>
+  
     <view class="weui-panel book-panel">
       <view class="weui-panel__hd book-hd">
         <view class="book-title">📚 {{book.bookName}}</view>
-        <view class="book-edit" bindtap="editBookInfo">修改</view>
+        <view class="book-actions">
+          <view class="book-edit" bindtap="editBookInfo">修改</view>
+        </view>
       </view>
       <view class="weui-panel__bd">
         <view class="weui-media-box weui-media-box_text">
@@ -30,87 +33,88 @@
             <text class="muted">作者：</text>
             <text class="link" bindtap="openAuthor" data-id="{{book.authorId}}" data-name="{{book.authorName}}">{{book.authorName}}</text>
           </view>
-          <view class="weui-media-box__desc muted" style="margin-top: 10rpx;">
-            <text wx:if="{{startedText}}">开始读：{{startedText}}</text>
-            <text wx:if="{{book.status === 'finished' && finishedText}}">　｜　读完：{{finishedText}}</text>
+          <view class="weui-media-box__desc muted" style="margin-top: 10rpx;" wx:if="{{startedText}}">
+            <text>开始：{{startedText}}</text>
+          </view>
+          <view class="weui-media-box__desc muted" wx:if="{{book.status === 'finished' && finishedText}}">
+            <text>读完：{{finishedText}}</text>
           </view>
           <view class="weui-media-box__desc muted">
             灵感 {{thoughtCount}} 条 · 金句 {{quoteCount}} 条
           </view>
         </view>
       </view>
+
+      <view wx:if="{{book.status === 'finished' && quoteCount > 0}}" class="share-entry" hover-class="share-entry--active" bindtap="generateShareCard">
+        <view class="share-entry__icon">✦</view>
+        <view class="share-entry__main">
+          <view class="share-entry__title">生成分享卡</view>
+          <view class="share-entry__desc">加深阅读记忆</view>
+        </view>
+        <view class="share-entry__arrow">›</view>
+      </view>
     </view>
 
     <view class="section-card">
       <view class="section-card__hd">
         <view class="section-title-row">
-          <view class="section-title">心得</view>
-          <view class="section-link" bindtap="openNoteList" data-type="thought">查看全部({{thoughtCount}})</view>
+          <view class="section-title">快速记录</view>
         </view>
       </view>
       <view class="section-card__bd">
-        <textarea class="note-input {{thoughtFocused ? 'note-input--focused' : 'note-input--compact'}}" placeholder="写下此刻的想法…" value="{{thoughtText}}" bindinput="onThoughtInput" bindfocus="onThoughtFocus" bindblur="onThoughtBlur" maxlength="2000" auto-height />
-        <view class="section-actions section-actions--right" wx:if="{{canSaveThought}}">
-          <button class="weui-btn weui-btn_primary weui-btn_mini mini-action-btn" data-type="thought" bindtap="addNote">保存</button>
+        <textarea class="note-input {{noteFocused ? 'note-input--focused' : 'note-input--compact'}}" placeholder="写下刚刚触动你的一句话…" value="{{noteDraft}}" focus="{{autoFocusNote}}" bindinput="onNoteInput" bindfocus="onNoteFocus" bindblur="onNoteBlur" maxlength="2000" auto-height />
+        <view class="section-actions section-actions--right" wx:if="{{canSaveDraft}}">
+          <button class="weui-btn weui-btn_mini mini-action-btn btn-finish" bindtap="chooseNoteTypeAndSave">保存并选择类型</button>
         </view>
-        <view class="saved-inline muted" wx:if="{{savedHintType === 'thought'}}">已保存到心得</view>
+        <view class="saved-inline muted" wx:if="{{savedHintType}}">已保存到{{savedHintType === 'quote' ? '金句' : '想法'}}</view>
       </view>
-    </view>
-
-    <view class="weui-cells" style="margin-top: 0;">
-      <block wx:if="{{!latestThought}}">
-        <view class="weui-cell">
-          <view class="weui-cell__bd muted">还没有心得</view>
-        </view>
-      </block>
-      <block wx:else>
-        <view class="weui-cell">
-          <view class="weui-cell__bd">
-            <view class="latest-text ellipsis-2">💭 {{latestThought.text}}</view>
-            <view class="muted" style="margin-top: 10rpx;">{{latestThought.timeText}}</view>
-            <view class="row-actions">
-              <text class="btn-link" bindtap="editNote" data-ts="{{latestThought.timestamp}}">编辑</text>
-              <text class="btn-link" bindtap="openLatestMore" data-ts="{{latestThought.timestamp}}" data-text="{{latestThought.text}}">更多</text>
-            </view>
-          </view>
-        </view>
-      </block>
     </view>
 
     <view class="section-card">
       <view class="section-card__hd">
         <view class="section-title-row">
-          <view class="section-title">金句</view>
-          <view class="section-link" bindtap="openNoteList" data-type="quote">查看全部({{quoteCount}})</view>
+          <view class="section-title">记录时间流</view>
+          <view class="section-link">共 {{notes.length}} 条</view>
         </view>
       </view>
       <view class="section-card__bd">
-        <textarea class="note-input {{quoteFocused ? 'note-input--focused' : 'note-input--compact'}}" placeholder="记下一句打动你的话…" value="{{quoteText}}" bindinput="onQuoteInput" bindfocus="onQuoteFocus" bindblur="onQuoteBlur" maxlength="500" auto-height />
-        <view class="section-actions section-actions--right" wx:if="{{canSaveQuote}}">
-          <button class="weui-btn weui-btn_primary weui-btn_mini mini-action-btn" data-type="quote" bindtap="addNote">添加</button>
-        </view>
-        <view class="saved-inline muted" wx:if="{{savedHintType === 'quote'}}">已保存到金句</view>
-      </view>
-    </view>
-
-    <view class="weui-cells" style="margin-top: 0;">
-      <block wx:if="{{!latestQuote}}">
-        <view class="weui-cell">
-          <view class="weui-cell__bd muted">还没有金句</view>
-        </view>
-      </block>
-      <block wx:else>
-        <view class="weui-cell">
-          <view class="weui-cell__bd">
-            <view class="latest-text ellipsis-2">📖 {{latestQuote.text}}</view>
-            <view class="muted" style="margin-top: 10rpx;">{{latestQuote.timeText}}</view>
-            <view class="row-actions">
-              <text class="btn-link" bindtap="editNote" data-ts="{{latestQuote.timestamp}}">编辑</text>
-              <text class="btn-link" bindtap="openLatestMore" data-ts="{{latestQuote.timestamp}}" data-text="{{latestQuote.text}}">更多</text>
+        <block wx:if="{{timelineGroups.length === 0}}">
+          <view class="muted">还没有记录，先写下一句吧</view>
+        </block>
+        <block wx:else>
+          <block wx:for="{{timelineGroups}}" wx:key="key" wx:for-item="g">
+            <view class="timeline-group">
+              <view class="timeline-group__hd">
+                <text class="timeline-group__title">{{g.title}}</text>
+                <text class="timeline-group__count muted">{{g.count}} 条</text>
+              </view>
+              <view class="timeline-group__list">
+                <view
+                  wx:for="{{g.items}}"
+                  wx:key="timestamp"
+                  wx:for-item="n"
+                  class="timeline-item"
+                  hover-class="tap-active"
+                  hover-stay-time="70"
+                >
+                  <view class="timeline-item__bd">
+                    <view class="timeline-item__text">
+                      <text>{{n.text}}</text>
+                    </view>
+                    <view class="timeline-item__meta">
+                      <text class="timeline-item__time muted">{{n.shortTime}}</text>
+                      <text class="type-tag type-tag--{{n.type}}">{{n.typeLabel}}</text>
+                      <view class="timeline-item__spacer"></view>
+                      <text class="timeline-item__action btn-link" bindtap="openLatestMore" data-ts="{{n.timestamp}}" data-text="{{n.text}}">更多</text>
+                      <text class="timeline-item__action btn-link" bindtap="editNote" data-ts="{{n.timestamp}}">编辑</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
             </view>
-          </view>
-        </view>
-      </block>
+          </block>
+        </block>
+      </view>
     </view>
 
     <view class="soft-divider"></view>
@@ -125,12 +129,11 @@
       <button class="weui-btn weui-btn_default weui-btn_mini export-btn {{!canExport ? 'export-btn--disabled' : ''}}" bindtap="copyAllForBook" disabled="{{!canExport}}">复制</button>
     </view>
 
-    <button wx:if="{{book.status !== 'finished'}}" class="weui-btn btn-finish" style="margin-top: 18rpx;" bindtap="finishReading">我读完了</button>
-    <button wx:else class="weui-btn btn-finish-outline" style="margin-top: 18rpx;" bindtap="markUnfinished">恢复在读</button>
-
-    <view class="share-card-section" wx:if="{{book.status === 'finished' && quoteCount > 0}}">
-      <button class="btn-share-card" bindtap="generateShareCard">生成阅读分享卡</button>
+    <view wx:if="{{book.status !== 'finished'}}" class="bottom-actions">
+      <button class="weui-btn weui-btn_default bottom-actions__btn" bindtap="continueReadingLater">下次继续读</button>
+      <button class="weui-btn btn-finish bottom-actions__btn" bindtap="finishReading">我读完了</button>
     </view>
+    <button wx:else class="weui-btn btn-finish-outline" style="margin-top: 18rpx;" bindtap="markUnfinished">恢复在读</button>
   </block>
 </view>
 

@@ -1,0 +1,209 @@
+page,
+.page {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary);
+}
+
+.page {
+  padding: var(--space-4) !important;
+}
+
+.page view,
+.page text,
+.page input,
+.page textarea,
+.page button {
+  font-size: var(--font-body);
+  color: var(--text-primary);
+}
+
+.card,
+.hero,
+.section-card,
+.mini-card,
+.form-panel,
+.header-panel,
+.suggest-card,
+.modal,
+.modal-content,
+.list-card,
+.add-card,
+.export-card,
+.generating-box,
+.weui-panel,
+.weui-cells {
+  background: var(--bg-surface) !important;
+  border: 1rpx solid var(--border-warm) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-none) !important;
+  padding: var(--space-2) !important;
+}
+
+/* Primary surfaces (need subtle elevation) */
+.hero,
+.header-panel,
+.book-panel {
+  box-shadow: var(--shadow-card) !important;
+  border-color: var(--border-muted) !important;
+}
+
+/* Weak surfaces (tools/secondary blocks) */
+.export-card {
+  background: var(--bg-surface-soft) !important;
+  border-color: var(--border-muted) !important;
+}
+
+.quote-item,
+.result-item,
+.book-cover-large,
+.add-cover,
+.btn-cancel,
+.btn-confirm,
+.editor,
+.note-input,
+.modal-input,
+.seg,
+.seg-item.active,
+.seg-item,
+.add-plus,
+.quote-check,
+.spinner,
+.preview-btn,
+.template-pill,
+.section-count,
+.author-pill,
+.export-icon {
+  border-radius: var(--radius-md) !important;
+  box-shadow: none !important;
+}
+
+.card,
+.hero,
+.section-card,
+.mini-card,
+.list-card,
+.add-card,
+.export-card,
+.modal-content,
+.modal,
+.header-panel,
+.suggest-card,
+.weui-panel,
+.weui-cells {
+  margin-top: var(--space-2) !important;
+  margin-bottom: var(--space-2) !important;
+}
+
+.page-head,
+.hero-top,
+.hero-sub,
+.section-hd,
+.section-card__hd,
+.section-card__bd,
+.modal-header,
+.modal-search,
+.modal-body,
+.book-info-section,
+.control-section,
+.quote-section,
+.modal-actions,
+.actions,
+.row-actions,
+.section-actions,
+.section-actions--right {
+  padding-top: var(--space-2) !important;
+  padding-bottom: var(--space-2) !important;
+}
+
+.hero-sub,
+.page-sub,
+.muted,
+.hint,
+.section-sub,
+.result-sub,
+.book-meta,
+.list-author {
+  margin-top: var(--space-1) !important;
+  margin-bottom: 0 !important;
+}
+
+.weui-cells {
+  margin-top: var(--space-2) !important;
+}
+
+.h1,
+.h2,
+.hero-title,
+.page-title,
+.section-title,
+.title,
+.modal-title,
+.result-title,
+.empty-title,
+.list-title,
+.header-title,
+.export-title,
+.cover-title,
+.name {
+  font-size: var(--font-title) !important;
+  font-weight: var(--font-title-weight) !important;
+  color: var(--text-primary) !important;
+}
+
+.p,
+.latest-text,
+.quote-text,
+.book-info-input,
+.modal-input,
+.result-sub,
+.cover-author,
+.list-author,
+.section-label,
+.book-info-label,
+.control-title,
+.add-text {
+  font-size: var(--font-body) !important;
+  color: var(--text-primary) !important;
+}
+
+.muted,
+.hero-sub,
+.page-sub,
+.book-meta,
+.modal-sub,
+.placeholder,
+.section-sub,
+.section-count,
+.book-info-label,
+.control-title,
+.hint {
+  font-size: var(--font-meta) !important;
+  color: var(--text-light) !important;
+}
+
+.btn-primary,
+.weui-btn_primary,
+.btn-confirm,
+.btn-share-card {
+  background: var(--button-bg) !important;
+  color: var(--button-text) !important;
+  border-radius: var(--radius-md) !important;
+  font-weight: 700;
+}
+
+/* Secondary button (outline / soft) */
+.btn-secondary,
+.weui-btn_default {
+  background: var(--button-bg-secondary) !important;
+  color: var(--button-text-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1rpx solid var(--border-accent) !important;
+  font-weight: 700;
+}
+
+.weui-btn_primary:not(.weui-btn_disabled):active,
+.weui-btn_default:not(.weui-btn_disabled):active,
+.btn-primary:active,
+.btn-secondary:active {
+  opacity: 0.9;
+}

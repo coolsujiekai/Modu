@@ -1,5 +1,6 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { formatDate, countNoteTypes } from '../../utils/util.js';
+import { deleteBook } from '../../services/bookService.js';
 
 Page({
   data: {
@@ -54,9 +55,7 @@ Page({
 
     wx.showLoading({ title: '删除中', mask: true });
     try {
-      await traced('books.remove(finished)', () =>
-        withRetry(() => db.collection('books').doc(id).remove())
-      );
+      await deleteBook(id);
       wx.hideLoading();
       this.setData({ openSlideId: null });
       wx.showToast({ title: '已删除', icon: 'success', duration: 800 });

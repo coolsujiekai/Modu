@@ -1,0 +1,75 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
+.page.empty-page {
+  min-height: 100vh;
+  padding-top: 72rpx !important;
+  padding-bottom: 72rpx !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.empty-hero {
+  padding: 0 8rpx 24rpx;
+}
+
+.empty-title {
+  font-size: 54rpx;
+  font-weight: 900;
+  color: var(--text-title);
+  line-height: 1.1;
+}
+
+.empty-sub {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.empty-card {
+  margin-top: 12rpx !important;
+  padding: 28rpx 24rpx !important;
+}
+
+.empty-card__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--border-overlay-soft);
+}
+
+.empty-card__row:last-child {
+  border-bottom: none;
+}
+
+.empty-card__label {
+  flex: none;
+  width: 92rpx;
+  font-size: 22rpx;
+}
+
+.empty-card__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  text-align: right;
+}
+
+.empty-actions {
+  margin-top: 28rpx;
+  padding: 0 8rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.empty-actions .weui-btn {
+  margin: 0;
+}
+

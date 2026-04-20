@@ -1,6 +1,7 @@
-import { normalizeAuthorName, buildAuthorTokens } from '../../utils/author';
 import { db, withOpenIdFilter } from '../../utils/db.js';
-import { debounce, escapeRegExp } from '../../utils/util.js';
+import { debounce } from '../../utils/util.js';
+import { updateBookInfo } from '../../services/bookService.js';
+import { findOrCreateAuthor, searchAuthors } from '../../services/authorService.js';
 
 Page({
   data: {
@@ -54,32 +55,10 @@ Page({
       this.setData({ authorSuggestions: [] });
       return;
     }
-
-    const qNorm = normalizeAuthorName(q);
-    if (!qNorm) {
-      this.setData({ authorSuggestions: [] });
-      return;
-    }
-
     try {
-      const regPrefix = db.RegExp({ regexp: `^${escapeRegExp(qNorm)}`, options: '' });
-      const regContain = db.RegExp({ regexp: escapeRegExp(q), options: 'i' });
-
-      const [byNorm, byName] = await Promise.all([
-        db.collection('authors').where(withOpenIdFilter({ nameNorm: regPrefix })).limit(10).get(),
-        db.collection('authors').where(withOpenIdFilter({ name: regContain })).limit(10).get()
-      ]);
-
-      const merged = [];
-      const seen = new Set();
-      for (const it of [...(byNorm.data || []), ...(byName.data || [])]) {
-        if (!it || !it._id) continue;
-        if (seen.has(it._id)) continue;
-        seen.add(it._id);
-        merged.push(it);
-        if (merged.length >= 10) break;
-      }
-      this.setData({ authorSuggestions: merged });
+      const openid = getApp()?.globalData?.openid || '';
+      const results = await searchAuthors(openid, q, 10);
+      this.setData({ authorSuggestions: results });
     } catch (e) {
       this.setData({ authorSuggestions: [] });
     }
@@ -111,43 +90,28 @@ Page({
 
     wx.showLoading({ title: '保存中', mask: true });
     try {
-      const data = { bookName };
+      let authorId = '';
+      let authorName = '';
+      let authorNameNorm = '';
 
-      if (!authorInput) {
-        // author is optional
-        data.authorId = '';
-        data.authorName = '';
-        data.authorNameNorm = '';
-      } else {
+      if (authorInput) {
+        const openid = getApp()?.globalData?.openid || '';
         let author = this.data.selectedAuthor;
-        const authorNorm = normalizeAuthorName(authorInput);
-        if (!authorNorm) throw new Error('invalid author');
-
-        const exactRes = await db.collection('authors').where(withOpenIdFilter({ nameNorm: authorNorm })).limit(1).get();
-        if (exactRes.data && exactRes.data[0]) {
-          const a = exactRes.data[0];
-          author = { _id: a._id, name: a.name, nameNorm: a.nameNorm };
-        } else if (!author?._id) {
-          const now = Date.now();
-          const addRes = await db.collection('authors').add({
-            data: {
-              name: authorInput,
-              nameNorm: authorNorm,
-              tokens: buildAuthorTokens(authorNorm),
-              aliases: [],
-              createdAt: now,
-              updatedAt: now
-            }
-          });
-          author = { _id: addRes._id, name: authorInput, nameNorm: authorNorm };
+        if (!author?._id) {
+          author = await findOrCreateAuthor(openid, authorInput);
         }
-
-        data.authorId = author._id;
-        data.authorName = author.name;
-        data.authorNameNorm = author.nameNorm;
+        authorId = author._id;
+        authorName = author.name;
+        authorNameNorm = author.nameNorm;
       }
 
-      await db.collection('books').doc(bookId).update({ data });
+      await updateBookInfo(bookId, {
+        bookName,
+        authorId,
+        authorName,
+        authorNameNorm
+      });
+
       wx.hideLoading();
       wx.showToast({ title: '已保存', icon: 'success', duration: 700 });
       wx.navigateBack();

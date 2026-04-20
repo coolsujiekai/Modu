@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "slideview": "weui-miniprogram/slideview/slideview"
+  },
   "navigationBarTitleText": "记录",
   "enablePullDownRefresh": true
 }

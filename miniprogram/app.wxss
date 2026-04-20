@@ -1,123 +1,35 @@
+@import '/styles/theme.wxss';
+@import '/styles/common.wxss';
 @import './miniprogram_npm/weui-miniprogram/weui-wxss/dist/style/weui.wxss';
+
 page {
-  background-color: #FAF8F5;
-  color: #2D2A26;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
-/* 主题色板（暖白 + 棕色书卷气） */
 .weui-btn_primary {
-  background-color: #A68B6A !important;
-}
-.weui-btn_primary:not(.weui-btn_disabled):active {
-  background-color: #8B7355 !important;
+  background-color: var(--button-bg) !important;
 }
 
-/* 卡片层级：不使用阴影，依赖背景与边框 */
+.weui-btn_default {
+  background-color: var(--button-bg-secondary) !important;
+  color: var(--button-text-secondary) !important;
+  border-color: var(--border-accent) !important;
+}
+
+.weui-btn_primary:not(.weui-btn_disabled):active {
+  opacity: 0.92;
+}
+
 .weui-panel,
 .weui-cells {
-  border-radius: 20rpx;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: none;
-  border: 1rpx solid #EDE8E0;
-  background: #FFFFFF;
+  box-shadow: var(--shadow-none);
+  border: 1rpx solid var(--border-warm);
+  background: var(--bg-surface);
 }
 
-/* 让 cells 贴合卡片风格 */
 .weui-cells {
-  margin-top: 16rpx;
-}
-
-/* 深色模式支持 (配合 app.json 的 darkmode: true 和系统 prefers-color-scheme) 
-   WeUI 已内置 [data-weui-theme="dark"] 支持，下面是自定义样式增强 */
-[data-weui-theme="dark"] page,
-[data-weui-theme="dark"] .page {
-  background-color: #1c1917;
-  color: #f5f0e8;
-}
-
-[data-weui-theme="dark"] .card,
-[data-weui-theme="dark"] .weui-panel,
-[data-weui-theme="dark"] .weui-cells,
-[data-weui-theme="dark"] .modal,
-[data-weui-theme="dark"] .weui-msg {
-  background: #292524;
-  box-shadow: none;
-  border-color: #3f3a34;
-}
-
-[data-weui-theme="dark"] .weui-cell {
-  background: #292524;
-}
-
-[data-weui-theme="dark"] .h1,
-[data-weui-theme="dark"] .h2,
-[data-weui-theme="dark"] .label,
-[data-weui-theme="dark"] .name,
-[data-weui-theme="dark"] .result-title,
-[data-weui-theme="dark"] .empty-title,
-[data-weui-theme="dark"] .modal-title,
-[data-weui-theme="dark"] .section-title,
-[data-weui-theme="dark"] .hero-title,
-[data-weui-theme="dark"] .cell-title {
-  color: #f5f0e8;
-}
-
-[data-weui-theme="dark"] .p,
-[data-weui-theme="dark"] .muted,
-[data-weui-theme="dark"] .weui-media-box__desc,
-[data-weui-theme="dark"] .empty-desc,
-[data-weui-theme="dark"] .result-sub,
-[data-weui-theme="dark"] .hero-sub,
-[data-weui-theme="dark"] .book-meta {
-  color: #c0b7ad;
-}
-
-/* Stats panel specific (the green bold text should stay vibrant in dark mode) */
-[data-weui-theme="dark"] .stats-text {
-  color: #b6c3ad !important;
-}
-
-[data-weui-theme="dark"] .modal {
-  background: #292524;
-  box-shadow: none;
-}
-
-[data-weui-theme="dark"] .modal-input,
-[data-weui-theme="dark"] .seg {
-  background: #3a3530;
-  color: #f5f0e8;
-}
-
-[data-weui-theme="dark"] .seg-item {
-  color: #9ca3af;
-}
-
-[data-weui-theme="dark"] .seg-item.active {
-  background: #4a433c;
-  color: #f5f0e8;
-  box-shadow: none;
-}
-
-[data-weui-theme="dark"] .result-item:active,
-[data-weui-theme="dark"] .weui-cell_access:active {
-  background: #3a3530;
-}
-
-[data-weui-theme="dark"] .highlight {
-  color: #e7d6bf;
-  background-color: #4a433c;
-}
-
-[data-weui-theme="dark"] .weui-btn_primary {
-  background-color: #A68B6A !important;
-}
-
-[data-weui-theme="dark"] .weui-btn_default {
-  background-color: #3a3530 !important;
-  color: #f5f0e8;
-}
-
-/* 空状态和加载图标适配 */
-[data-weui-theme="dark"] .weui-msg__icon-area text {
-  filter: brightness(1.2);
+  margin-top: var(--space-2);
 }

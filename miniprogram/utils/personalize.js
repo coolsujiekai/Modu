@@ -3,7 +3,9 @@ export const PERSONALIZE_SETTINGS_KEY = 'personalize_settings_v1';
 export const DEFAULT_PERSONALIZE_SETTINGS = {
   homeViewMode: 'grid', // grid | list
   noteTimeMode: 'both', // both | relative | absolute
-  saveInputMode: 'clear' // clear | keep
+  saveInputMode: 'clear', // clear | keep
+  shareTemplateId: 'nebula', // nebula | paper | sunset
+  shareFirstRunConfigured: false
 };
 
 function safeGetStorage(key) {
@@ -31,6 +33,12 @@ export function normalizePersonalizeSettings(raw) {
   }
   if (source.saveInputMode === 'clear' || source.saveInputMode === 'keep') {
     next.saveInputMode = source.saveInputMode;
+  }
+  if (source.shareTemplateId === 'nebula' || source.shareTemplateId === 'paper' || source.shareTemplateId === 'sunset') {
+    next.shareTemplateId = source.shareTemplateId;
+  }
+  if (typeof source.shareFirstRunConfigured === 'boolean') {
+    next.shareFirstRunConfigured = source.shareFirstRunConfigured;
   }
   return next;
 }

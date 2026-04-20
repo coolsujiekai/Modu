@@ -1,0 +1,6 @@
+{
+  "permissions": {
+    "openapi": []
+  },
+  "desc": "书籍和笔记写操作云函数"
+}

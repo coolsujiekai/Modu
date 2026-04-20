@@ -1,0 +1,38 @@
+<view class="page onboarding-page">
+  <view class="onboarding-hero">
+    <view class="onboarding-title">翻书随手记</view>
+    <view class="onboarding-sub muted">把触动你的句子，随手记下来。</view>
+  </view>
+
+  <view class="onboarding-card card">
+    <view class="onboarding-steps">
+      <view class="step">
+        <view class="step__dot"></view>
+        <view class="step__main">
+          <view class="step__title">添加一本在读书</view>
+          <view class="step__desc muted">从今天想读的那本开始</view>
+        </view>
+      </view>
+      <view class="step">
+        <view class="step__dot"></view>
+        <view class="step__main">
+          <view class="step__title">记下一句</view>
+          <view class="step__desc muted">金句或想法，都算数</view>
+        </view>
+      </view>
+      <view class="step">
+        <view class="step__dot"></view>
+        <view class="step__main">
+          <view class="step__title">读完回看</view>
+          <view class="step__desc muted">整理导出，生成分享卡</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="onboarding-actions">
+    <button class="weui-btn weui-btn_primary onboarding-btn" bindtap="onStart">开始使用</button>
+    <button class="weui-btn weui-btn_default onboarding-btn onboarding-btn--secondary" bindtap="onSkip">先看看</button>
+  </view>
+</view>
+

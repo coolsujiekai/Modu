@@ -1,5 +1,7 @@
 import { db, _, withRetry } from '../../utils/db.js';
 import { formatDate } from '../../utils/util.js';
+import { formatNoteTime, deleteNote } from '../../services/noteService.js';
+import { getPersonalizeSettings } from '../../utils/personalize';
 
 function normalizeType(type) {
   return type === 'quote' ? 'quote' : 'thought';
@@ -16,14 +18,16 @@ Page({
     type: 'thought',
     typeText: '心得',
     book: null,
-    notes: []
+    notes: [],
+    noteTimeMode: 'both'
   },
 
   onLoad(options) {
     const bookId = options.bookId || '';
     const type = normalizeType(options.type || '');
     const typeText = typeToText(type);
-    this.setData({ bookId, type, typeText });
+    const settings = getPersonalizeSettings();
+    this.setData({ bookId, type, typeText, noteTimeMode: settings.noteTimeMode || 'both' });
     wx.setNavigationBarTitle({ title: `翻书随手记 · ${typeText}` });
   },
 
@@ -53,7 +57,12 @@ Page({
         .sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0))
         .map(n => ({
           ...n,
-          timeText: formatDate(n.timestamp)
+          timeText: formatNoteTime(n.timestamp, this.data.noteTimeMode),
+          slideButtons: [{
+            text: '删除',
+            type: 'warn',
+            data: { ts: n.timestamp }
+          }]
         }));
       this.setData({ loading: false, book, notes });
     } catch (e) {
@@ -103,6 +112,13 @@ Page({
     }
   },
 
+  onSlideButtonTap(e) {
+    const { ts } = e.detail || e.currentTarget?.dataset || {};
+    if (ts) {
+      this.deleteNote({ currentTarget: { dataset: { ts } } });
+    }
+  },
+
   async deleteNote(e) {
     const ts = Number(e.currentTarget?.dataset?.ts);
     if (!ts) return;
@@ -117,27 +133,7 @@ Page({
     const { bookId } = this.data;
     wx.showLoading({ title: '删除中', mask: true });
     try {
-      const res = await withRetry(() => db.collection('books').doc(bookId).get());
-      const book = res.data;
-      const all = Array.isArray(book.notes) ? book.notes : [];
-      const idx = all.findIndex(n => Number(n.timestamp) === ts);
-      if (idx < 0) {
-        wx.hideLoading();
-        wx.showToast({ title: '找不到这条记录', icon: 'none' });
-        return;
-      }
-      const newNotes = all.slice();
-      newNotes.splice(idx, 1);
-      const thoughtCount = newNotes.filter(n => n.type === 'thought').length;
-      const quoteCount = newNotes.filter(n => n.type === 'quote').length;
-      await db.collection('books').doc(bookId).update({
-        data: {
-          notes: newNotes,
-          notesCount: newNotes.length,
-          thoughtCount,
-          quoteCount
-        }
-      });
+      await deleteNote(bookId, ts);
       wx.hideLoading();
       wx.showToast({ title: '已删除', icon: 'success', duration: 700 });
       this.loadNotes();

@@ -1,6 +1,8 @@
 import { db, _, withRetry } from '../../utils/db.js';
 import { formatDate } from '../../utils/util.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
+import { formatNoteTime, addNote as addNoteToCloud, deleteNote as deleteNoteFromCloud } from '../../services/noteService.js';
+import { loadBook as fetchBook, finishBook, unfinishBook } from '../../services/bookService.js';
 
 Page({
   data: {
@@ -10,14 +12,10 @@ Page({
     notes: [],
     thoughtNotes: [],
     quoteNotes: [],
-    latestThought: null,
-    latestQuote: null,
-    thoughtText: '',
-    quoteText: '',
-    canSaveThought: false,
-    canSaveQuote: false,
-    thoughtFocused: false,
-    quoteFocused: false,
+    timelineGroups: [],
+    noteDraft: '',
+    canSaveDraft: false,
+    noteFocused: false,
     savedHintType: '',
     startedText: '',
     finishedText: '',
@@ -26,11 +24,17 @@ Page({
     canExport: false,
     exportHint: '还没有可导出的内容',
     noteTimeMode: 'both',
-    saveInputMode: 'clear'
+    saveInputMode: 'clear',
+    autoFocusNote: false
   },
 
   onLoad(options) {
-    this.setData({ bookId: options.id || '' });
+    const shouldFocus = options.focus === '1' || options.focus === 1;
+    this.setData({
+      bookId: options.id || '',
+      noteFocused: shouldFocus,
+      autoFocusNote: shouldFocus
+    });
   },
 
   onShow() {
@@ -50,36 +54,20 @@ Page({
     this.loadBook().finally(() => wx.stopPullDownRefresh());
   },
 
-  onThoughtInput(e) {
-    const thoughtText = e.detail.value || '';
+  onNoteInput(e) {
+    const noteDraft = e.detail.value || '';
     this.setData({
-      thoughtText,
-      canSaveThought: Boolean(thoughtText.trim())
+      noteDraft,
+      canSaveDraft: Boolean(noteDraft.trim())
     });
   },
 
-  onQuoteInput(e) {
-    const quoteText = e.detail.value || '';
-    this.setData({
-      quoteText,
-      canSaveQuote: Boolean(quoteText.trim())
-    });
+  onNoteFocus() {
+    this.setData({ noteFocused: true });
   },
 
-  onThoughtFocus() {
-    this.setData({ thoughtFocused: true });
-  },
-
-  onThoughtBlur() {
-    this.setData({ thoughtFocused: false });
-  },
-
-  onQuoteFocus() {
-    this.setData({ quoteFocused: true });
-  },
-
-  onQuoteBlur() {
-    this.setData({ quoteFocused: false });
+  onNoteBlur() {
+    this.setData({ noteFocused: false });
   },
 
   async loadBook() {
@@ -91,15 +79,14 @@ Page({
 
     this.setData({ loading: true });
     try {
-      const res = await withRetry(() => db.collection('books').doc(bookId).get());
-      const book = res.data;
+      const book = await fetchBook(bookId);
+      if (!book) throw new Error('book not found');
       const notes = Array.isArray(book.notes) ? book.notes : [];
       const thoughtNotes = notes.filter(n => n.type === 'thought');
       const quoteNotes = notes.filter(n => n.type === 'quote');
       const thoughtCount = thoughtNotes.length;
       const quoteCount = quoteNotes.length;
-      const latestThought = this.pickLatestNote(thoughtNotes);
-      const latestQuote = this.pickLatestNote(quoteNotes);
+      const timelineGroups = this.buildTimelineGroups(notes);
       const exportMeta = this.buildExportMeta(thoughtCount, quoteCount);
 
       this.setData({
@@ -108,8 +95,7 @@ Page({
         notes: notes,
         thoughtNotes: thoughtNotes,
         quoteNotes: quoteNotes,
-        latestThought,
-        latestQuote,
+        timelineGroups,
         thoughtCount,
         quoteCount,
         canExport: exportMeta.canExport,
@@ -123,6 +109,7 @@ Page({
         notes.length > 0 &&
         (book.thoughtCount !== thoughtCount || book.quoteCount !== quoteCount)
       ) {
+        // 非阻塞式修复计数，不影响主流程
         db.collection('books')
           .doc(bookId)
           .update({ data: { thoughtCount, quoteCount } })
@@ -132,27 +119,6 @@ Page({
       this.setData({ loading: false, book: null });
       wx.showToast({ title: '加载失败', icon: 'none' });
     }
-  },
-
-  formatRelativeTime(timestamp) {
-    const ts = Number(timestamp || 0);
-    if (!ts) return '';
-    const now = Date.now();
-    const diff = now - ts;
-    if (diff < 60 * 1000) return '刚刚';
-    if (diff < 60 * 60 * 1000) return `${Math.floor(diff / (60 * 1000))}分钟前`;
-    if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}小时前`;
-    return '';
-  },
-
-  formatNoteTime(timestamp) {
-    const relative = this.formatRelativeTime(timestamp);
-    const absolute = formatDate(timestamp);
-    const mode = this.data.noteTimeMode || 'both';
-    if (mode === 'relative') return relative || absolute;
-    if (mode === 'absolute') return absolute;
-    if (!relative || relative === absolute) return absolute;
-    return `${relative} · ${absolute}`;
   },
 
   buildExportMeta(thoughtCount, quoteCount) {
@@ -169,19 +135,62 @@ Page({
     };
   },
 
-  pickLatestNote(list) {
-    if (!Array.isArray(list) || list.length === 0) return null;
-    let latest = list[0];
-    for (let i = 1; i < list.length; i++) {
-      const a = Number(latest?.timestamp || 0);
-      const b = Number(list[i]?.timestamp || 0);
-      if (b > a) latest = list[i];
+  formatShortTime(ts) {
+    if (!ts) return '';
+    const d = new Date(Number(ts));
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  },
+
+  getDayStart(ts) {
+    const d = new Date(Number(ts));
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  },
+
+  formatDayLabel(dayStartTs) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStart = today.getTime();
+    const diffDays = Math.round((todayStart - Number(dayStartTs)) / 86400000);
+    if (diffDays === 0) return '今天';
+    if (diffDays === 1) return '昨天';
+    return formatDate(dayStartTs);
+  },
+
+  buildTimelineGroups(list) {
+    if (!Array.isArray(list) || list.length === 0) return [];
+
+    const sorted = [...list].sort((a, b) => Number(b?.timestamp || 0) - Number(a?.timestamp || 0));
+    const groups = [];
+    const indexByKey = new Map();
+
+    for (const n of sorted) {
+      const ts = Number(n?.timestamp || 0);
+      if (!ts) continue;
+      const dayStart = this.getDayStart(ts);
+      const key = String(dayStart);
+      let group = indexByKey.get(key);
+      if (!group) {
+        group = {
+          key,
+          dayStart,
+          title: this.formatDayLabel(dayStart),
+          items: []
+        };
+        indexByKey.set(key, group);
+        groups.push(group);
+      }
+      group.items.push({
+        ...n,
+        timeText: formatNoteTime(ts, this.data.noteTimeMode),
+        shortTime: this.formatShortTime(ts),
+        typeLabel: n.type === 'quote' ? '金句' : '想法'
+      });
     }
-    if (!latest) return null;
-    return {
-      ...latest,
-      timeText: this.formatNoteTime(latest.timestamp)
-    };
+
+    return groups.map((g) => ({ ...g, count: g.items.length }));
   },
 
   openAuthor(e) {
@@ -197,59 +206,50 @@ Page({
     wx.navigateTo({ url: `/pages/editBookInfo/editBookInfo?id=${bookId}` });
   },
 
-  async addNote(e) {
-    const type = e.currentTarget.dataset.type;
-    const text = (type === 'quote' ? this.data.quoteText : this.data.thoughtText).trim();
+  async chooseNoteTypeAndSave() {
+    const text = (this.data.noteDraft || '').trim();
+    if (!text) return;
+    try {
+      const res = await wx.showActionSheet({
+        itemList: ['金句', '想法']
+      });
+      const type = res.tapIndex === 0 ? 'quote' : 'thought';
+      await this.saveDraftAsType(type);
+    } catch (e) {
+      // user canceled
+    }
+  },
+
+  async saveDraftAsType(type) {
+    const text = (this.data.noteDraft || '').trim();
     if (!text) return;
     if (!this.data.book) return;
 
-    const note = {
-      text,
-      type,
-      timestamp: Date.now()
-    };
     const shouldClear = this.data.saveInputMode !== 'keep';
-    const currentThoughtText = this.data.thoughtText;
-    const currentQuoteText = this.data.quoteText;
-
-    const newNotes = [...this.data.notes, note];
-    this.setData({
-      notes: newNotes,
-      thoughtText: type === 'thought' && shouldClear ? '' : currentThoughtText,
-      quoteText: type === 'quote' && shouldClear ? '' : currentQuoteText,
-      canSaveThought: type === 'thought'
-        ? (shouldClear ? false : Boolean(currentThoughtText.trim()))
-        : this.data.canSaveThought,
-      canSaveQuote: type === 'quote'
-        ? (shouldClear ? false : Boolean(currentQuoteText.trim()))
-        : this.data.canSaveQuote
-    });
+    const currentDraft = this.data.noteDraft;
 
     try {
-      const thoughtCount = newNotes.filter(n => n.type === 'thought').length;
-      const quoteCount = newNotes.filter(n => n.type === 'quote').length;
-      await db.collection('books').doc(this.data.book._id).update({
-        data: {
-          notes: newNotes,
-          notesCount: newNotes.length,
-          thoughtCount,
-          quoteCount
-        }
-      });
-      const updatedBook = { ...this.data.book, notes: newNotes, notesCount: newNotes.length, thoughtCount, quoteCount };
+      const { thoughtCount, quoteCount } = await addNoteToCloud(this.data.book._id, { text, type });
+      const newNotes = [
+        ...this.data.notes,
+        { text, type, timestamp: Date.now() }
+      ];
       const thoughtList = newNotes.filter(n => n.type === 'thought');
       const quoteList = newNotes.filter(n => n.type === 'quote');
+      const timelineGroups = this.buildTimelineGroups(newNotes);
       const exportMeta = this.buildExportMeta(thoughtCount, quoteCount);
       this.setData({
-        book: updatedBook,
+        notes: newNotes,
+        book: { ...this.data.book, notes: newNotes, notesCount: newNotes.length, thoughtCount, quoteCount },
         thoughtNotes: thoughtList,
         quoteNotes: quoteList,
-        latestThought: this.pickLatestNote(thoughtList),
-        latestQuote: this.pickLatestNote(quoteList),
+        timelineGroups,
         thoughtCount,
         quoteCount,
         canExport: exportMeta.canExport,
         exportHint: exportMeta.exportHint,
+        noteDraft: shouldClear ? '' : currentDraft,
+        canSaveDraft: shouldClear ? false : Boolean(currentDraft.trim()),
         savedHintType: type
       });
       if (this.savedHintTimer) clearTimeout(this.savedHintTimer);
@@ -258,7 +258,7 @@ Page({
       }, 900);
       wx.showToast({ title: '已保存', icon: 'success', duration: 700 });
     } catch (e) {
-      wx.showToast({ title: '保存失败', icon: 'none' });
+      wx.showToast({ title: e?.message ? `保存失败: ${e.message}` : '保存失败', icon: 'none' });
     }
   },
 
@@ -318,31 +318,19 @@ Page({
     });
     if (!confirm.confirm) return;
 
-    const newNotes = [...this.data.notes];
-    newNotes.splice(idx, 1);
-    this.setData({ notes: newNotes });
-
     try {
-      const thoughtCount = newNotes.filter(n => n.type === 'thought').length;
-      const quoteCount = newNotes.filter(n => n.type === 'quote').length;
-      await db.collection('books').doc(this.data.book._id).update({
-        data: {
-          notes: newNotes,
-          notesCount: newNotes.length,
-          thoughtCount,
-          quoteCount
-        }
-      });
-      const updatedBook = { ...this.data.book, notes: newNotes, notesCount: newNotes.length, thoughtCount, quoteCount };
+      const { thoughtCount, quoteCount } = await deleteNoteFromCloud(this.data.book._id, ts);
+      const newNotes = this.data.notes.filter(n => Number(n.timestamp) !== Number(ts));
       const thoughtList = newNotes.filter(n => n.type === 'thought');
       const quoteList = newNotes.filter(n => n.type === 'quote');
+      const timelineGroups = this.buildTimelineGroups(newNotes);
       const exportMeta = this.buildExportMeta(thoughtCount, quoteCount);
       this.setData({
-        book: updatedBook,
+        notes: newNotes,
+        book: { ...this.data.book, notes: newNotes, notesCount: newNotes.length, thoughtCount, quoteCount },
         thoughtNotes: thoughtList,
         quoteNotes: quoteList,
-        latestThought: this.pickLatestNote(thoughtList),
-        latestQuote: this.pickLatestNote(quoteList),
+        timelineGroups,
         thoughtCount,
         quoteCount,
         canExport: exportMeta.canExport,
@@ -428,18 +416,8 @@ Page({
     });
     if (!confirm.confirm) return;
 
-    const endTime = Date.now();
-    const durationMin = book.startTime ? Math.floor((endTime - book.startTime) / 60000) : 0;
-
     try {
-      await db.collection('books').doc(book._id).update({
-        data: {
-          endTime,
-          durationMin,
-          status: 'finished'
-        }
-      });
-
+      const { endTime, durationMin } = await finishBook(book._id, book.startTime);
       const updatedBook = { ...book, endTime, durationMin, status: 'finished' };
       this.setData({
         book: updatedBook,
@@ -465,12 +443,7 @@ Page({
 
     wx.showLoading({ title: '保存中', mask: true });
     try {
-      await db.collection('books').doc(book._id).update({
-        data: {
-          status: 'reading',
-          endTime: _.remove()
-        }
-      });
+      await unfinishBook(book._id);
       wx.hideLoading();
       wx.showToast({ title: '已恢复在读', icon: 'success', duration: 800 });
       this.loadBook();
@@ -478,6 +451,11 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: '保存失败', icon: 'none' });
     }
+  },
+
+  continueReadingLater() {
+    // Book is already in "reading" status; this is a navigation shortcut back to shelf.
+    wx.switchTab({ url: '/pages/index/index' });
   },
 
 
@@ -489,11 +467,16 @@ Page({
       wx.showToast({ title: '这本书还没有金句', icon: 'none' });
       return;
     }
-    const bookName = encodeURIComponent(book.bookName || '');
-    const authorName = encodeURIComponent(book.authorName || '');
-    const quotes = encodeURIComponent(JSON.stringify(quoteNotes));
+    const payload = {
+      bookName: book.bookName || '',
+      authorName: book.authorName || '',
+      endTime: book.endTime != null ? String(book.endTime) : '',
+      quotes: quoteNotes
+    };
+    const key = `_share_${book._id}`;
+    wx.setStorage({ key, data: payload });
     wx.navigateTo({
-      url: `/pages/shareCard/shareCard?bookId=${book._id}&bookName=${bookName}&authorName=${authorName}&quotes=${quotes}`
+      url: `/pages/shareCard/shareCard?bookId=${book._id}`
     });
   }
 });

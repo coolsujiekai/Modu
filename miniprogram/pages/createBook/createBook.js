@@ -1,6 +1,6 @@
-import { normalizeAuthorName, buildAuthorTokens } from '../../utils/author';
-import { db, withOpenIdFilter } from '../../utils/db.js';
-import { debounce, escapeRegExp } from '../../utils/util.js';
+import { debounce } from '../../utils/util.js';
+import { createBook } from '../../services/bookService.js';
+import { findOrCreateAuthor, searchAuthors } from '../../services/authorService.js';
 
 Page({
   data: {
@@ -26,33 +26,10 @@ Page({
       this.setData({ authorSuggestions: [] });
       return;
     }
-
-    const qNorm = normalizeAuthorName(q);
-    if (!qNorm) {
-      this.setData({ authorSuggestions: [] });
-      return;
-    }
-
     try {
-      // Prefer prefix match on normalized name; fallback to display name contains.
-      const regPrefix = db.RegExp({ regexp: `^${escapeRegExp(qNorm)}`, options: '' });
-      const regContain = db.RegExp({ regexp: escapeRegExp(q), options: 'i' });
-
-      const [byNorm, byName] = await Promise.all([
-        db.collection('authors').where(withOpenIdFilter({ nameNorm: regPrefix })).limit(10).get(),
-        db.collection('authors').where(withOpenIdFilter({ name: regContain })).limit(10).get()
-      ]);
-
-      const merged = [];
-      const seen = new Set();
-      for (const it of [...(byNorm.data || []), ...(byName.data || [])]) {
-        if (!it || !it._id) continue;
-        if (seen.has(it._id)) continue;
-        seen.add(it._id);
-        merged.push(it);
-        if (merged.length >= 10) break;
-      }
-      this.setData({ authorSuggestions: merged });
+      const openid = getApp()?.globalData?.openid || '';
+      const results = await searchAuthors(openid, q, 10);
+      this.setData({ authorSuggestions: results });
     } catch (e) {
       this.setData({ authorSuggestions: [] });
     }
@@ -79,58 +56,26 @@ Page({
       wx.showToast({ title: '请先填写书名', icon: 'none' });
       return;
     }
-    if (!authorInput) {
-      wx.showToast({ title: '请先填写作者', icon: 'none' });
-      return;
-    }
 
     wx.showLoading({ title: '创建中', mask: true });
     try {
+      const openid = getApp()?.globalData?.openid || '';
       let author = this.data.selectedAuthor;
-      const authorNorm = normalizeAuthorName(authorInput);
-      if (!authorNorm) throw new Error('invalid author');
-
-      // Strict: if exact normalized match exists, strongly prefer it even if user typed.
-      const exactRes = await db.collection('authors').where(withOpenIdFilter({ nameNorm: authorNorm })).limit(1).get();
-      if (exactRes.data && exactRes.data[0]) {
-        const a = exactRes.data[0];
-        author = { _id: a._id, name: a.name, nameNorm: a.nameNorm };
-      } else if (!author?._id) {
-        // Create new author
-        const now = Date.now();
-        const addRes = await db.collection('authors').add({
-          data: {
-            name: authorInput,
-            nameNorm: authorNorm,
-            tokens: buildAuthorTokens(authorNorm),
-            aliases: [],
-            createdAt: now,
-            updatedAt: now
-          }
-        });
-        author = { _id: addRes._id, name: authorInput, nameNorm: authorNorm };
-      }
-
-      const startTime = Date.now();
-      const addBookRes = await db.collection('books').add({
-        data: {
-          bookName,
-          authorId: author._id,
-          authorName: author.name,
-          authorNameNorm: author.nameNorm,
-          startTime,
-          status: 'reading',
-          notes: [],
-          notesCount: 0,
-          thoughtCount: 0,
-          quoteCount: 0,
-          durationMin: 0
+      if (authorInput) {
+        if (!author?._id) {
+          author = await findOrCreateAuthor(openid, authorInput);
         }
+      }
+      const bookId = await createBook({
+        bookName,
+        authorId: author?._id || '',
+        authorName: author?.name || (authorInput || ''),
+        authorNameNorm: author?.nameNorm || ''
       });
 
       wx.hideLoading();
       wx.showToast({ title: '开读！', icon: 'success', duration: 700 });
-      wx.redirectTo({ url: `/pages/book/book?id=${addBookRes._id}` });
+      wx.redirectTo({ url: `/pages/book/book?id=${bookId}` });
     } catch (e) {
       wx.hideLoading();
       wx.showModal({

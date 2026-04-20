@@ -1,12 +1,29 @@
-<view class="page">
-  <view class="hero">
-    <view class="hero-top">
-      <view class="hero-title">正在阅读</view>
-      <view class="hero-count">{{readingCount}} 本</view>
+<view class="page home-page">
+  <!-- 主 Hero：继续阅读 / 记录入口 -->
+  <view class="home-hero hero">
+    <view class="home-hero__hd">
+      <view class="home-hero__title">{{primaryBook ? '继续这次阅读' : '开始今天的阅读'}}</view>
+      <view class="home-hero__sub ">
+        <block wx:if="{{primaryBook}}">
+          《{{primaryBook.bookName}}》
+        </block>
+        <block wx:else>
+          从一本书开始，把触动你的句子记下来
+        </block>
+      </view>
     </view>
-    <view class="hero-sub">{{heroSub}}</view>
+    <view class="home-hero__actions">
+      <block wx:if="{{primaryBook}}">
+        <button class="weui-btn weui-btn_primary home-hero__btn" bindtap="onQuickRecordTap">记一句</button>
+        <button class="weui-btn weui-btn_default home-hero__btn" bindtap="openPrimaryBook">打开书籍</button>
+      </block>
+      <block wx:else>
+        <button class="weui-btn weui-btn_primary home-hero__btn" bindtap="startReading">添加书籍</button>
+      </block>
+    </view>
   </view>
 
+  <!-- 在读书架 -->
   <block wx:if="{{loading}}">
     <view class="weui-msg">
       <view class="weui-msg__icon-area">
@@ -17,58 +34,75 @@
   </block>
 
   <block wx:elif="{{readingBooks.length === 0}}">
-    <view class="weui-msg">
-      <view class="weui-msg__icon-area">
-        <text style="font-size: 84rpx;">📖</text>
-      </view>
-      <view class="weui-msg__title">今天想读哪一本？</view>
-      <view class="weui-msg__desc">先把第一本放进书架</view>
-      <view class="weui-msg__opr-area">
-        <button class="weui-btn weui-btn_primary" bindtap="startReading">新增第一本</button>
-      </view>
-    </view>
+    <view class="home-empty muted">书架还空着。添加一本书后，这里会出现“在读书架”。</view>
   </block>
 
   <block wx:else>
-    <block wx:if="{{homeViewMode === 'grid'}}">
-      <view class="cover-grid">
-        <view wx:for="{{readingBooks}}" wx:key="_id" class="cover-item" catchtap="openBook" bindlongpress="onBookLongPress" data-id="{{item._id}}" data-name="{{item.bookName}}" hover-class="tap-active" hover-stay-time="70">
-          <view class="book-cover-large {{item.coverToneClass}}">
-            <view class="cover-skeuo-shadow" aria-hidden="true"></view>
-            <view class="cover-spine"></view>
-            <view class="cover-page-edge" aria-hidden="true"></view>
-            <view class="cover-shine" aria-hidden="true"></view>
-            <view class="cover-inner">
-              <text class="cover-title">{{item.bookName}}</text>
-              <text wx:if="{{item.authorName}}" class="cover-author">{{item.authorName}}</text>
+    <view class="shelf-head">
+      <text class="shelf-title">在读</text>
+      <text class="shelf-count">{{readingCount}} 本</text>
+    </view>
+    <scroll-view class="shelf-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}" enhanced="{{true}}">
+      <view class="shelf-inner">
+        <view
+          wx:for="{{readingBooks}}"
+          wx:key="_id"
+          class="shelf-item"
+          catchtap="openBook"
+          bindlongpress="onBookLongPress"
+          data-id="{{item._id}}"
+          data-name="{{item.bookName}}"
+          hover-class="tap-active"
+          hover-stay-time="70"
+        >
+          <view class="shelf-cover {{item.coverToneClass}}">
+            <view class="shelf-cover__spine"></view>
+            <view class="shelf-cover__inner">
+              <text class="shelf-cover__title">{{item.bookName}}</text>
             </view>
           </view>
+   
         </view>
 
-        <view class="cover-item" catchtap="startReading" hover-class="tap-active" hover-stay-time="70">
-          <view class="add-cover">
-            <view class="add-plus">+</view>
-            <view class="add-text">再读一本</view>
+        <view
+          class="shelf-item"
+          catchtap="startReading"
+          hover-class="tap-active"
+          hover-stay-time="70"
+        >
+          <view class="shelf-add">
+            <view class="shelf-add__plus">+</view>
           </view>
+          <view class="shelf-author">再读一本</view>
         </view>
       </view>
-    </block>
-    <block wx:else>
-      <view class="list-card">
-        <view class="weui-cells list-cells">
-          <view wx:for="{{readingBooks}}" wx:key="_id" class="weui-cell weui-cell_access" catchtap="openBook" bindlongpress="onBookLongPress" data-id="{{item._id}}" data-name="{{item.bookName}}" hover-class="tap-active" hover-stay-time="70">
-            <view class="weui-cell__bd">
-              <view class="list-title">{{item.bookName}}</view>
-              <view wx:if="{{item.authorName}}" class="list-author">{{item.authorName}}</view>
-            </view>
-            <view class="weui-cell__ft"></view>
-          </view>
-          <view class="weui-cell weui-cell_access" catchtap="startReading" hover-class="tap-active" hover-stay-time="70">
-            <view class="weui-cell__bd list-add">+ 再读一本</view>
-            <view class="weui-cell__ft"></view>
-          </view>
-        </view>
-      </view>
-    </block>
+    </scroll-view>
   </block>
+
+  <!-- 最近记录 -->
+  <view wx:if="{{recentNotes.length > 0}}" class="recent-section">
+    <view class="recent-head">
+      <text class="recent-title">最近记录</text>
+    </view>
+    <view class="recent-list">
+      <view
+        wx:for="{{recentNotes}}"
+        wx:key="key"
+        class="recent-item"
+        catchtap="openBookFromNote"
+        data-id="{{item.bookId}}"
+        hover-class="tap-active"
+        hover-stay-time="70"
+      >
+        <view class="recent-item__text">
+          <text>{{item.text}}</text>
+        </view>
+        <view class="recent-item__meta">
+          <text class="recent-item__book">《{{item.bookName}}》</text>
+          <text class="recent-item__time">{{item.timeText}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
 </view>

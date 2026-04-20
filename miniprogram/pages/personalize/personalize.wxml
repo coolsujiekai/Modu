@@ -47,6 +47,19 @@
     </view>
   </view>
 
+  <view class="card">
+    <view class="h2">分享卡默认样式</view>
+    <view class="setting-row">
+      <view class="setting-title">默认模板</view>
+      <view class="seg seg-3">
+        <view class="seg-item {{settings.shareTemplateId === 'nebula' ? 'active' : ''}}" data-template="nebula" bindtap="setShareTemplate">夜色</view>
+        <view class="seg-item {{settings.shareTemplateId === 'paper' ? 'active' : ''}}" data-template="paper" bindtap="setShareTemplate">纸页</view>
+        <view class="seg-item {{settings.shareTemplateId === 'sunset' ? 'active' : ''}}" data-template="sunset" bindtap="setShareTemplate">暮光</view>
+      </view>
+    </view>
+    <view class="p muted">首次生成时会提示，之后可在这里统一修改默认模板。</view>
+  </view>
+
   <view class="card" wx:if="{{enabled}}">
     <view class="h2">当前显示</view>
     <view class="profile">

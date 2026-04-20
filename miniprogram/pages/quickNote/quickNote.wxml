@@ -1,0 +1,50 @@
+<view class="qn-page">
+  <textarea
+    class="qn-input"
+    placeholder="写下刚刚触动你的那句话，或闪过的念头…"
+    value="{{draft}}"
+    focus="{{autoFocus}}"
+    maxlength="2000"
+    cursor-spacing="120"
+    bindinput="onDraftInput"
+    bindkeyboardheightchange="onKeyboardHeightChange"
+    show-confirm-bar="{{false}}"
+  />
+
+  <view class="qn-bar" style="bottom: {{barBottom}}px;">
+    <view class="qn-bar__top">
+      <view class="qn-target" bindtap="onChangeBook" hover-class="qn-target--active" hover-stay-time="80">
+        <text class="qn-target__prefix">记到</text>
+        <text wx:if="{{currentBookName}}" class="qn-target__name">《{{currentBookName}}》</text>
+        <text wx:else class="qn-target__empty">还没有在读的书</text>
+        <text wx:if="{{hasMultipleBooks}}" class="qn-target__arrow">切换</text>
+      </view>
+      <text class="qn-count">{{draftLength}}/2000</text>
+    </view>
+
+    <view class="qn-bar__bottom">
+      <view
+        class="qn-type qn-type--quote {{type === 'quote' ? 'qn-type--active' : ''}}"
+        bindtap="onTypeChange"
+        data-type="quote"
+      >
+        <text class="qn-type__icon">📖</text>
+        <text class="qn-type__label">金句</text>
+      </view>
+      <view
+        class="qn-type qn-type--thought {{type === 'thought' ? 'qn-type--active' : ''}}"
+        bindtap="onTypeChange"
+        data-type="thought"
+      >
+        <text class="qn-type__icon">💭</text>
+        <text class="qn-type__label">想法</text>
+      </view>
+
+      <button
+        class="qn-save {{canSave ? '' : 'qn-save--disabled'}}"
+        disabled="{{!canSave || saving}}"
+        bindtap="onSave"
+      >{{saving ? '保存中…' : '保存'}}</button>
+    </view>
+  </view>
+</view>

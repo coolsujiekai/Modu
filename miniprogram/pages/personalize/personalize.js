@@ -78,6 +78,16 @@ Page({
     this.updateSettings({ saveInputMode: mode });
   },
 
+  setShareTemplate(e) {
+    const templateId = e?.currentTarget?.dataset?.template;
+    if (!['nebula', 'paper', 'sunset'].includes(templateId)) return;
+    if (this.data.settings.shareTemplateId === templateId) return;
+    this.updateSettings({
+      shareTemplateId: templateId,
+      shareFirstRunConfigured: true
+    });
+  },
+
   async enable() {
     try {
       const res = await wx.getUserProfile({

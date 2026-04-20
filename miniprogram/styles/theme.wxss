@@ -1,0 +1,129 @@
+page {
+  /* ========= Color system (warm paper) ========= */
+  --bg-primary: #F7F3EE; /* page background */
+  --bg-surface: #FFFDF9; /* primary surface */
+  --bg-surface-soft: #FBF6EF; /* secondary surface (inputs/weak cards) */
+  --bg-surface-muted: #F2ECE4; /* muted blocks */
+  --bg-surface-subtle: #F2ECE4;
+  --bg-surface-subtle-2: #EFE7DC;
+  --bg-surface-accent: rgba(111, 138, 99, 0.10);
+  --bg-surface-tag: rgba(111, 138, 99, 0.10);
+  --bg-divider: rgba(46, 39, 33, 0.08);
+
+  --text-primary: #2E2721; /* main body */
+  --text-secondary: #6F6458; /* secondary text */
+  --text-light: #A29588; /* meta, time, placeholder */
+
+  --border-color: #E7DED3;
+  --border-warm: var(--border-color);
+  --border-soft: rgba(46, 39, 33, 0.10);
+  --border-muted: rgba(46, 39, 33, 0.08);
+  --border-overlay-soft: rgba(0, 0, 0, 0.05);
+  --border-overlay-strong: rgba(46, 39, 33, 0.18);
+  --border-overlay-stronger: rgba(46, 39, 33, 0.26);
+
+  /* One accent color for actions/links */
+  --accent: #6F8A63;
+  --accent-strong: #5F7E56;
+
+  --button-bg: var(--accent);
+  --button-text: #FFFFFF;
+  --button-bg-secondary: rgba(111, 138, 99, 0.10);
+  --button-text-secondary: var(--accent);
+
+  --font-title: 40rpx;
+  --font-body: 32rpx;
+  --font-meta: 24rpx;
+  --font-title-weight: 600;
+
+  --space-1: 16rpx;
+  --space-2: 32rpx;
+  --space-3: 48rpx;
+  --space-4: 64rpx;
+
+  --radius-md: 24rpx;
+
+  /* Back-compat aliases used across pages */
+  --bg-primary-warm: var(--bg-primary);
+
+  --text-title: var(--text-primary);
+  --text-warm-muted: var(--text-secondary);
+  --text-accent: var(--accent);
+  --text-danger: #B76B5C;
+  --text-success: #10B981;
+  --text-dim: var(--text-light);
+  --text-neutral-700: #6B7280;
+  --text-neutral-500: #9CA3AF;
+  --text-neutral-800: #444444;
+  --text-brand: var(--accent);
+  --text-brand-soft: rgba(111, 138, 99, 0.65);
+  --text-brand-info: rgba(111, 138, 99, 0.75);
+  --text-overlay: rgba(255, 255, 255, 0.90);
+  --text-brand-muted: rgba(44, 62, 80, 0.55);
+  --overlay-white-20: rgba(255, 255, 255, 0.20);
+  --overlay-white-30: rgba(255, 255, 255, 0.30);
+
+  --border-accent: rgba(111, 138, 99, 0.35);
+  --border-soft-2: rgba(46, 39, 33, 0.12);
+  --border-light: #DDDDDD;
+  --border-brand: #2C3E50;
+  --border-gold-soft: rgba(212, 168, 75, 0.35);
+  --border-gold-light: rgba(212, 168, 75, 0.12);
+  --border-dark-soft: rgba(90, 75, 58, 0.22);
+  --border-dark-faint: rgba(70, 55, 42, 0.22);
+
+  --overlay-mask: rgba(0, 0, 0, 0.35);
+  --overlay-mask-strong: rgba(0, 0, 0, 0.50);
+  --overlay-mask-stronger: rgba(0, 0, 0, 0.55);
+  --overlay-screen: rgba(15, 20, 28, 0.90);
+  --overlay-line: rgba(0, 0, 0, 0.10);
+  --overlay-brand-faint: rgba(44, 62, 80, 0.035);
+
+  --shadow-none: none;
+  --shadow-card: 0 16rpx 40rpx rgba(46, 39, 33, 0.10);
+  --shadow-modal: 0 28rpx 80rpx rgba(46, 39, 33, 0.18);
+  --shadow-modal-strong: 0 36rpx 96rpx rgba(46, 39, 33, 0.24);
+  --shadow-preview: 0 18rpx 50rpx rgba(46, 39, 33, 0.14);
+  --shadow-book-cover: 0 18rpx 48rpx rgba(46, 39, 33, 0.16);
+
+  --bg-dark-page: #1C1917;
+  --bg-dark-surface: #292524;
+  --bg-dark-surface-2: #3A3530;
+  --bg-dark-surface-3: #4A433C;
+  --border-dark: #3F3A34;
+  --text-dark-primary: #F5F0E8;
+  --text-dark-secondary: #C0B7AD;
+  --text-dark-highlight: #E7D6BF;
+  --text-dark-stats: #B6C3AD;
+
+  --book-tone-1: linear-gradient(160deg, #F3E9DC 0%, #E8D9C6 48%, #DCCCB8 100%);
+  --book-tone-2: linear-gradient(160deg, #EBE6DC 0%, #DFD8CB 52%, #D2C9BB 100%);
+  --book-tone-3: linear-gradient(160deg, #F0E4DB 0%, #E5D3C6 50%, #DBC4B5 100%);
+  --book-tone-4: linear-gradient(160deg, #E8E4DE 0%, #DBD5CD 52%, #CEC7BE 100%);
+  --book-tone-5: linear-gradient(160deg, #EFE8E0 0%, #E3DCD4 50%, #D6CEC6 100%);
+  --book-tone-shine-1: linear-gradient(180deg, rgba(255, 252, 247, 0.9) 0%, transparent 32%);
+  --book-tone-shine-2: linear-gradient(180deg, rgba(255, 253, 248, 0.85) 0%, transparent 30%);
+  --book-tone-shine-3: linear-gradient(180deg, rgba(255, 250, 246, 0.88) 0%, transparent 28%);
+  --book-tone-shine-4: linear-gradient(180deg, rgba(255, 254, 252, 0.82) 0%, transparent 28%);
+  --book-tone-shine-5: linear-gradient(180deg, rgba(255, 251, 246, 0.86) 0%, transparent 30%);
+  --hero-bg-gradient: linear-gradient(180deg, rgba(255, 253, 249, 0.96) 0%, rgba(255, 253, 249, 0.75) 100%);
+  --cover-shadow-gradient: linear-gradient(180deg, rgba(46, 39, 33, 0.10) 0%, transparent 42%);
+  --cover-spine-gradient: linear-gradient(
+    90deg,
+    rgba(55, 42, 32, 0.2) 0%,
+    rgba(109, 90, 70, 0.14) 45%,
+    rgba(109, 90, 70, 0.06) 100%
+  );
+  --cover-spine-shadow: 6rpx 0 10rpx rgba(46, 39, 33, 0.10);
+  --cover-page-edge-gradient: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(240, 232, 220, 0.35) 50%,
+    rgba(220, 208, 192, 0.45) 100%
+  );
+  --cover-page-edge-shadow: 0 12rpx 20rpx rgba(46, 39, 33, 0.10);
+  --cover-shine-gradient: linear-gradient(165deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0) 58%);
+  --cover-title-color: var(--text-primary);
+  --cover-author-color: var(--text-secondary);
+  --cover-title-shadow: 0 2rpx 10rpx rgba(255, 255, 255, 0.22);
+}

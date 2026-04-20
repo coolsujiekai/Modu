@@ -1,0 +1,9 @@
+{
+  "name": "bookOperations",
+  "version": "1.0.0",
+  "description": "书籍和笔记的写操作云函数，统一处理所有写操作并校验 openid",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.4.0"
+  }
+}

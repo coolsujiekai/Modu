@@ -1,18 +1,24 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
+import { deleteBook } from '../../services/bookService.js';
+import { formatNoteTime } from '../../services/noteService.js';
 
 Page({
   data: {
     loading: true,
     readingBooks: [],
     readingCount: 0,
+    primaryBook: null,
     heroSub: '从一本书开始今天的阅读',
-    homeViewMode: 'grid'
+    homeViewMode: 'grid',
+    recentNotes: []
   },
 
-  onShow() {
+  async onShow() {
     this.applyPersonalizeSettings();
-    this.loadReadingBooks();
+    await this.loadReadingBooks();
+
+    this.loadRecentNotes();
   },
 
   applyPersonalizeSettings() {
@@ -35,9 +41,7 @@ Page({
 
     wx.showLoading({ title: '删除中', mask: true });
     try {
-      await traced('books.remove(reading)', () =>
-        withRetry(() => db.collection('books').doc(id).remove())
-      );
+      await deleteBook(id);
       wx.hideLoading();
       wx.showToast({ title: '已删除', icon: 'success', duration: 800 });
       await this.loadReadingBooks();
@@ -59,6 +63,64 @@ Page({
     const id = e.currentTarget.dataset.id;
     if (!id) return;
     wx.navigateTo({ url: `/pages/book/book?id=${id}` });
+  },
+
+  openBookFromNote(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/book/book?id=${id}` });
+  },
+
+  openPrimaryBook() {
+    const id = this.data.primaryBook?._id;
+    if (!id) {
+      this.startReading();
+      return;
+    }
+    wx.navigateTo({ url: `/pages/book/book?id=${id}` });
+  },
+
+  onQuickRecordTap() {
+    wx.navigateTo({ url: '/pages/quickNote/quickNote' });
+  },
+
+  async loadRecentNotes() {
+    try {
+      const res = await traced('books.reading.recent(notes)', () =>
+        withRetry(() =>
+          db
+            .collection('books')
+            .where(withOpenIdFilter({ status: 'reading' }))
+            .orderBy('startTime', 'desc')
+            .limit(5)
+            .get()
+        )
+      );
+      const pool = [];
+      (res.data || []).forEach((book) => {
+        const notes = Array.isArray(book.notes) ? book.notes : [];
+        notes.forEach((n) => {
+          const ts = Number(n.timestamp || 0);
+          if (!ts) return;
+          pool.push({
+            key: `${book._id}_${ts}`,
+            bookId: book._id,
+            bookName: book.bookName || '未命名',
+            text: (n.text || '').trim(),
+            type: n.type || 'thought',
+            timestamp: ts
+          });
+        });
+      });
+      pool.sort((a, b) => b.timestamp - a.timestamp);
+      const recentNotes = pool.slice(0, 2).map((n) => ({
+        ...n,
+        timeText: formatNoteTime(n.timestamp, 'relative')
+      }));
+      this.setData({ recentNotes });
+    } catch (e) {
+      this.setData({ recentNotes: [] });
+    }
   },
 
   async onBookLongPress(e) {
@@ -141,6 +203,7 @@ Page({
       }
       normalizedBooks.sort((a, b) => Number(b.startTime || 0) - Number(a.startTime || 0));
       const readingCount = normalizedBooks.length;
+      const primaryBook = normalizedBooks[0] || null;
       let heroSub = '今天想读哪一本？';
       if (readingCount === 1) {
         heroSub = '1 本在读，打开它继续读';
@@ -151,6 +214,7 @@ Page({
         loading: false,
         readingBooks: normalizedBooks,
         readingCount,
+        primaryBook,
         heroSub
       });
     } catch (e) {
@@ -158,6 +222,7 @@ Page({
         loading: false,
         readingBooks: [],
         readingCount: 0,
+        primaryBook: null,
         heroSub: '今天想读哪一本？'
       });
       wx.showModal({

@@ -5,6 +5,6 @@
   "componentPlaceholder": {
     "slideview": "view"
   },
-  "navigationBarTitleText": "翻书随手记 · 已读",
+  "navigationBarTitleText": "翻书随手记",
   "enablePullDownRefresh": true
 }

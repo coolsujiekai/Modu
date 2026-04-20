@@ -1,4 +1,4 @@
-import { db, withRetry } from '../../utils/db.js';
+import { editNote } from '../../services/noteService.js';
 
 Page({
   data: {
@@ -36,27 +36,7 @@ Page({
     this.setData({ saving: true });
 
     try {
-      const res = await withRetry(() => db.collection('books').doc(bookId).get());
-      const book = res.data;
-      const notes = Array.isArray(book.notes) ? book.notes : [];
-      const idx = notes.findIndex(n => Number(n.timestamp) === ts);
-      if (idx < 0) {
-        wx.showToast({ title: '找不到这条记录', icon: 'none' });
-        this.setData({ saving: false });
-        return;
-      }
-      notes[idx] = { ...notes[idx], text };
-      const thoughtCount = notes.filter(n => n.type === 'thought').length;
-      const quoteCount = notes.filter(n => n.type === 'quote').length;
-
-      await db.collection('books').doc(bookId).update({ 
-        data: { 
-          notes, 
-          notesCount: notes.length,
-          thoughtCount,
-          quoteCount 
-        } 
-      });
+      await editNote(bookId, ts, text);
       wx.showToast({ title: '已保存', icon: 'success', duration: 700 });
       wx.navigateBack();
     } catch (e) {

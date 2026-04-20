@@ -1,33 +1,35 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
 .page {
   min-height: 100vh;
-  padding: 32rpx 32rpx 40rpx;
 }
 
 .hero {
-  background: #ffffff;
-  border-radius: 20rpx;
-  padding: 24rpx 22rpx;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 16rpx 16rpx;
   margin-bottom: 16rpx;
-  border: 1rpx solid #EDE8E0;
+  border: 1rpx solid var(--border-warm);
 }
 
 .hero-title {
-  font-size: 34rpx;
+  font-size: 32rpx;
   font-weight: 700;
-  color: #2D2A26;
+  color: var(--text-title);
 }
 
 .hero-sub {
-  margin-top: 8rpx;
+  margin-top: 16rpx;
   font-size: 24rpx;
-  color: #8C8279;
+  color: var(--text-warm-muted);
 }
 
 .form-panel {
   margin-top: 0;
-  border-radius: 20rpx;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1rpx solid #EDE8E0;
+  border: 1rpx solid var(--border-warm);
 }
 
 .cells-no-top-margin {
@@ -36,49 +38,49 @@
 
 .label {
   width: 90rpx;
-  color: #8C8279;
-  font-size: 28rpx;
+  color: var(--text-warm-muted);
+  font-size: 24rpx;
 }
 
 .muted {
-  color: #8C8279;
+  color: var(--text-warm-muted);
 }
 
 .suggest-card {
   margin-top: 16rpx;
-  border-radius: 20rpx;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
 .suggest-title {
-  font-size: 26rpx;
-  padding: 14rpx 10rpx 4rpx;
+  font-size: 24rpx;
+  padding: 16rpx 16rpx 16rpx;
 }
 
 .suggest-cells {
-  margin-top: 10rpx !important;
+  margin-top: 16rpx !important;
 }
 
 .selected {
   margin-top: 16rpx;
-  font-size: 28rpx;
+  font-size: 24rpx;
 }
 
 .author-pill {
   display: inline-block;
-  margin: 0 10rpx;
-  padding: 6rpx 16rpx;
-  border-radius: 999rpx;
-  background: #D4C4A8;
-  color: #8B7355;
+  margin: 0 16rpx;
+  padding: 16rpx 16rpx;
+  border-radius: var(--radius-md);
+  background: var(--border-accent);
+  color: var(--text-accent);
   font-weight: 600;
 }
 
 .actions {
-  margin-top: 22rpx;
+  margin-top: 16rpx;
   display: flex;
   flex-direction: column;
-  gap: 14rpx;
-  padding: 0 12rpx 16rpx;
+  gap: 16rpx;
+  padding: 0 16rpx 16rpx;
 }
 
