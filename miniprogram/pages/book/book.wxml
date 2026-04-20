@@ -25,13 +25,13 @@
       </view>
       <view class="weui-panel__bd">
         <view class="weui-media-box weui-media-box_text">
-          <view class="weui-media-box__desc">
-            <text class="muted">状态：</text>
-            <text>{{book.status === 'finished' ? '已读' : '在读'}}</text>
+          <view class="weui-media-box__desc meta-row">
+            <text class="meta-label">状态</text>
+            <text class="meta-pill">{{book.status === 'finished' ? '已读' : '在读'}}</text>
           </view>
-          <view class="weui-media-box__desc" wx:if="{{book.authorName}}">
-            <text class="muted">作者：</text>
-            <text class="link" bindtap="openAuthor" data-id="{{book.authorId}}" data-name="{{book.authorName}}">{{book.authorName}}</text>
+          <view class="weui-media-box__desc meta-row" wx:if="{{book.authorName}}">
+            <text class="meta-label">作者</text>
+            <text class="meta-link" bindtap="openAuthor" data-id="{{book.authorId}}" data-name="{{book.authorName}}">{{book.authorName}}</text>
           </view>
           <view class="weui-media-box__desc muted" style="margin-top: 10rpx;" wx:if="{{startedText}}">
             <text>开始：{{startedText}}</text>
@@ -64,7 +64,7 @@
       <view class="section-card__bd">
         <textarea class="note-input {{noteFocused ? 'note-input--focused' : 'note-input--compact'}}" placeholder="写下刚刚触动你的一句话…" value="{{noteDraft}}" focus="{{autoFocusNote}}" bindinput="onNoteInput" bindfocus="onNoteFocus" bindblur="onNoteBlur" maxlength="2000" auto-height />
         <view class="section-actions section-actions--right" wx:if="{{canSaveDraft}}">
-          <button class="weui-btn weui-btn_mini mini-action-btn btn-finish" bindtap="chooseNoteTypeAndSave">保存并选择类型</button>
+          <button class="weui-btn btn-finish" bindtap="chooseNoteTypeAndSave">保存</button>
         </view>
         <view class="saved-inline muted" wx:if="{{savedHintType}}">已保存到{{savedHintType === 'quote' ? '金句' : '想法'}}</view>
       </view>
@@ -93,22 +93,27 @@
                   wx:for="{{g.items}}"
                   wx:key="timestamp"
                   wx:for-item="n"
-                  class="timeline-item"
-                  hover-class="tap-active"
-                  hover-stay-time="70"
                 >
-                  <view class="timeline-item__bd">
-                    <view class="timeline-item__text">
-                      <text>{{n.text}}</text>
+                  <slideview buttons="{{n.slideButtons}}" bind:buttontap="onTimelineSlideButtonTap" data-ts="{{n.timestamp}}">
+                    <view
+                      class="timeline-item"
+                      hover-class="tap-active"
+                      hover-stay-time="70"
+                      bindlongpress="onTimelineLongPress"
+                      data-ts="{{n.timestamp}}"
+                      data-text="{{n.text}}"
+                    >
+                      <view class="timeline-item__bd">
+                        <view class="timeline-item__text">
+                          <text>{{n.text}}</text>
+                        </view>
+                        <view class="timeline-item__meta">
+                          <text class="timeline-item__time muted">{{n.shortTime}}</text>
+                          <text class="type-tag type-tag--{{n.type}}">{{n.typeLabel}}</text>
+                        </view>
+                      </view>
                     </view>
-                    <view class="timeline-item__meta">
-                      <text class="timeline-item__time muted">{{n.shortTime}}</text>
-                      <text class="type-tag type-tag--{{n.type}}">{{n.typeLabel}}</text>
-                      <view class="timeline-item__spacer"></view>
-                      <text class="timeline-item__action btn-link" bindtap="openLatestMore" data-ts="{{n.timestamp}}" data-text="{{n.text}}">更多</text>
-                      <text class="timeline-item__action btn-link" bindtap="editNote" data-ts="{{n.timestamp}}">编辑</text>
-                    </view>
-                  </view>
+                  </slideview>
                 </view>
               </view>
             </view>

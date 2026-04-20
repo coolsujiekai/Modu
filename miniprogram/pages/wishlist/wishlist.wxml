@@ -17,12 +17,15 @@
       </view>
     </block>
 
-    <view class="weui-cell" wx:for="{{items}}" wx:key="_id">
-      <view class="weui-cell__bd">
-        <view>{{item.title}}</view>
-        <view class="muted">{{item.createdText}}</view>
-      </view>
-      <view class="weui-cell__ft btn-delete" bindtap="remove" data-id="{{item._id}}">删除</view>
+    <view wx:for="{{items}}" wx:key="_id" class="slide-row">
+      <slideview buttons="{{item.slideButtons}}" bind:buttontap="onSlideButtonTap" data-id="{{item._id}}">
+        <view class="weui-cell">
+          <view class="weui-cell__bd">
+            <view>{{item.title}}</view>
+            <view class="muted">{{item.createdText}}</view>
+          </view>
+        </view>
+      </slideview>
     </view>
   </view>
 </view>

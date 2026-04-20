@@ -64,7 +64,8 @@
 }
 
 .qn-target--active {
-  opacity: 0.7;
+  background: var(--tap-active-bg);
+  opacity: 1;
 }
 
 .qn-target__prefix {
@@ -148,15 +149,21 @@
   height: 80rpx;
   line-height: 80rpx;
   border-radius: var(--radius-md) !important;
-  background: var(--text-brand) !important;
+  background: var(--button-bg) !important;
   color: var(--button-text) !important;
   font-size: 28rpx !important;
-  font-weight: 600 !important;
-  border: none !important;
+  font-weight: 700 !important;
+  letter-spacing: var(--btn-letter-spacing);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.16) !important;
 }
 
 .qn-save::after {
   border: none;
+}
+
+.qn-save:active {
+  background: var(--btn-active-bg-primary) !important;
+  transform: scale(0.982);
 }
 
 .qn-save--disabled {

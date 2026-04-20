@@ -70,11 +70,5 @@
   font-size: 24rpx;
 }
 
-.btn-delete {
-  color: var(--text-danger) !important;
-}
-
-.tap-active {
-  opacity: 0.86;
-}
+/* slideview delete button styles moved to /styles/common.wxss */
 

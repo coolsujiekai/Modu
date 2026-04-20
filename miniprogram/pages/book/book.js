@@ -186,11 +186,50 @@ Page({
         ...n,
         timeText: formatNoteTime(ts, this.data.noteTimeMode),
         shortTime: this.formatShortTime(ts),
-        typeLabel: n.type === 'quote' ? '金句' : '想法'
+        typeLabel: n.type === 'quote' ? '金句' : '想法',
+        slideButtons: [
+          {
+            text: '删除',
+            extClass: 'slide-btn-delete',
+            data: { ts }
+          }
+        ]
       });
     }
 
     return groups.map((g) => ({ ...g, count: g.items.length }));
+  },
+
+  onTimelineSlideButtonTap(e) {
+    const { ts } = e.detail || e.currentTarget?.dataset || {};
+    if (ts) {
+      this.deleteNote({ currentTarget: { dataset: { ts } } });
+    }
+  },
+
+  async onTimelineLongPress(e) {
+    const ts = Number(e.currentTarget?.dataset?.ts || 0);
+    const text = e.currentTarget?.dataset?.text || '';
+    if (!ts) return;
+    try {
+      const res = await wx.showActionSheet({
+        itemList: ['编辑', '复制', '删除'],
+        itemColor: '#2E2721'
+      });
+      if (res.tapIndex === 0) {
+        this.editNote({ currentTarget: { dataset: { ts } } });
+        return;
+      }
+      if (res.tapIndex === 1) {
+        this.copyNote({ currentTarget: { dataset: { text } } });
+        return;
+      }
+      if (res.tapIndex === 2) {
+        this.deleteNote({ currentTarget: { dataset: { ts } } });
+      }
+    } catch (err) {
+      // canceled
+    }
   },
 
   openAuthor(e) {

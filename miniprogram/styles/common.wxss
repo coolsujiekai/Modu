@@ -188,7 +188,9 @@ page,
   background: var(--button-bg) !important;
   color: var(--button-text) !important;
   border-radius: var(--radius-md) !important;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.16) !important;
   font-weight: 700;
+  letter-spacing: var(--btn-letter-spacing);
 }
 
 /* Secondary button (outline / soft) */
@@ -199,11 +201,47 @@ page,
   border-radius: var(--radius-md) !important;
   border: 1rpx solid var(--border-accent) !important;
   font-weight: 700;
+  letter-spacing: var(--btn-letter-spacing);
 }
 
+/* ============ Unified interaction feedback ============ */
+
+/* Primary button: deepen color + micro-scale on press */
 .weui-btn_primary:not(.weui-btn_disabled):active,
-.weui-btn_default:not(.weui-btn_disabled):active,
 .btn-primary:active,
+.btn-confirm:active {
+  opacity: 1 !important;
+  background: var(--btn-active-bg-primary) !important;
+  transform: scale(0.982);
+}
+
+/* Secondary button: fill deepen on press */
+.weui-btn_default:not(.weui-btn_disabled):active,
 .btn-secondary:active {
-  opacity: 0.9;
+  opacity: 1 !important;
+  background: var(--btn-active-bg-secondary) !important;
+  transform: scale(0.982);
+}
+
+/* Tappable cards / list rows: soft fill (no scale — cards should not shrink) */
+.tap-active {
+  background: var(--tap-active-bg) !important;
+  opacity: 1 !important;
+}
+
+/* Slide actions (WeUI slideview) */
+.slide-row {
+  overflow: hidden;
+}
+
+.slide-btn-delete {
+  background: var(--text-danger);
+  color: var(--button-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 32rpx;
+  font-size: 32rpx;
+  font-weight: 600;
 }

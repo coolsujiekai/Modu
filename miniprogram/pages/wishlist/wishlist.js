@@ -24,7 +24,17 @@ Page({
           .limit(50)
           .get()
       );
-      const items = (res.data || []).map(i => ({ ...i, createdText: formatDateTime(i.createdAt) }));
+      const items = (res.data || []).map(i => ({
+        ...i,
+        createdText: formatDateTime(i.createdAt),
+        slideButtons: [
+          {
+            text: '删除',
+            extClass: 'slide-btn-delete',
+            data: { id: i._id }
+          }
+        ]
+      }));
       this.setData({ items });
       wx.hideLoading();
     } catch (e) {
@@ -81,6 +91,14 @@ Page({
     } catch (e) {
       wx.hideLoading();
       wx.showToast({ title: '删除失败', icon: 'none' });
+    }
+  }
+  ,
+
+  onSlideButtonTap(e) {
+    const { id } = e.detail?.data || e.currentTarget?.dataset || {};
+    if (id) {
+      this.remove({ currentTarget: { dataset: { id } } });
     }
   }
 });

@@ -1,6 +1,6 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
-import { deleteBook } from '../../services/bookService.js';
+import { deleteBook, finishBook } from '../../services/bookService.js';
 import { formatNoteTime } from '../../services/noteService.js';
 
 Page({
@@ -127,12 +127,43 @@ Page({
     const id = e?.currentTarget?.dataset?.id;
     const name = e?.currentTarget?.dataset?.name || '';
     if (!id) return;
+
+    const book = (this.data.readingBooks || []).find(b => b?._id === id) || null;
+    const startTime = Number(book?.startTime || 0);
     try {
       const res = await wx.showActionSheet({
-        itemList: ['删除这本书'],
-        itemColor: '#C07D6B'
+        itemList: ['编辑书籍信息', '标记读完', '删除这本书'],
+        itemColor: '#2E2721'
       });
       if (res.tapIndex === 0) {
+        wx.navigateTo({ url: `/pages/editBookInfo/editBookInfo?id=${id}` });
+        return;
+      }
+      if (res.tapIndex === 1) {
+        if (!startTime) {
+          wx.showToast({ title: '缺少开始时间，无法标记读完', icon: 'none' });
+          return;
+        }
+        const confirm = await wx.showModal({
+          title: '标记为已读？',
+          content: name ? `《${name}》将移动到「已读回顾」。` : '这本书将移动到「已读回顾」。',
+          confirmText: '标记已读',
+          confirmColor: '#6F8A63'
+        });
+        if (!confirm.confirm) return;
+        wx.showLoading({ title: '保存中', mask: true });
+        try {
+          await finishBook(id, startTime);
+          wx.hideLoading();
+          wx.showToast({ title: '已标记已读', icon: 'success', duration: 800 });
+          await this.loadReadingBooks();
+        } catch (err) {
+          wx.hideLoading();
+          wx.showToast({ title: '保存失败', icon: 'none' });
+        }
+        return;
+      }
+      if (res.tapIndex === 2) {
         await this.deleteBookById(id, name);
       }
     } catch (err) {

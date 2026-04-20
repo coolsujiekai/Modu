@@ -43,6 +43,12 @@ page {
 
   --radius-md: 24rpx;
 
+  /* Interaction tokens */
+  --btn-active-bg-primary: #5F7E56;
+  --btn-active-bg-secondary: rgba(111, 138, 99, 0.22);
+  --tap-active-bg: rgba(46, 39, 33, 0.05);
+  --btn-letter-spacing: 0.04em;
+
   /* Back-compat aliases used across pages */
   --bg-primary-warm: var(--bg-primary);
 
