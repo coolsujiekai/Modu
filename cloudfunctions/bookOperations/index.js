@@ -9,6 +9,14 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+let TencentCloudSdk = null;
+try {
+  // Optional dependency; must be installed in cloudfunction package.json
+  TencentCloudSdk = require('tencentcloud-sdk-nodejs');
+} catch (e) {
+  TencentCloudSdk = null;
+}
+
 /**
  * 从云端上下文中安全获取 openid（不可伪造）
  */
@@ -219,8 +227,18 @@ async function recognizeText(event) {
   const { fileID } = event;
   if (!fileID) throw new Error('fileID is required');
 
-  // Note: openapi permission required in config.json: ocr.printedText
-  // Some environments do not accept fileID directly as imgUrl; convert to a temp URL first.
+  if (!TencentCloudSdk) {
+    throw new Error('TencentCloud SDK is not installed in cloudfunction');
+  }
+
+  const secretId = process.env.TENCENT_SECRET_ID || '';
+  const secretKey = process.env.TENCENT_SECRET_KEY || '';
+  const region = process.env.TENCENT_OCR_REGION || 'ap-guangzhou';
+  if (!secretId || !secretKey) {
+    throw new Error('missing TencentCloud credentials (TENCENT_SECRET_ID / TENCENT_SECRET_KEY)');
+  }
+
+  // Tencent OCR needs an accessible URL; convert cloud fileID to tempFileURL.
   let imgUrl = String(fileID);
   if (imgUrl.startsWith('cloud://')) {
     const tmp = await cloud.getTempFileURL({ fileList: [imgUrl] });
@@ -229,10 +247,27 @@ async function recognizeText(event) {
     imgUrl = url;
   }
 
-  const res = await cloud.openapi.ocr.printedText({ type: 'photo', imgUrl });
+  const OcrClient = TencentCloudSdk.ocr.v20181119.Client;
+  const client = new OcrClient(
+    { secretId, secretKey },
+    region,
+    {
+      profile: {
+        httpProfile: {
+          reqMethod: 'POST',
+          reqTimeout: 30
+        }
+      }
+    }
+  );
 
-  const items = Array.isArray(res?.items) ? res.items : [];
-  const lines = items.map((it) => String(it?.text || '').trim()).filter(Boolean);
+  // GeneralBasicOCR: fast and cost-effective; good for book quotes.
+  const resp = await client.GeneralBasicOCR({
+    ImageUrl: imgUrl
+  });
+
+  const det = Array.isArray(resp?.TextDetections) ? resp.TextDetections : [];
+  const lines = det.map((d) => String(d?.DetectedText || '').trim()).filter(Boolean);
   return { text: lines.join('\n') };
 }
 

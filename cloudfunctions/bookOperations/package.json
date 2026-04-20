@@ -4,6 +4,7 @@
   "description": "书籍和笔记的写操作云函数，统一处理所有写操作并校验 openid",
   "main": "index.js",
   "dependencies": {
+    "tencentcloud-sdk-nodejs": "^4.0.911",
     "wx-server-sdk": "~2.4.0"
   }
 }
