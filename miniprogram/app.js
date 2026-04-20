@@ -7,6 +7,29 @@ function isRouteAllowed(route) {
   );
 }
 
+function shouldIngest() {
+  try {
+    return wx.getStorageSync('_debug_ingest') === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function ingest(data) {
+  if (!shouldIngest()) return;
+  try {
+    wx.request({
+      url: 'http://127.0.0.1:7770/ingest/6d568e53-1533-490e-8391-dd2094f1a09b',
+      method: 'POST',
+      header: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '7934e3' },
+      data,
+      fail: () => {}
+    });
+  } catch (e) {
+    // ignore
+  }
+}
+
 App({
   onError(err) {
     // 捕获脚本错误，便于定位“timeout”来源
@@ -22,9 +45,15 @@ App({
     if (this._onboardingRedirecting) return;
     if (!route || isRouteAllowed(route)) return;
 
-    // #region agent log
-    wx.request({url:'http://127.0.0.1:7770/ingest/6d568e53-1533-490e-8391-dd2094f1a09b',method:'POST',header:{'Content-Type':'application/json','X-Debug-Session-Id':'7934e3'},data:{sessionId:'7934e3',runId,hypothesisId:'H2',location:'miniprogram/app.js:maybeForceOnboarding',message:'maybeForceOnboarding enter',data:{route,hasCloud:!!wx.cloud,hasCloudDb:!!(wx.cloud&&wx.cloud.database)},timestamp:Date.now()},fail:()=>{}});
-    // #endregion
+    ingest({
+      sessionId: '7934e3',
+      runId,
+      hypothesisId: 'H2',
+      location: 'miniprogram/app.js:maybeForceOnboarding',
+      message: 'maybeForceOnboarding enter',
+      data: { route, hasCloud: !!wx.cloud, hasCloudDb: !!(wx.cloud && wx.cloud.database) },
+      timestamp: Date.now()
+    });
 
     try {
       this._onboardingRedirecting = true;
@@ -39,9 +68,15 @@ App({
       const readingCount = Number(readingRes?.total || 0);
       const finishedCount = Number(finishedRes?.total || 0);
 
-      // #region agent log
-      wx.request({url:'http://127.0.0.1:7770/ingest/6d568e53-1533-490e-8391-dd2094f1a09b',method:'POST',header:{'Content-Type':'application/json','X-Debug-Session-Id':'7934e3'},data:{sessionId:'7934e3',runId,hypothesisId:'H2',location:'miniprogram/app.js:maybeForceOnboarding',message:'count result',data:{route,readingCount,finishedCount},timestamp:Date.now()},fail:()=>{}});
-      // #endregion
+      ingest({
+        sessionId: '7934e3',
+        runId,
+        hypothesisId: 'H2',
+        location: 'miniprogram/app.js:maybeForceOnboarding',
+        message: 'count result',
+        data: { route, readingCount, finishedCount },
+        timestamp: Date.now()
+      });
 
       if (readingCount === 0 && finishedCount === 0) {
         const onboardingSeen = wx.getStorageSync('_onboarding_v1_seen') === '1';
@@ -58,27 +93,46 @@ App({
         // Both intro pages have been shown once; do not force redirect.
       }
     } catch (e) {
-      // #region agent log
-      wx.request({url:'http://127.0.0.1:7770/ingest/6d568e53-1533-490e-8391-dd2094f1a09b',method:'POST',header:{'Content-Type':'application/json','X-Debug-Session-Id':'7934e3'},data:{sessionId:'7934e3',runId,hypothesisId:'H2',location:'miniprogram/app.js:maybeForceOnboarding',message:'count failed',data:{route,errMsg:String(e?.errMsg||e?.message||e)},timestamp:Date.now()},fail:()=>{}});
-      // #endregion
+      ingest({
+        sessionId: '7934e3',
+        runId,
+        hypothesisId: 'H2',
+        location: 'miniprogram/app.js:maybeForceOnboarding',
+        message: 'count failed',
+        data: { route, errMsg: String(e?.errMsg || e?.message || e) },
+        timestamp: Date.now()
+      });
     } finally {
       this._onboardingRedirecting = false;
     }
   },
 
   onLaunch: function () {
-    // #region agent log
-    wx.request({url:'http://127.0.0.1:7770/ingest/6d568e53-1533-490e-8391-dd2094f1a09b',method:'POST',header:{'Content-Type':'application/json','X-Debug-Session-Id':'7934e3'},data:{sessionId:'7934e3',runId:'pre-fix',hypothesisId:'H1',location:'miniprogram/app.js:onLaunch',message:'onLaunch start',data:{hasCloud:!!wx.cloud},timestamp:Date.now()},fail:()=>{}});
-    // #endregion
+    const launchStart = Date.now();
+    ingest({
+      sessionId: '7934e3',
+      runId: 'pre-fix',
+      hypothesisId: 'H1',
+      location: 'miniprogram/app.js:onLaunch',
+      message: 'onLaunch start',
+      data: { hasCloud: !!wx.cloud },
+      timestamp: Date.now()
+    });
 
     wx.cloud.init({
       env: 'reading-log-6gz8yfff5189799d',   // 请替换为真实环境ID
       traceUser: true
     });
 
-    // #region agent log
-    wx.request({url:'http://127.0.0.1:7770/ingest/6d568e53-1533-490e-8391-dd2094f1a09b',method:'POST',header:{'Content-Type':'application/json','X-Debug-Session-Id':'7934e3'},data:{sessionId:'7934e3',runId:'pre-fix',hypothesisId:'H1',location:'miniprogram/app.js:onLaunch',message:'wx.cloud.init called',data:{hasCloudDb:!!(wx.cloud&&wx.cloud.database)},timestamp:Date.now()},fail:()=>{}});
-    // #endregion
+    ingest({
+      sessionId: '7934e3',
+      runId: 'pre-fix',
+      hypothesisId: 'H1',
+      location: 'miniprogram/app.js:onLaunch',
+      message: 'wx.cloud.init called',
+      data: { hasCloudDb: !!(wx.cloud && wx.cloud.database) },
+      timestamp: Date.now()
+    });
 
     this.globalData = {};
 
@@ -92,6 +146,13 @@ App({
           if (res.result?.openid) {
             this.globalData.openid = res.result.openid;
             console.log('[App] openid loaded successfully:', res.result.openid.substring(0, 8) + '...');
+            if (Array.isArray(this._openidReadyCbs) && this._openidReadyCbs.length) {
+              const cbs = this._openidReadyCbs.slice();
+              this._openidReadyCbs.length = 0;
+              cbs.forEach((cb) => {
+                try { cb(res.result.openid); } catch (e) {}
+              });
+            }
           }
         },
         fail: (err) => {
@@ -101,7 +162,18 @@ App({
       });
     };
 
+    this._openidReadyCbs = [];
+    this.onOpenIdReady = (cb) => {
+      const id = this.globalData?.openid || '';
+      if (id) {
+        try { cb(id); } catch (e) {}
+        return;
+      }
+      this._openidReadyCbs.push(cb);
+    };
+
     fetchOpenId();
+    console.log(`[Perf] App.onLaunch took ${Date.now() - launchStart}ms`);
 
     // Route-driven onboarding check (no artificial delays).
     if (typeof wx.onAppRoute === 'function') {

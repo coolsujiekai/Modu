@@ -13,9 +13,20 @@ Page({
     homeViewMode: 'grid',
     recentNotes: []
   },
+  onLoad() {
+    // runtime-only fields; avoid putting complex values on Page() definition
+    this._recentTap = { key: '', at: 0, timer: null };
+    this._shelfTipTimer = null;
 
-  _recentTap: { key: '', at: 0, timer: null },
-  _shelfTipTimer: null,
+    const app = getApp();
+    if (typeof app?.onOpenIdReady === 'function') {
+      app.onOpenIdReady(() => {
+        // refresh once after openid is ready to ensure _openid filtering is applied
+        this.loadReadingBooks();
+        this.loadRecentNotes();
+      });
+    }
+  },
 
   async onShow() {
     this.applyPersonalizeSettings();
