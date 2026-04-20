@@ -248,18 +248,16 @@ async function recognizeText(event) {
   }
 
   const OcrClient = TencentCloudSdk.ocr.v20181119.Client;
-  const client = new OcrClient(
-    { secretId, secretKey },
+  const client = new OcrClient({
+    credential: { secretId, secretKey },
     region,
-    {
-      profile: {
-        httpProfile: {
-          reqMethod: 'POST',
-          reqTimeout: 30
-        }
+    profile: {
+      httpProfile: {
+        reqMethod: 'POST',
+        reqTimeout: 30
       }
     }
-  );
+  });
 
   // GeneralBasicOCR: fast and cost-effective; good for book quotes.
   const resp = await client.GeneralBasicOCR({
