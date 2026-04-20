@@ -28,10 +28,13 @@ App({
 
     try {
       this._onboardingRedirecting = true;
+      // Avoid expensive cross-user counts before openid is ready.
+      const openid = this.globalData?.openid || '';
+      if (!openid) return;
       const db = wx.cloud.database();
       const [readingRes, finishedRes] = await Promise.all([
-        db.collection('books').where({ status: 'reading' }).count(),
-        db.collection('books').where({ status: 'finished' }).count()
+        db.collection('books').where({ _openid: openid, status: 'reading' }).count(),
+        db.collection('books').where({ _openid: openid, status: 'finished' }).count()
       ]);
       const readingCount = Number(readingRes?.total || 0);
       const finishedCount = Number(finishedRes?.total || 0);
