@@ -69,8 +69,14 @@
             catchtouchstart="onVoiceHoldStart"
             catchtouchend="onVoiceHoldEnd"
             catchtouchcancel="onVoiceHoldEnd"
-          >{{isRecording ? '松开结束' : '按住说话'}}</button>
-          <button class="note-ocr-btn" bindtap="onOcrPick">拍照识字</button>
+          >
+            <text class="note-tool__icon">🎤</text>
+            <text class="note-tool__label">{{isRecording ? '松开' : '语音输入'}}</text>
+          </button>
+          <button class="note-ocr-btn" bindtap="onOcrPick">
+            <text class="note-tool__icon">📷</text>
+            <text class="note-tool__label">拍照识字</text>
+          </button>
         </view>
         <view class="section-actions section-actions--right" wx:if="{{canSaveDraft}}">
           <button class="weui-btn btn-finish" bindtap="chooseNoteTypeAndSave">保存</button>

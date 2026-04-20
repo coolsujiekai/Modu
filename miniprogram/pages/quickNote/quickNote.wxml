@@ -24,18 +24,24 @@
 
     <view class="qn-bar__bottom">
       <button
-        class="qn-voice {{isRecording ? 'qn-voice--recording' : ''}}"
+        class="qn-tool {{isRecording ? 'qn-tool--recording' : ''}}"
         disabled="{{saving}}"
         catchtouchstart="onVoiceHoldStart"
         catchtouchend="onVoiceHoldEnd"
         catchtouchcancel="onVoiceHoldEnd"
-      >{{isRecording ? '松开结束' : '按住说话'}}</button>
+      >
+        <text class="qn-tool__icon">🎤</text>
+        <text class="qn-tool__label">{{isRecording ? '松开' : '语音'}}</text>
+      </button>
 
       <button
-        class="qn-ocr"
+        class="qn-tool"
         disabled="{{saving}}"
         bindtap="onOcrPick"
-      >拍照识字</button>
+      >
+        <text class="qn-tool__icon">📷</text>
+        <text class="qn-tool__label">识字</text>
+      </button>
 
       <view
         class="qn-type qn-type--quote {{type === 'quote' ? 'qn-type--active' : ''}}"

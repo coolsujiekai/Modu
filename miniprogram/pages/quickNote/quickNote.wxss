@@ -109,6 +109,58 @@
   gap: 16rpx;
 }
 
+.qn-tool {
+  flex: none;
+  margin: 0 !important;
+  padding: 0 16rpx !important;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 999rpx !important;
+  background: var(--bg-surface-subtle) !important;
+  color: var(--text-title) !important;
+  font-size: 24rpx !important;
+  font-weight: 650 !important;
+  border: 1rpx solid var(--border-overlay-soft) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8rpx !important;
+  min-width: 120rpx;
+}
+
+.qn-tool::after {
+  border: none;
+}
+
+.qn-tool:active {
+  background: var(--tap-active-bg) !important;
+  transform: scale(0.985);
+}
+
+.qn-tool[disabled] {
+  opacity: 0.6;
+}
+
+.qn-tool__icon {
+  font-size: 26rpx;
+  line-height: 1;
+}
+
+.qn-tool__label {
+  font-size: 24rpx;
+  line-height: 1;
+  color: var(--text-warm-muted);
+}
+
+.qn-tool--recording {
+  background: var(--border-gold-light) !important;
+  border-color: var(--border-gold-soft) !important;
+}
+
+.qn-tool--recording .qn-tool__label {
+  color: var(--text-title);
+}
+
 .qn-type {
   flex: none;
   display: flex;
@@ -140,67 +192,6 @@
 .qn-type--active .qn-type__label {
   color: var(--text-title);
   font-weight: 600;
-}
-
-.qn-voice {
-  flex: none;
-  margin: 0 !important;
-  padding: 0 18rpx !important;
-  height: 80rpx;
-  line-height: 80rpx;
-  border-radius: var(--radius-md) !important;
-  background: var(--bg-surface-subtle) !important;
-  color: var(--text-title) !important;
-  font-size: 26rpx !important;
-  font-weight: 650 !important;
-  border: 1rpx solid var(--border-overlay-soft) !important;
-  min-width: 168rpx;
-}
-
-.qn-voice::after {
-  border: none;
-}
-
-.qn-voice:active {
-  background: var(--tap-active-bg) !important;
-  transform: scale(0.985);
-}
-
-.qn-voice[disabled] {
-  opacity: 0.6;
-}
-
-.qn-voice--recording {
-  background: var(--border-gold-light) !important;
-  border-color: var(--border-gold-soft) !important;
-}
-
-.qn-ocr {
-  flex: none;
-  margin: 0 !important;
-  padding: 0 18rpx !important;
-  height: 80rpx;
-  line-height: 80rpx;
-  border-radius: var(--radius-md) !important;
-  background: var(--bg-surface-soft) !important;
-  color: var(--text-title) !important;
-  font-size: 26rpx !important;
-  font-weight: 650 !important;
-  border: 1rpx solid var(--border-overlay-soft) !important;
-  min-width: 168rpx;
-}
-
-.qn-ocr::after {
-  border: none;
-}
-
-.qn-ocr:active {
-  background: var(--tap-active-bg) !important;
-  transform: scale(0.985);
-}
-
-.qn-ocr[disabled] {
-  opacity: 0.6;
 }
 
 .qn-save {

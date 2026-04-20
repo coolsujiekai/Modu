@@ -120,6 +120,10 @@ border: 1rpx solid var(--border-warm);
   font-size: 24rpx;
   font-weight: 650;
   border: 1rpx solid var(--border-overlay-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
 }
 
 .note-voice-btn::after {
@@ -136,6 +140,16 @@ border: 1rpx solid var(--border-warm);
   border-color: var(--border-gold-soft);
 }
 
+.note-tool__icon {
+  font-size: 26rpx;
+  line-height: 1;
+}
+
+.note-tool__label {
+  font-size: 24rpx;
+  line-height: 1;
+}
+
 .note-ocr-btn.weui-btn,
 .note-ocr-btn {
   flex: none;
@@ -149,6 +163,10 @@ border: 1rpx solid var(--border-warm);
   font-size: 24rpx;
   font-weight: 650;
   border: 1rpx solid var(--border-overlay-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
 }
 
 .note-ocr-btn::after {
