@@ -100,6 +100,48 @@ border: 1rpx solid var(--border-warm);
   text-align: right;
 }
 
+.note-voice-row {
+  margin-top: 14rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.note-voice-btn.weui-btn,
+.note-voice-btn {
+  flex: none;
+  margin: 0;
+  padding: 0 18rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-subtle);
+  color: var(--text-title);
+  font-size: 24rpx;
+  font-weight: 650;
+  border: 1rpx solid var(--border-overlay-soft);
+}
+
+.note-voice-btn::after {
+  border: none;
+}
+
+.note-voice-btn:active {
+  background: var(--tap-active-bg);
+  transform: scale(0.985);
+}
+
+.note-voice-btn--recording {
+  background: var(--border-gold-light);
+  border-color: var(--border-gold-soft);
+}
+
+.note-voice-hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 22rpx;
+}
+
 .mini-action-btn {
   border-radius: var(--radius-md);
   min-width: 128rpx;

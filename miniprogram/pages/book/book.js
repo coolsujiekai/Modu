@@ -4,6 +4,8 @@ import { getPersonalizeSettings } from '../../utils/personalize';
 import { formatNoteTime, addNote as addNoteToCloud, deleteNote as deleteNoteFromCloud } from '../../services/noteService.js';
 import { loadBook as fetchBook, finishBook, unfinishBook } from '../../services/bookService.js';
 
+let siManager = null;
+
 Page({
   data: {
     loading: true,
@@ -25,7 +27,9 @@ Page({
     exportHint: '还没有可导出的内容',
     noteTimeMode: 'both',
     saveInputMode: 'clear',
-    autoFocusNote: false
+    autoFocusNote: false,
+    isRecording: false,
+    _voiceBaseDraft: ''
   },
 
   _dblTap: { key: '', at: 0 },
@@ -37,11 +41,16 @@ Page({
       noteFocused: shouldFocus,
       autoFocusNote: shouldFocus
     });
+    this.initVoiceToText();
   },
 
   onShow() {
     this.applyPersonalizeSettings();
     this.loadBook();
+  },
+
+  onHide() {
+    this.stopVoiceToTextIfNeeded();
   },
 
   applyPersonalizeSettings() {
@@ -70,6 +79,122 @@ Page({
 
   onNoteBlur() {
     this.setData({ noteFocused: false });
+  },
+
+  initVoiceToText() {
+    try {
+      const plugin = requirePlugin('WechatSI');
+      const manager = plugin?.getRecordRecognitionManager?.();
+      if (!manager) return;
+      siManager = manager;
+
+      manager.onRecognize = (res) => {
+        const txt = String(res?.result || '');
+        const base = this.data._voiceBaseDraft || '';
+        const noteDraft = base + txt;
+        this.setData({
+          noteDraft,
+          canSaveDraft: Boolean(noteDraft.trim())
+        });
+      };
+
+      manager.onStop = (res) => {
+        const txt = String(res?.result || '');
+        const base = this.data._voiceBaseDraft || '';
+        const noteDraft = (base + txt).trimEnd();
+        this.setData({
+          isRecording: false,
+          _voiceBaseDraft: '',
+          noteDraft,
+          canSaveDraft: Boolean(noteDraft.trim())
+        });
+      };
+
+      manager.onError = (res) => {
+        this.setData({ isRecording: false, _voiceBaseDraft: '' });
+        wx.showToast({ title: '语音识别失败，请重试', icon: 'none' });
+        console.warn('[book] voice error:', res);
+      };
+    } catch (e) {
+      // plugin not installed or not available
+    }
+  },
+
+  stopVoiceToTextIfNeeded() {
+    try {
+      if (this.data.isRecording && siManager?.stop) {
+        siManager.stop();
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      if (this.data.isRecording) this.setData({ isRecording: false, _voiceBaseDraft: '' });
+    }
+  },
+
+  async ensureRecordPermission() {
+    try {
+      const setting = await wx.getSetting();
+      const granted = Boolean(setting?.authSetting?.['scope.record']);
+      if (granted) return true;
+
+      try {
+        await wx.authorize({ scope: 'scope.record' });
+        return true;
+      } catch (e) {
+        const res = await wx.showModal({
+          title: '需要麦克风权限',
+          content: '请在设置中开启麦克风权限后再使用语音输入。',
+          confirmText: '去设置',
+          cancelText: '取消'
+        });
+        if (res.confirm) {
+          await wx.openSetting();
+        }
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  },
+
+  async onVoiceHoldStart() {
+    if (!siManager?.start) {
+      wx.showToast({ title: '语音插件未就绪', icon: 'none' });
+      return;
+    }
+    if (this.data.isRecording) return;
+
+    const ok = await this.ensureRecordPermission();
+    if (!ok) return;
+
+    let base = String(this.data.noteDraft || '');
+    const baseTrim = base.trimEnd();
+    if (baseTrim && !/[，。！？,.!?]\s*$/.test(baseTrim)) {
+      base = baseTrim + '，';
+    }
+    this.setData({ isRecording: true, _voiceBaseDraft: base });
+
+    try {
+      wx.vibrateShort({ type: 'light' });
+    } catch (e) {
+      // ignore
+    }
+    try {
+      siManager.start({ duration: 60000, lang: 'zh_CN' });
+    } catch (e) {
+      this.setData({ isRecording: false, _voiceBaseDraft: '' });
+      wx.showToast({ title: '启动录音失败', icon: 'none' });
+    }
+  },
+
+  onVoiceHoldEnd() {
+    if (!this.data.isRecording) return;
+    try {
+      siManager?.stop?.();
+    } catch (e) {
+      this.setData({ isRecording: false, _voiceBaseDraft: '' });
+    }
   },
 
   async loadBook() {
@@ -459,6 +584,7 @@ Page({
   },
 
   onUnload() {
+    this.stopVoiceToTextIfNeeded();
     if (this.savedHintTimer) clearTimeout(this.savedHintTimer);
   },
 

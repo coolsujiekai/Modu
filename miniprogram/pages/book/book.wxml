@@ -63,6 +63,15 @@
       </view>
       <view class="section-card__bd">
         <textarea class="note-input {{noteFocused ? 'note-input--focused' : 'note-input--compact'}}" placeholder="写下刚刚打动你的一句话…" value="{{noteDraft}}" focus="{{autoFocusNote}}" bindinput="onNoteInput" bindfocus="onNoteFocus" bindblur="onNoteBlur" maxlength="2000" auto-height />
+        <view class="note-voice-row">
+          <button
+            class="note-voice-btn {{isRecording ? 'note-voice-btn--recording' : ''}}"
+            catchtouchstart="onVoiceHoldStart"
+            catchtouchend="onVoiceHoldEnd"
+            catchtouchcancel="onVoiceHoldEnd"
+          >{{isRecording ? '松开结束' : '按住说话'}}</button>
+          <view class="note-voice-hint muted">语音转文字，自动写入输入框</view>
+        </view>
         <view class="section-actions section-actions--right" wx:if="{{canSaveDraft}}">
           <button class="weui-btn btn-finish" bindtap="chooseNoteTypeAndSave">保存</button>
         </view>
