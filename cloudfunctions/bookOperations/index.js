@@ -231,9 +231,9 @@ async function recognizeText(event) {
     throw new Error('TencentCloud SDK is not installed in cloudfunction');
   }
 
-  const secretId = process.env.TENCENT_SECRET_ID || '';
-  const secretKey = process.env.TENCENT_SECRET_KEY || '';
-  const region = process.env.TENCENT_OCR_REGION || 'ap-guangzhou';
+  const secretId = String(process.env.TENCENT_SECRET_ID || '').trim();
+  const secretKey = String(process.env.TENCENT_SECRET_KEY || '').trim();
+  const region = String(process.env.TENCENT_OCR_REGION || 'ap-guangzhou').trim() || 'ap-guangzhou';
   if (!secretId || !secretKey) {
     throw new Error('missing TencentCloud credentials (TENCENT_SECRET_ID / TENCENT_SECRET_KEY)');
   }
@@ -260,9 +260,15 @@ async function recognizeText(event) {
   });
 
   // GeneralBasicOCR: fast and cost-effective; good for book quotes.
-  const resp = await client.GeneralBasicOCR({
-    ImageUrl: imgUrl
-  });
+  let resp;
+  try {
+    resp = await client.GeneralBasicOCR({ ImageUrl: imgUrl });
+  } catch (err) {
+    const code = err?.code || err?.Code || '';
+    const reqId = err?.requestId || err?.RequestId || '';
+    const msg = err?.message || err?.Message || String(err);
+    throw new Error(`TencentCloud OCR failed${code ? ` (${code})` : ''}${reqId ? ` [${reqId}]` : ''}: ${msg}`);
+  }
 
   const det = Array.isArray(resp?.TextDetections) ? resp.TextDetections : [];
   const lines = det.map((d) => String(d?.DetectedText || '').trim()).filter(Boolean);
