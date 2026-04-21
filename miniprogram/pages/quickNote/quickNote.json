@@ -1,6 +1,8 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "写一条",
+  "usingComponents": {
+    "half-screen-dialog": "weui-miniprogram/half-screen-dialog/half-screen-dialog"
+  },
+  "navigationBarTitleText": "随手记",
   "navigationBarBackgroundColor": "#ffffff",
   "navigationBarTextStyle": "black",
   "disableScroll": true

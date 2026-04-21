@@ -3,6 +3,7 @@ import { addNote as addNoteToCloud } from '../../services/noteService.js';
 import { recognizePrintedText } from '../../services/noteService.js';
 
 const DRAFT_KEY = '_quickNote_draft';
+const LAST_TYPE_KEY = '_quickNote_lastType';
 
 let siManager = null;
 
@@ -10,6 +11,7 @@ Page({
   data: {
     draft: '',
     draftLength: 0,
+    draftHasText: false,
     autoFocus: false,
     saving: false,
     type: 'quote',
@@ -18,17 +20,26 @@ Page({
     currentBookName: '',
     hasMultipleBooks: false,
     barBottom: 0,
-    canSave: false,
+    canNext: false,
     isRecording: false,
-    _voiceBaseDraft: ''
+    _voiceBaseDraft: '',
+
+    sheetVisible: false,
+    sheetBookId: '',
+    sheetType: 'quote'
   },
 
   onLoad() {
     const stored = this.readDraft();
+    const lastType = this.getLastUsedType();
+    const draftHasText = Boolean(String(stored || '').trim());
     this.setData({
       draft: stored,
       draftLength: stored.length,
-      canSave: false
+      draftHasText,
+      canNext: draftHasText,
+      type: lastType || 'quote',
+      sheetType: lastType || 'quote'
     });
     this.loadBooks();
     this.initVoiceToText();
@@ -59,10 +70,12 @@ Page({
         const txt = String(res?.result || '');
         const base = this.data._voiceBaseDraft || '';
         const draft = base + txt;
+        const draftHasText = Boolean(draft.trim());
         this.setData({
           draft,
           draftLength: draft.length,
-          canSave: Boolean(draft.trim()) && Boolean(this.data.currentBookId)
+          draftHasText,
+          canNext: draftHasText
         });
       };
 
@@ -70,12 +83,14 @@ Page({
         const txt = String(res?.result || '');
         const base = this.data._voiceBaseDraft || '';
         const draft = (base + txt).trimEnd();
+        const draftHasText = Boolean(draft.trim());
         this.setData({
           isRecording: false,
           _voiceBaseDraft: '',
           draft,
           draftLength: draft.length,
-          canSave: Boolean(draft.trim()) && Boolean(this.data.currentBookId)
+          draftHasText,
+          canNext: draftHasText
         });
       };
 
@@ -197,10 +212,12 @@ Page({
 
       const base = String(this.data.draft || '').trimEnd();
       const merged = base ? `${base}\n${text}` : text;
+      const draftHasText = Boolean(merged.trim());
       this.setData({
         draft: merged,
         draftLength: merged.length,
-        canSave: Boolean(merged.trim()) && Boolean(this.data.currentBookId)
+        draftHasText,
+        canNext: draftHasText
       });
 
       wx.hideLoading();
@@ -279,7 +296,7 @@ Page({
           currentBookId: '',
           currentBookName: '',
           hasMultipleBooks: false,
-          canSave: false
+          sheetBookId: ''
         });
         return;
       }
@@ -293,7 +310,7 @@ Page({
         currentBookId: picked._id,
         currentBookName: picked.bookName || '未命名',
         hasMultipleBooks: raw.length > 1,
-        canSave: Boolean((this.data.draft || '').trim())
+        sheetBookId: picked._id
       });
     } catch (e) {
       this.setData({
@@ -301,8 +318,28 @@ Page({
         currentBookId: '',
         currentBookName: '',
         hasMultipleBooks: false,
-        canSave: false
+        sheetBookId: ''
       });
+    }
+  },
+
+  getLastUsedType() {
+    try {
+      const t = String(wx.getStorageSync(LAST_TYPE_KEY) || '');
+      if (t === 'quote' || t === 'thought') return t;
+      return '';
+    } catch (e) {
+      return '';
+    }
+  },
+
+  saveLastUsedType(type) {
+    try {
+      if (type === 'quote' || type === 'thought') {
+        wx.setStorageSync(LAST_TYPE_KEY, type);
+      }
+    } catch (e) {
+      // ignore
     }
   },
 
@@ -325,10 +362,12 @@ Page({
   onDraftInput(e) {
     const draft = e.detail.value || '';
     const draftLength = draft.length;
+    const draftHasText = Boolean(draft.trim());
     this.setData({
       draft,
       draftLength,
-      canSave: Boolean(draft.trim()) && Boolean(this.data.currentBookId)
+      draftHasText,
+      canNext: draftHasText
     });
   },
 
@@ -337,77 +376,144 @@ Page({
     this.setData({ barBottom: Math.max(0, height) });
   },
 
-  onTypeChange(e) {
+  async onVoiceToggleTap() {
+    if (this.data.saving) return;
+    if (this.data.isRecording) {
+      this.onVoiceStop();
+      return;
+    }
+    await this.onVoiceStart();
+  },
+
+  async onVoiceStart() {
+    if (!siManager?.start) {
+      wx.showToast({ title: '语音插件未就绪', icon: 'none' });
+      return;
+    }
+    if (this.data.isRecording) return;
+
+    const ok = await this.ensureRecordPermission();
+    if (!ok) return;
+
+    let base = String(this.data.draft || '');
+    const baseTrim = base.trimEnd();
+    if (baseTrim && !/[，。！？,.!?]\s*$/.test(baseTrim)) {
+      base = baseTrim + '，';
+    }
+
+    this.setData({ isRecording: true, _voiceBaseDraft: base });
+    try {
+      wx.vibrateShort({ type: 'light' });
+    } catch (e) {
+      // ignore
+    }
+    try {
+      siManager.start({ duration: 60000, lang: 'zh_CN' });
+      wx.showToast({ title: '正在听写…再点一次结束', icon: 'none', duration: 1200 });
+    } catch (e) {
+      this.setData({ isRecording: false, _voiceBaseDraft: '' });
+      wx.showToast({ title: '启动录音失败', icon: 'none' });
+    }
+  },
+
+  onVoiceStop() {
+    if (!this.data.isRecording) return;
+    try {
+      siManager?.stop?.();
+    } catch (e) {
+      this.setData({ isRecording: false, _voiceBaseDraft: '' });
+    }
+  },
+
+  async onNext() {
+    if (this.data.saving) return;
+    if (!this.data.draftHasText) {
+      wx.showToast({ title: '写点什么再继续', icon: 'none' });
+      return;
+    }
+
+    if (this.data.isRecording) {
+      this.onVoiceStop();
+      await new Promise((r) => setTimeout(r, 80));
+    }
+
+    const books = this.data.readingBooks || [];
+    const only = books.length === 1 ? books[0] : null;
+    const sheetBookId = only && only._id ? only._id : String(this.data.currentBookId || '');
+    const sheetType = this.data.sheetType || this.data.type || 'quote';
+    this.setData({
+      sheetVisible: true,
+      sheetBookId,
+      sheetType
+    });
+  },
+
+  onSheetClose() {
+    if (this.data.saving) return;
+    this.setData({ sheetVisible: false });
+  },
+
+  onSheetPickBook(e) {
+    if (this.data.saving) return;
+    const id = e.currentTarget?.dataset?.id;
+    if (!id) return;
+    this.setData({ sheetBookId: id });
+  },
+
+  onSheetPickType(e) {
+    if (this.data.saving) return;
     const type = e.currentTarget?.dataset?.type;
     if (type !== 'quote' && type !== 'thought') return;
-    this.setData({ type });
+    this.setData({ sheetType: type });
   },
 
-  async onChangeBook() {
-    const books = this.data.readingBooks || [];
-
-    if (books.length === 0) {
-      const res = await wx.showModal({
-        title: '先放一本书进书架',
-        content: '还没有在读的书，新增一本就能开始记录',
-        confirmText: '新增',
-        cancelText: '取消'
-      });
-      if (res.confirm) {
-        this.persistDraft();
-        wx.redirectTo({ url: '/pages/createBook/createBook' });
-      }
-      return;
-    }
-
-    if (books.length === 1) {
-      return;
-    }
-
-    try {
-      const res = await wx.showActionSheet({
-        itemList: books.slice(0, 10).map((b) => `《${b.bookName || '未命名'}》`)
-      });
-      const picked = books[res.tapIndex];
-      if (picked) {
-        this.setData({
-          currentBookId: picked._id,
-          currentBookName: picked.bookName || '未命名',
-          canSave: Boolean((this.data.draft || '').trim())
-        });
-        this.saveLastUsedBookId(picked._id);
-      }
-    } catch (err) {
-      // canceled
+  async onCreateBookFromSheet() {
+    if (this.data.saving) return;
+    const res = await wx.showModal({
+      title: '先放一本书进书架',
+      content: '还没有在读的书，新增一本就能开始记录',
+      confirmText: '新增',
+      cancelText: '取消'
+    });
+    if (res.confirm) {
+      this.persistDraft();
+      wx.redirectTo({ url: '/pages/createBook/createBook' });
     }
   },
 
-  async onSave() {
+  async onSheetConfirmSave() {
     if (this.data.saving) return;
     const text = (this.data.draft || '').trim();
     if (!text) {
       wx.showToast({ title: '写点什么再保存', icon: 'none' });
       return;
     }
-    const bookId = this.data.currentBookId;
+    const bookId = this.data.sheetBookId;
     if (!bookId) {
       wx.showToast({ title: '先选一本书', icon: 'none' });
       return;
     }
+    const type = this.data.sheetType === 'thought' ? 'thought' : 'quote';
 
     this.setData({ saving: true });
     try {
-      await addNoteToCloud(bookId, { text, type: this.data.type });
+      await addNoteToCloud(bookId, { text, type });
       this.saveLastUsedBookId(bookId);
+      this.saveLastUsedType(type);
       this.clearDraft();
       this.setData({
         draft: '',
         draftLength: 0,
-        canSave: false,
-        saving: false
+        draftHasText: false,
+        canNext: false,
+        saving: false,
+        sheetVisible: false,
+        type,
+        sheetType: type,
+        currentBookId: bookId
       });
       wx.showToast({
-        title: this.data.type === 'quote' ? '已存为金句' : '已存为想法',
+        title: type === 'quote' ? '已存为金句' : '已存为想法',
         icon: 'success',
         duration: 900
       });

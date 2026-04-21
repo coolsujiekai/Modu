@@ -6,6 +6,7 @@
     focus="{{autoFocus}}"
     maxlength="2000"
     cursor-spacing="120"
+    adjust-position="{{false}}"
     bindinput="onDraftInput"
     bindkeyboardheightchange="onKeyboardHeightChange"
     show-confirm-bar="{{false}}"
@@ -13,12 +14,6 @@
 
   <view class="qn-bar" style="bottom: {{barBottom}}px;">
     <view class="qn-bar__top">
-      <view class="qn-target" bindtap="onChangeBook" hover-class="qn-target--active" hover-stay-time="80">
-        <text class="qn-target__prefix">记到</text>
-        <text wx:if="{{currentBookName}}" class="qn-target__name">《{{currentBookName}}》</text>
-        <text wx:else class="qn-target__empty">还没有在读的书</text>
-        <text wx:if="{{hasMultipleBooks}}" class="qn-target__arrow">切换</text>
-      </view>
       <text class="qn-count">{{draftLength}}/2000</text>
     </view>
 
@@ -26,12 +21,10 @@
       <button
         class="qn-tool {{isRecording ? 'qn-tool--recording' : ''}}"
         disabled="{{saving}}"
-        catchtouchstart="onVoiceHoldStart"
-        catchtouchend="onVoiceHoldEnd"
-        catchtouchcancel="onVoiceHoldEnd"
+        bindtap="onVoiceToggleTap"
       >
-        <text class="qn-tool__icon">🎤</text>
-        <text class="qn-tool__label">{{isRecording ? '松开' : '语音'}}</text>
+        <view class="qn-tool__icon qn-icon qn-icon--mic"></view>
+        <text class="qn-tool__label">{{isRecording ? '停止' : '听写'}}</text>
       </button>
 
       <button
@@ -39,32 +32,78 @@
         disabled="{{saving}}"
         bindtap="onOcrPick"
       >
-        <text class="qn-tool__icon">📷</text>
+        <view class="qn-tool__icon qn-icon qn-icon--camera"></view>
         <text class="qn-tool__label">识字</text>
       </button>
 
-      <view
-        class="qn-type qn-type--quote {{type === 'quote' ? 'qn-type--active' : ''}}"
-        bindtap="onTypeChange"
-        data-type="quote"
-      >
-       
-        <text class="qn-type__label">金句</text>
-      </view>
-      <view
-        class="qn-type qn-type--thought {{type === 'thought' ? 'qn-type--active' : ''}}"
-        bindtap="onTypeChange"
-        data-type="thought"
-      >
-       
-        <text class="qn-type__label">想法</text>
-      </view>
-
       <button
-        class="qn-save {{canSave ? '' : 'qn-save--disabled'}}"
-        disabled="{{!canSave || saving}}"
-        bindtap="onSave"
-      >{{saving ? '保存中…' : '保存'}}</button>
+        class="qn-save {{canNext ? '' : 'qn-save--disabled'}}"
+        disabled="{{!canNext || saving}}"
+        bindtap="onNext"
+      >{{saving ? '保存中…' : '下一步'}}</button>
     </view>
   </view>
+
+  <view wx:if="{{isRecording}}" class="qn-rec-hint" style="bottom: {{barBottom + 100}}px;">
+    正在听写…再点一次结束
+  </view>
+
+  <half-screen-dialog
+    show="{{sheetVisible}}"
+    title="保存设置"
+    closabled="{{true}}"
+    maskClosable="{{true}}"
+    bind:close="onSheetClose"
+    extClass="qn-sheet"
+  >
+    <view slot="desc" class="qn-sheet__body">
+      <view class="qn-sheet__section">
+        <view class="qn-sheet__sectionTitle">保存到</view>
+
+        <view wx:if="{{readingBooks.length === 0}}" class="qn-sheet__empty">
+          <view class="qn-sheet__emptyTitle">还没有在读的书</view>
+          <view class="qn-sheet__emptySub">新增一本，就能开始记录</view>
+          <button class="weui-btn weui-btn_primary qn-sheet__emptyBtn" disabled="{{saving}}" bindtap="onCreateBookFromSheet">新增一本</button>
+        </view>
+
+        <view wx:elif="{{readingBooks.length === 1}}" class="qn-sheet__single">
+          <text>《{{currentBookName || '未命名'}}》</text>
+        </view>
+
+        <view wx:else class="qn-sheet__list">
+          <view
+            wx:for="{{readingBooks}}"
+            wx:key="_id"
+            class="qn-sheet__bookItem {{sheetBookId === item._id ? 'qn-sheet__bookItem--active' : ''}}"
+            bindtap="onSheetPickBook"
+            data-id="{{item._id}}"
+            data-name="{{item.bookName}}"
+            hover-class="tap-active"
+            hover-stay-time="70"
+          >
+            <view class="qn-sheet__radio">
+              <view class="qn-sheet__radioDot {{sheetBookId === item._id ? 'qn-sheet__radioDot--on' : ''}}"></view>
+            </view>
+            <view class="qn-sheet__bookName">《{{item.bookName || '未命名'}}》</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="qn-sheet__section">
+        <view class="qn-sheet__sectionTitle">类型</view>
+        <view class="qn-sheet__seg">
+          <view class="qn-sheet__segItem {{sheetType === 'quote' ? 'qn-sheet__segItem--active' : ''}}" bindtap="onSheetPickType" data-type="quote">金句</view>
+          <view class="qn-sheet__segItem {{sheetType === 'thought' ? 'qn-sheet__segItem--active' : ''}}" bindtap="onSheetPickType" data-type="thought">想法</view>
+        </view>
+      </view>
+    </view>
+
+    <view slot="footer" class="qn-sheet__footer">
+      <button
+        class="weui-btn weui-btn_primary qn-sheet__confirmBtn {{(sheetBookId && draftHasText) ? '' : 'qn-sheet__confirmBtn--disabled'}}"
+        disabled="{{saving || !sheetBookId || !draftHasText}}"
+        bindtap="onSheetConfirmSave"
+      >确认保存</button>
+    </view>
+  </half-screen-dialog>
 </view>
