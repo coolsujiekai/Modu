@@ -432,6 +432,12 @@ Page({
     wx.navigateTo({ url: `/pages/editBookInfo/editBookInfo?id=${bookId}` });
   },
 
+  openQuickNoteForBook() {
+    const bookId = this.data.bookId || this.data.book?._id;
+    if (!bookId) return;
+    wx.navigateTo({ url: `/pages/quickNote/quickNote?bookId=${bookId}` });
+  },
+
   async chooseNoteTypeAndSave() {
     const text = (this.data.noteDraft || '').trim();
     if (!text) return;

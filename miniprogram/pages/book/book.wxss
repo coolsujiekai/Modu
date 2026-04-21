@@ -545,6 +545,14 @@ border: 1rpx solid var(--border-warm);
   transform: scale(0.982);
 }
 
+.btn-quicknote.weui-btn {
+  margin: 0;
+  border-radius: var(--radius-md);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.16);
+  font-weight: 700;
+  letter-spacing: var(--btn-letter-spacing);
+}
+
 .share-card-section {
   padding: 0 32rpx 16rpx;
 }

@@ -3,7 +3,8 @@
     class="qn-input"
     placeholder="快速记下刚打动你的那句话，或闪过的念头…"
     value="{{draft}}"
-    focus="{{autoFocus}}"
+    focus="{{autoFocus && !sheetVisible}}"
+    disabled="{{sheetVisible}}"
     maxlength="2000"
     cursor-spacing="120"
     adjust-position="{{false}}"
@@ -53,14 +54,19 @@
     title="保存设置"
     closabled="{{true}}"
     maskClosable="{{true}}"
+    rootPortal="{{true}}"
     bind:close="onSheetClose"
     extClass="qn-sheet"
   >
-    <view slot="desc" class="qn-sheet__body">
+    <view slot="desc" class="qn-sheet__body" catchtap="noop">
       <view class="qn-sheet__section">
         <view class="qn-sheet__sectionTitle">保存到</view>
 
-        <view wx:if="{{readingBooks.length === 0}}" class="qn-sheet__empty">
+        <view wx:if="{{fixedBookId}}" class="qn-sheet__single">
+          <text>《{{currentBookName || '未命名'}}》</text>
+        </view>
+
+        <view wx:elif="{{readingBooks.length === 0}}" class="qn-sheet__empty">
           <view class="qn-sheet__emptyTitle">还没有在读的书</view>
           <view class="qn-sheet__emptySub">新增一本，就能开始记录</view>
           <button class="weui-btn weui-btn_primary qn-sheet__emptyBtn" disabled="{{saving}}" bindtap="onCreateBookFromSheet">新增一本</button>
@@ -75,7 +81,7 @@
             wx:for="{{readingBooks}}"
             wx:key="_id"
             class="qn-sheet__bookItem {{sheetBookId === item._id ? 'qn-sheet__bookItem--active' : ''}}"
-            bindtap="onSheetPickBook"
+            catchtap="onSheetPickBook"
             data-id="{{item._id}}"
             data-name="{{item.bookName}}"
             hover-class="tap-active"
@@ -92,13 +98,13 @@
       <view class="qn-sheet__section">
         <view class="qn-sheet__sectionTitle">类型</view>
         <view class="qn-sheet__seg">
-          <view class="qn-sheet__segItem {{sheetType === 'quote' ? 'qn-sheet__segItem--active' : ''}}" bindtap="onSheetPickType" data-type="quote">金句</view>
-          <view class="qn-sheet__segItem {{sheetType === 'thought' ? 'qn-sheet__segItem--active' : ''}}" bindtap="onSheetPickType" data-type="thought">想法</view>
+          <view class="qn-sheet__segItem {{sheetType === 'quote' ? 'qn-sheet__segItem--active' : ''}}" catchtap="onSheetPickType" data-type="quote">金句</view>
+          <view class="qn-sheet__segItem {{sheetType === 'thought' ? 'qn-sheet__segItem--active' : ''}}" catchtap="onSheetPickType" data-type="thought">想法</view>
         </view>
       </view>
     </view>
 
-    <view slot="footer" class="qn-sheet__footer">
+    <view slot="footer" class="qn-sheet__footer" catchtap="noop">
       <button
         class="weui-btn weui-btn_primary qn-sheet__confirmBtn {{(sheetBookId && draftHasText) ? '' : 'qn-sheet__confirmBtn--disabled'}}"
         disabled="{{saving || !sheetBookId || !draftHasText}}"

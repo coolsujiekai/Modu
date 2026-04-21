@@ -26,27 +26,60 @@ Page({
 
     sheetVisible: false,
     sheetBookId: '',
-    sheetType: 'quote'
+    sheetType: 'quote',
+    fixedBookId: ''
   },
 
-  onLoad() {
+  noop() {},
+
+  hideKeyboard() {
+    try {
+      wx.hideKeyboard();
+    } catch (e) {
+      // ignore
+    }
+  },
+
+  onLoad(options) {
     const stored = this.readDraft();
     const lastType = this.getLastUsedType();
     const draftHasText = Boolean(String(stored || '').trim());
+    const fixedBookId = String(options?.bookId || '').trim();
     this.setData({
       draft: stored,
       draftLength: stored.length,
       draftHasText,
       canNext: draftHasText,
       type: lastType || 'quote',
-      sheetType: lastType || 'quote'
+      sheetType: lastType || 'quote',
+      fixedBookId
     });
+    if (fixedBookId) {
+      this.loadFixedBook(fixedBookId);
+    }
     this.loadBooks();
     this.initVoiceToText();
 
     setTimeout(() => {
       this.setData({ autoFocus: true });
     }, 80);
+  },
+
+  async loadFixedBook(bookId) {
+    try {
+      const res = await withRetry(() =>
+        db.collection('books').doc(bookId).field({ notes: false }).get()
+      );
+      const b = res?.data;
+      if (!b || !b._id) return;
+      this.setData({
+        currentBookId: b._id,
+        currentBookName: b.bookName || '未命名',
+        sheetBookId: b._id
+      });
+    } catch (e) {
+      // ignore
+    }
   },
 
   onUnload() {
@@ -261,6 +294,11 @@ Page({
 
   async loadBooks() {
     try {
+      if (this.data.fixedBookId) {
+        // 详情页入口：不强依赖“在读书架”，仅用于可选切换
+        this.setData({ hasMultipleBooks: false });
+        return;
+      }
       let res;
       try {
         res = await traced('books.reading.list(quickNote)', () =>
@@ -437,15 +475,20 @@ Page({
       await new Promise((r) => setTimeout(r, 80));
     }
 
-    const books = this.data.readingBooks || [];
-    const only = books.length === 1 ? books[0] : null;
-    const sheetBookId = only && only._id ? only._id : String(this.data.currentBookId || '');
+    const sheetBookId = this.data.fixedBookId || String(this.data.currentBookId || '');
     const sheetType = this.data.sheetType || this.data.type || 'quote';
-    this.setData({
-      sheetVisible: true,
-      sheetBookId,
-      sheetType
-    });
+    this.setData(
+      {
+        sheetVisible: true,
+        sheetBookId,
+        sheetType,
+        autoFocus: false
+      },
+      () => {
+        // 关键：面板真正显示后再收起键盘，避免焦点/布局竞争
+        this.hideKeyboard();
+      }
+    );
   },
 
   onSheetClose() {
@@ -455,6 +498,7 @@ Page({
 
   onSheetPickBook(e) {
     if (this.data.saving) return;
+    this.hideKeyboard();
     const id = e.currentTarget?.dataset?.id;
     if (!id) return;
     this.setData({ sheetBookId: id });
@@ -462,6 +506,7 @@ Page({
 
   onSheetPickType(e) {
     if (this.data.saving) return;
+    this.hideKeyboard();
     const type = e.currentTarget?.dataset?.type;
     if (type !== 'quote' && type !== 'thought') return;
     this.setData({ sheetType: type });
