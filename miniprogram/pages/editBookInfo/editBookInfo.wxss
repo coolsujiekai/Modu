@@ -7,29 +7,32 @@
 
 .hero {
   background: var(--bg-surface);
-  border-radius: var(--radius-md);
-  padding: 16rpx 16rpx;
+  border-radius: var(--radius-xl);
+  padding: 24rpx 22rpx;
   margin-bottom: 16rpx;
-  border: 1rpx solid var(--border-warm);
+  border: 1rpx solid var(--border-soft);
+  box-shadow: var(--shadow-card);
 }
 
 .hero-title {
-  font-size: 32rpx;
+  font-size: 42rpx;
   font-weight: 700;
   color: var(--text-title);
+  letter-spacing: -0.02em;
 }
 
 .hero-sub {
-  margin-top: 16rpx;
+  margin-top: 14rpx;
   font-size: 24rpx;
-  color: var(--text-warm-muted);
+  color: var(--text-light);
 }
 
 .form-panel {
   margin-top: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1rpx solid var(--border-warm);
+  border: 1rpx solid var(--border-soft);
+  box-shadow: var(--shadow-soft);
 }
 
 .cells-no-top-margin {
@@ -38,12 +41,12 @@
 
 .label {
   width: 90rpx;
-  color: var(--text-warm-muted);
+  color: var(--text-light);
   font-size: 24rpx;
 }
 
 .muted {
-  color: var(--text-warm-muted);
+  color: var(--text-light);
 }
 
 .suggest-card {
@@ -73,8 +76,8 @@
 .author-pill {
   display: inline-block;
   margin: 0 16rpx;
-  padding: 16rpx 16rpx;
-  border-radius: var(--radius-md);
+  padding: 12rpx 16rpx;
+  border-radius: 999rpx;
   background: var(--border-accent);
   color: var(--text-accent);
   font-weight: 600;

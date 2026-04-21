@@ -2,7 +2,7 @@
   <!-- 主 Hero：继续阅读 / 记录入口 -->
   <view class="home-hero hero">
     <view class="home-hero__hd">
-      <view class="home-hero__title">{{primaryBook ? '继续这次阅读' : '开始今天的阅读'}}</view>
+      <view class="home-hero__title">{{primaryBook ? '上次你读了：' : '开始今天的阅读'}}</view>
       <view class="home-hero__sub ">
         <block wx:if="{{primaryBook}}">
           《{{primaryBook.bookName}}》
@@ -14,7 +14,7 @@
     </view>
     <view class="home-hero__actions">
       <block wx:if="{{primaryBook}}">
-        <button class="weui-btn weui-btn_primary home-hero__btn" bindtap="onQuickRecordTap">记一句</button>
+        <button class="weui-btn weui-btn_primary home-hero__btn" bindtap="onQuickRecordTap">快速记录</button>
         <button class="weui-btn weui-btn_default home-hero__btn" bindtap="openPrimaryBook">打开书籍</button>
       </block>
       <block wx:else>
@@ -73,7 +73,7 @@
           <view class="shelf-add">
             <view class="shelf-add__plus">+</view>
           </view>
-          <view class="shelf-author">再读一本</view>
+          
         </view>
       </view>
     </scroll-view>

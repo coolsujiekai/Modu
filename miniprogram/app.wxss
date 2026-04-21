@@ -23,10 +23,10 @@ page {
 
 .weui-panel,
 .weui-cells {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-none);
-  border: 1rpx solid var(--border-warm);
+  box-shadow: var(--shadow-soft);
+  border: 1rpx solid var(--border-soft);
   background: var(--bg-surface);
 }
 

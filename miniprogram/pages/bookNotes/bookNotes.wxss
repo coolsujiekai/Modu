@@ -6,14 +6,15 @@
 }
 
 .muted {
-  color: var(--text-warm-muted);
+  color: var(--text-light);
   font-size: 24rpx;
 }
 
 .header-panel {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  border: 1rpx solid var(--border-warm);
+  border: 1rpx solid var(--border-soft);
+  box-shadow: var(--shadow-card);
 }
 
 .header-hd {
@@ -21,9 +22,10 @@
 }
 
 .header-title {
-  font-size: 32rpx;
+  font-size: 40rpx;
   font-weight: 700;
   color: var(--text-title);
+  letter-spacing: -0.02em;
 }
 
 .header-sub {
@@ -35,8 +37,8 @@
 }
 
 .note-text {
-  font-size: 26rpx;
-  line-height: 1.65;
+  font-size: 28rpx;
+  line-height: 1.7;
   color: var(--text-title);
   word-break: break-word;
 }

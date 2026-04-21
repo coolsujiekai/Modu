@@ -5,7 +5,9 @@ page,
 }
 
 .page {
-  padding: var(--space-4) !important;
+  min-height: 100vh;
+  padding: var(--page-padding-y) var(--page-padding-x) calc(var(--page-padding-y) + env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box;
 }
 
 .page view,
@@ -15,6 +17,7 @@ page,
 .page button {
   font-size: var(--font-body);
   color: var(--text-primary);
+  box-sizing: border-box;
 }
 
 .card,
@@ -33,24 +36,22 @@ page,
 .weui-panel,
 .weui-cells {
   background: var(--bg-surface) !important;
-  border: 1rpx solid var(--border-warm) !important;
-  border-radius: var(--radius-md) !important;
-  box-shadow: var(--shadow-none) !important;
-  padding: var(--space-2) !important;
+  border: none !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-soft) !important;
+  padding: var(--card-padding) !important;
 }
 
-/* Primary surfaces (need subtle elevation) */
 .hero,
 .header-panel,
 .book-panel {
+  background: var(--hero-bg-gradient) !important;
   box-shadow: var(--shadow-card) !important;
-  border-color: var(--border-muted) !important;
 }
 
-/* Weak surfaces (tools/secondary blocks) */
 .export-card {
   background: var(--bg-surface-soft) !important;
-  border-color: var(--border-muted) !important;
+  box-shadow: var(--shadow-soft) !important;
 }
 
 .quote-item,
@@ -127,8 +128,63 @@ page,
   margin-bottom: 0 !important;
 }
 
+.weui-panel,
+.weui-cells {
+  overflow: hidden;
+}
+
+.weui-panel {
+  padding: 0 !important;
+}
+
+.weui-panel__hd,
+.weui-panel__bd,
+.weui-panel__ft {
+  padding-left: var(--card-padding) !important;
+  padding-right: var(--card-padding) !important;
+}
+
+.weui-panel__hd {
+  padding-top: calc(var(--card-padding) - 2rpx) !important;
+  padding-bottom: 14rpx !important;
+  color: var(--text-light) !important;
+  font-size: var(--font-meta) !important;
+}
+
+.weui-panel__bd,
+.weui-panel__ft {
+  padding-top: 0 !important;
+  padding-bottom: var(--card-padding) !important;
+}
+
 .weui-cells {
   margin-top: var(--space-2) !important;
+  padding: 0 !important;
+}
+
+.weui-cells:before,
+.weui-cells:after {
+  display: none !important;
+}
+
+.weui-cell {
+  padding: 30rpx var(--card-padding) !important;
+  font-size: var(--font-body) !important;
+}
+
+.weui-cell:before {
+  display: none !important;
+}
+
+.weui-cell__bd,
+.weui-cell__ft,
+.weui-media-box__desc,
+.weui-media-box__title {
+  color: var(--text-primary) !important;
+}
+
+.weui-cell__ft {
+  color: var(--text-light) !important;
 }
 
 .h1,
@@ -148,6 +204,7 @@ page,
   font-size: var(--font-title) !important;
   font-weight: var(--font-title-weight) !important;
   color: var(--text-primary) !important;
+  letter-spacing: -0.01em;
 }
 
 .p,
@@ -185,51 +242,57 @@ page,
 .weui-btn_primary,
 .btn-confirm,
 .btn-share-card {
+  min-height: 88rpx !important;
+  line-height: 88rpx !important;
   background: var(--button-bg) !important;
   color: var(--button-text) !important;
   border-radius: var(--radius-md) !important;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.16) !important;
+  border: none !important;
+  box-shadow: 0 12rpx 28rpx rgba(10, 132, 255, 0.2) !important;
   font-weight: 700;
   letter-spacing: var(--btn-letter-spacing);
 }
 
-/* Secondary button (outline / soft) */
 .btn-secondary,
 .weui-btn_default {
-  background: var(--button-bg-secondary) !important;
+  min-height: 88rpx !important;
+  line-height: 88rpx !important;
+  background: var(--bg-surface) !important;
   color: var(--button-text-secondary) !important;
   border-radius: var(--radius-md) !important;
-  border: 1rpx solid var(--border-accent) !important;
+  border: none !important;
+  box-shadow: var(--shadow-soft) !important;
   font-weight: 700;
   letter-spacing: var(--btn-letter-spacing);
 }
 
-/* ============ Unified interaction feedback ============ */
-
-/* Primary button: deepen color + micro-scale on press */
-.weui-btn_primary:not(.weui-btn_disabled):active,
-.btn-primary:active,
-.btn-confirm:active {
-  opacity: 1 !important;
-  background: var(--btn-active-bg-primary) !important;
-  transform: scale(0.982);
+.weui-btn_mini {
+  min-height: 60rpx !important;
+  line-height: 60rpx !important;
+  border-radius: 999rpx !important;
 }
 
-/* Secondary button: fill deepen on press */
+.weui-btn_primary:not(.weui-btn_disabled):active,
+.btn-primary:active,
+.btn-confirm:active,
+.btn-share-card:active {
+  opacity: 1 !important;
+  background: var(--btn-active-bg-primary) !important;
+  transform: scale(0.985);
+}
+
 .weui-btn_default:not(.weui-btn_disabled):active,
 .btn-secondary:active {
   opacity: 1 !important;
   background: var(--btn-active-bg-secondary) !important;
-  transform: scale(0.982);
+  transform: scale(0.985);
 }
 
-/* Tappable cards / list rows: soft fill (no scale — cards should not shrink) */
 .tap-active {
   background: var(--tap-active-bg) !important;
   opacity: 1 !important;
 }
 
-/* Slide actions (WeUI slideview) */
 .slide-row {
   overflow: hidden;
 }
@@ -242,6 +305,6 @@ page,
   justify-content: center;
   height: 100%;
   padding: 0 32rpx;
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: 30rpx;
+  font-weight: 700;
 }

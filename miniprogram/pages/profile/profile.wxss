@@ -6,27 +6,29 @@
 }
 
 .page-head {
-  margin-bottom: 16rpx;
+  margin-bottom: 18rpx;
 }
 
 .page-title {
-  font-size: 32rpx;
+  font-size: 42rpx;
   font-weight: 700;
   color: var(--text-title);
+  letter-spacing: -0.02em;
 }
 
 .page-sub {
-  margin-top: 16rpx;
+  margin-top: 12rpx;
   font-size: 24rpx;
-  color: var(--text-warm-muted);
+  color: var(--text-light);
 }
 
 .card {
   background: var(--bg-surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-border: 1rpx solid var(--border-warm);
+  border: 1rpx solid var(--border-soft);
   margin-bottom: 16rpx;
+  box-shadow: var(--shadow-soft);
 }
 
 .weui-cells_in-card {
@@ -45,12 +47,12 @@ border: 1rpx solid var(--border-warm);
 .icon-wrap {
   width: 52rpx;
   height: 52rpx;
-  border-radius: var(--radius-md);
+  border-radius: 18rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 16rpx;
-background: var(--border-accent);
+  background: rgba(10, 132, 255, 0.12);
   border: 1rpx solid var(--border-accent);
 }
 
@@ -91,7 +93,7 @@ background: var(--border-accent);
 }
 
 .muted {
-  color: var(--text-warm-muted);
+  color: var(--text-light);
   font-size: 24rpx;
 }
 
@@ -112,7 +114,8 @@ background: var(--border-accent);
   bottom: 0;
   height: 72vh;
   background: var(--bg-surface);
-  border-radius: var(--radius-md);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
   z-index: 999;
   display: flex;
   flex-direction: column;
@@ -142,9 +145,9 @@ background: var(--border-accent);
 
 .seg {
   margin: 0 16rpx 16rpx;
-  background: var(--bg-surface-subtle);
-  border-radius: var(--radius-md);
-  padding: 16rpx;
+  background: var(--bg-surface-muted);
+  border-radius: 999rpx;
+  padding: 8rpx;
   display: flex;
   gap: 16rpx;
 }
@@ -155,14 +158,15 @@ background: var(--border-accent);
   line-height: 60rpx;
   text-align: center;
   font-size: 24rpx;
-  color: var(--text-neutral-700);
-  border-radius: var(--radius-md);
+  color: var(--text-light);
+  border-radius: 999rpx;
 }
 
 .seg-item.active {
   background: var(--bg-surface);
   color: var(--text-primary);
   font-weight: 700;
+  box-shadow: var(--shadow-soft);
 }
 
 .modal-search {
@@ -174,11 +178,12 @@ background: var(--border-accent);
 .modal-input {
   flex: 1 1 auto;
   height: 76rpx;
-  background: var(--bg-surface-subtle);
-  border-radius: var(--radius-md);
+  background: var(--bg-surface-soft);
+  border-radius: var(--radius-lg);
   padding: 0 16rpx;
   font-size: 32rpx;
   color: var(--text-primary);
+  border: 1rpx solid var(--border-soft);
 }
 
 .placeholder {

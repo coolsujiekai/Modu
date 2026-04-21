@@ -18,7 +18,7 @@
   
     <view class="weui-panel book-panel">
       <view class="weui-panel__hd book-hd">
-        <view class="book-title">📚 {{book.bookName}}</view>
+        <view class="book-title">{{book.bookName}}</view>
         <view class="book-actions">
           <view class="meta-pill" bindtap="editBookInfo">修改</view>
         </view>
@@ -126,7 +126,7 @@
     </view>
 
     <view wx:if="{{book.status !== 'finished'}}" class="bottom-actions">
-      <button class="weui-btn weui-btn_default bottom-actions__btn" bindtap="continueReadingLater">下次继续读</button>
+      <button class="weui-btn weui-btn_default bottom-actions__btn" bindtap="continueReadingLater">下次再读</button>
       <button class="weui-btn btn-finish bottom-actions__btn" bindtap="finishReading">我读完了</button>
     </view>
     <button wx:else class="weui-btn btn-finish-outline" style="margin-top: 18rpx;" bindtap="markUnfinished">恢复在读</button>
