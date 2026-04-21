@@ -475,7 +475,65 @@ Page({
       await new Promise((r) => setTimeout(r, 80));
     }
 
-    const sheetBookId = this.data.fixedBookId || String(this.data.currentBookId || '');
+    // 书籍详情页入口：无需弹“保存设置”半屏面板（iOS 真机容易出现点击命中问题）
+    // 直接选择类型并保存到固定书籍
+    if (this.data.fixedBookId) {
+      const bookId = String(this.data.fixedBookId || '').trim();
+      if (!bookId) return;
+
+      this.hideKeyboard();
+      let pickedType = '';
+      try {
+        const res = await wx.showActionSheet({ itemList: ['金句', '想法'] });
+        pickedType = res.tapIndex === 1 ? 'thought' : 'quote';
+      } catch (e) {
+        // canceled
+        return;
+      }
+
+      const text = (this.data.draft || '').trim();
+      if (!text) {
+        wx.showToast({ title: '写点什么再保存', icon: 'none' });
+        return;
+      }
+
+      this.setData({ saving: true });
+      try {
+        await addNoteToCloud(bookId, { text, type: pickedType, bookName: this.data.currentBookName });
+        this.saveLastUsedBookId(bookId);
+        this.saveLastUsedType(pickedType);
+        this.clearDraft();
+        this.setData({
+          draft: '',
+          draftLength: 0,
+          draftHasText: false,
+          canNext: false,
+          saving: false,
+          sheetVisible: false,
+          type: pickedType,
+          sheetType: pickedType,
+          currentBookId: bookId
+        });
+        wx.showToast({
+          title: pickedType === 'quote' ? '已存为金句' : '已存为想法',
+          icon: 'success',
+          duration: 900
+        });
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 450);
+      } catch (err) {
+        this.setData({ saving: false });
+        wx.showToast({
+          title: err?.message ? `保存失败：${err.message}` : '保存失败',
+          icon: 'none'
+        });
+      }
+      return;
+    }
+
+    // 首页入口：保留“保存设置”半屏面板（可选书 + 类型）
+    const sheetBookId = String(this.data.currentBookId || '');
     const sheetType = this.data.sheetType || this.data.type || 'quote';
     this.setData(
       {
@@ -542,7 +600,7 @@ Page({
 
     this.setData({ saving: true });
     try {
-      await addNoteToCloud(bookId, { text, type });
+      await addNoteToCloud(bookId, { text, type, bookName: this.data.currentBookName });
       this.saveLastUsedBookId(bookId);
       this.saveLastUsedType(type);
       this.clearDraft();

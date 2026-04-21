@@ -52,17 +52,37 @@ export function formatNoteTime(timestamp, noteTimeMode = 'both') {
 /**
  * 向指定书籍追加一条笔记（写操作，走云函数）
  * @param {string} bookId
- * @param {{ text: string, type: 'thought'|'quote' }} noteData
+ * @param {{ text: string, type: 'thought'|'quote', bookName?: string }} noteData
  * @returns {Promise<{ thoughtCount: number, quoteCount: number, notesCount: number }>}
  */
 export async function addNote(bookId, noteData) {
-  const { text, type } = noteData;
+  const { text, type, bookName } = noteData || {};
   if (!text || !bookId) throw new Error('text and bookId are required');
 
   const res = await callCloudFunctionWithRetry('bookOperations', {
     action: 'addNote', bookId, text, type
   });
-  return assertCloudCallResult(res);
+  const result = assertCloudCallResult(res);
+
+  // Best-effort: also write a global "notes" record for 首页「全局最近」。
+  // 不影响主流程（写失败也不阻塞保存）
+  try {
+    await withRetry(() =>
+      db.collection('notes').add({
+        data: {
+          bookId,
+          bookName: (bookName || '').trim(),
+          text: String(text),
+          type: type === 'thought' ? 'thought' : 'quote',
+          timestamp: Date.now()
+        }
+      })
+    );
+  } catch (e) {
+    // ignore
+  }
+
+  return result;
 }
 
 /**

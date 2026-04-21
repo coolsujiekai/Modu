@@ -371,10 +371,11 @@ Page({
   },
 
   onTimelineSlideButtonTap(e) {
-    const { ts } = e.detail || e.currentTarget?.dataset || {};
-    if (ts) {
-      this.deleteNote({ currentTarget: { dataset: { ts } } });
-    }
+    const ts =
+      e?.detail?.data?.ts ??
+      e?.detail?.ts ??
+      e?.currentTarget?.dataset?.ts;
+    if (ts) this.deleteNote({ currentTarget: { dataset: { ts } } });
   },
 
   async onTimelineLongPress(e) {
@@ -461,7 +462,7 @@ Page({
     const currentDraft = this.data.noteDraft;
 
     try {
-      const { thoughtCount, quoteCount } = await addNoteToCloud(this.data.book._id, { text, type });
+      const { thoughtCount, quoteCount } = await addNoteToCloud(this.data.book._id, { text, type, bookName: this.data.book?.bookName });
       const newNotes = [
         ...this.data.notes,
         { text, type, timestamp: Date.now() }

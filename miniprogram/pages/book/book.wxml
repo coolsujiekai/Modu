@@ -58,20 +58,11 @@
     <view class="section-card">
       <view class="section-card__hd">
         <view class="section-title-row">
-          <view class="section-title">快速记录</view>
-        </view>
-      </view>
-      <view class="section-card__bd">
-        <button class="weui-btn weui-btn_primary btn-quicknote" bindtap="openQuickNoteForBook">快速记录</button>
-        <view class="muted" style="margin-top: 12rpx;">像发一条消息一样，记下金句或想法</view>
-      </view>
-    </view>
-
-    <view class="section-card">
-      <view class="section-card__hd">
-        <view class="section-title-row">
           <view class="section-title">阅读记忆库</view>
-          <view class="section-link">共 {{notes.length}} 条</view>
+          <view class="section-title-actions">
+            <button class="weui-btn weui-btn_mini weui-btn_primary quicknote-mini-btn" bindtap="openQuickNoteForBook">快速记录</button>
+            <view class="section-link">共 {{notes.length}} 条</view>
+          </view>
         </view>
       </view>
       <view class="section-card__bd">

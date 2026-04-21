@@ -131,8 +131,8 @@ Page({
   },
 
   async loadRecentNotes() {
-    try {
-      const res = await traced('books.reading.recent(notes)', () =>
+    const buildFromBooks = async () => {
+      const res = await traced('books.reading.recent(notes,fallback)', () =>
         withRetry(() =>
           db
             .collection('books')
@@ -159,12 +159,47 @@ Page({
         });
       });
       pool.sort((a, b) => b.timestamp - a.timestamp);
-      const recentNotes = pool.slice(0, 2).map((n) => ({
+      return pool.slice(0, 2).map((n) => ({
         ...n,
         timeText: formatNoteTime(n.timestamp, 'relative')
       }));
-      this.setData({ recentNotes });
+    };
+
+    // Prefer global notes collection; fallback to reading books aggregation
+    try {
+      // 不用 traced：避免「集合不存在」这类预期情况刷屏报错（会走 fallback）。
+      const res = await withRetry(() =>
+        db
+          .collection('notes')
+          .where(withOpenIdFilter({}))
+          .orderBy('timestamp', 'desc')
+          .limit(2)
+          .get()
+      );
+      const recentNotes = (res.data || [])
+        .map((n) => ({
+          key: n._id || `${n.bookId || ''}_${Number(n.timestamp || 0)}`,
+          bookId: n.bookId,
+          bookName: n.bookName || '未命名',
+          text: (n.text || '').trim(),
+          type: n.type || 'thought',
+          timestamp: Number(n.timestamp || 0),
+          timeText: formatNoteTime(Number(n.timestamp || 0), 'relative')
+        }))
+        .filter((n) => n.bookId && n.timestamp && n.text);
+
+      if (recentNotes.length > 0) {
+        this.setData({ recentNotes });
+        return;
+      }
     } catch (e) {
+      // ignore and fallback (e.g. notes 集合未创建 / 无索引 / 权限限制)
+    }
+
+    try {
+      const recentNotes = await buildFromBooks();
+      this.setData({ recentNotes });
+    } catch (e2) {
       this.setData({ recentNotes: [] });
     }
   },
