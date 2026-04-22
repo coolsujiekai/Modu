@@ -15,6 +15,10 @@ Page({
     thoughtNotes: [],
     quoteNotes: [],
     timelineGroups: [],
+    aiReflection: '',
+    aiReflectionLoading: false,
+    aiReflectionError: '',
+    aiQuotaRemaining: 0,
     noteDraft: '',
     canSaveDraft: false,
     noteFocused: false,
@@ -262,6 +266,7 @@ Page({
       this.setData({
         loading: false,
         book: { ...book, thoughtCount, quoteCount },
+        aiReflection: String(book.aiReflection || ''),
         notes: notes,
         thoughtNotes: thoughtNotes,
         quoteNotes: quoteNotes,
@@ -289,6 +294,122 @@ Page({
       this.setData({ loading: false, book: null });
       wx.showToast({ title: '加载失败', icon: 'none' });
     }
+  },
+
+  async onGenerateReflection() {
+    if (this.data.aiReflectionLoading) return;
+    const bookId = this.data.book?._id || this.data.bookId;
+    if (!bookId) return;
+    if (this.data.book?.status !== 'finished') {
+      wx.showToast({ title: '读完后可生成', icon: 'none' });
+      return;
+    }
+
+    this.setData({ aiReflectionLoading: true, aiReflectionError: '' });
+    wx.showLoading({ title: '生成中…', mask: true });
+    try {
+      const pre = await wx.cloud.callFunction({
+        name: 'bookOperations',
+        // 单按钮逻辑：每点一次都算一次“生成”，因此强制走 force=true，不吃缓存免扣次数
+        data: { action: 'reflectionPrepare', bookId, force: true }
+      });
+      const result = pre?.result || {};
+      if (!result?.ok) {
+        const code = result?.code || '';
+        if (code === 'INSUFFICIENT_MATERIAL') {
+          wx.showToast({ title: '素材不足：写 1 条心得或收 2 条金句', icon: 'none' });
+        } else if (code === 'QUOTA_EXCEEDED') {
+          wx.showToast({ title: '今日已用完 3 次', icon: 'none' });
+        } else {
+          wx.showToast({ title: '生成失败，请稍后重试', icon: 'none' });
+        }
+        this.setData({
+          aiReflectionError: result?.message || '生成失败',
+          aiReflection: String(result?.cachedText || this.data.aiReflection || ''),
+          aiQuotaRemaining: Number(result?.quota?.remaining || 0)
+        });
+        return;
+      }
+
+      // Stream generation on client via wx.cloud.extend.AI
+      const prompts = result?.prompts || {};
+      const ai = wx?.cloud?.extend?.AI;
+      if (!ai || typeof ai.createModel !== 'function') {
+        wx.showToast({ title: '基础库过低，无法使用AI能力', icon: 'none' });
+        this.setData({ aiReflectionError: 'wx.cloud.extend.AI 不可用' });
+        return;
+      }
+
+      const model = ai.createModel(prompts.createModel || 'hunyuan-exp');
+      const streamRes = await model.streamText({
+        data: {
+          model: prompts.model || 'hunyuan-turbos-latest',
+          messages: [
+            { role: 'system', content: String(prompts.system || '') },
+            { role: 'user', content: String(prompts.user || '') }
+          ]
+        }
+      });
+
+      let acc = '';
+      for await (const event of streamRes.eventStream) {
+        if (event.data === '[DONE]') break;
+        try {
+          const data = JSON.parse(event.data);
+          const delta = data?.choices?.[0]?.delta || {};
+          const text = String(delta.content || '');
+          if (text) {
+            acc += text;
+            this.setData({ aiReflection: acc });
+          }
+        } catch (e) {
+          // ignore malformed chunk
+        }
+      }
+
+      // Commit to server after streaming finished; charge quota on success.
+      const commit = await wx.cloud.callFunction({
+        name: 'bookOperations',
+        data: { action: 'reflectionCommit', bookId, force: true, text: acc }
+      });
+      const committed = commit?.result || {};
+      if (!committed?.ok) {
+        const code = committed?.code || '';
+        if (code === 'QUOTA_EXCEEDED') {
+          wx.showToast({ title: '今日已用完 3 次', icon: 'none' });
+          this.setData({
+            aiReflection: String(committed?.cachedText || acc || ''),
+            aiQuotaRemaining: Number(committed?.quota?.remaining || 0),
+            aiReflectionError: committed?.message || '次数已用完'
+          });
+          return;
+        }
+        wx.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
+        this.setData({ aiReflectionError: committed?.message || '保存失败' });
+        return;
+      }
+
+      this.setData({
+        aiReflection: String(committed.text || acc || ''),
+        aiQuotaRemaining: Number(committed?.quota?.remaining ?? 0),
+        aiReflectionError: ''
+      });
+    } catch (e) {
+      this.setData({ aiReflectionError: e?.errMsg || e?.message || '生成失败' });
+      wx.showToast({ title: '生成失败，请稍后重试', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+      this.setData({ aiReflectionLoading: false });
+    }
+  },
+
+  copyReflection() {
+    const text = String(this.data.aiReflection || '').trim();
+    if (!text) return;
+    wx.setClipboardData({
+      data: text,
+      success: () => wx.showToast({ title: '已复制', icon: 'success', duration: 800 })
+    });
   },
 
   buildExportMeta(thoughtCount, quoteCount) {

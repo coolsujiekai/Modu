@@ -55,6 +55,30 @@
       </view>
     </view>
 
+    <view wx:if="{{book.status === 'finished'}}" class="ai-card">
+      <view class="ai-card__hd">
+        <view class="ai-card__title">AI 总结</view>
+        <view class="ai-card__actions">
+          <button
+            class="weui-btn weui-btn_mini weui-btn_default ai-btn"
+            bindtap="copyReflection"
+            disabled="{{!aiReflection}}"
+          >复制</button>
+          <button
+            class="weui-btn weui-btn_mini weui-btn_primary ai-btn"
+            bindtap="onGenerateReflection"
+            loading="{{aiReflectionLoading}}"
+          >{{aiReflection ? '再次生成' : '生成'}}<text wx:if="{{aiQuotaRemaining > 0}}">({{aiQuotaRemaining}})</text></button>
+        </view>
+      </view>
+      <view class="ai-card__bd">
+        <view wx:if="{{aiReflection}}" class="ai-card__text">{{aiReflection}}</view>
+        <view wx:elif="{{aiReflectionLoading}}" class="muted">在把你的记录揉成一段话…</view>
+        <view wx:elif="{{aiReflectionError}}" class="muted">生成失败：{{aiReflectionError}}</view>
+        <view wx:else class="muted">读完后，基于你的记录生成一段 240 字左右的读书心得。</view>
+      </view>
+    </view>
+
     <view class="section-card">
       <view class="section-card__hd">
         <view class="section-title-row">
