@@ -357,53 +357,17 @@ Page({
         throw new Error('INVALID_TEMP_PATH');
       }
 
-      const hint = layoutPlan.reduced
-        ? `内容较长，已自动展示前 ${layoutPlan.displayTexts.length} 条，正在保存到相册…`
-        : '正在保存到相册…';
       this.setData({
         previewVisible: true,
         previewSrc: tempPath,
-        previewSavedHint: hint
+        previewSavedHint: '长按图片保存到相册'
       });
-
-      await this.saveTempPathToAlbum(tempPath);
-      this.setData({
-        previewSavedHint: '已保存到相册'
-      });
-      wx.showToast({ title: '已保存到相册', icon: 'success', duration: 1400 });
+      wx.showToast({ title: '长按图片保存', icon: 'none', duration: 1400 });
     } catch (err) {
-      const needAuth = err?.code === 'AUTH_DENY';
-      const fileNotExist = err?.code === 'FILE_NOT_EXIST';
-      const invalidPath = err?.message === 'INVALID_TEMP_PATH';
-      const exportErrMsg = String(err?.errMsg || err?.message || '');
-      const exportTimeout = err?.code === 'CANVAS_EXPORT_TIMEOUT'
-        || err?.message === 'CANVAS_EXPORT_TIMEOUT'
-        || exportErrMsg.toLowerCase().includes('timeout');
-      let hintMsg = '保存失败，请稍后重试';
-      if (needAuth) {
-        hintMsg = '保存失败：需要相册权限';
-      } else if (fileNotExist) {
-        hintMsg = '保存失败：图片生成异常，请重试';
-      } else if (invalidPath) {
-        hintMsg = '保存失败：图片生成失败，请重试';
-      } else if (exportTimeout) {
-        hintMsg = '保存失败：生成超时，请重试';
-      }
+      const hintMsg = '保存失败，请稍后重试';
       this.setData({ previewVisible: true, previewSavedHint: hintMsg });
-      if (needAuth) {
-        wx.showModal({
-          title: '需要相册权限',
-          content: '请在设置中开启相册权限后重试',
-          confirmText: '去设置',
-          success: (res) => {
-            if (res.confirm) wx.openSetting();
-          }
-        });
-      } else if (fileNotExist || invalidPath || exportTimeout) {
-        wx.showToast({ title: '图片生成异常', icon: 'none' });
-      } else {
-        console.error('[shareCard] generate failed:', err);
-      }
+      wx.showToast({ title: hintMsg, icon: 'none' });
+      console.error('[shareCard] generate failed:', err);
     } finally {
       this.setData({ generating: false });
     }
