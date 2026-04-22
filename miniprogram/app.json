@@ -4,7 +4,6 @@
     "pages/onboarding/onboarding",
     "pages/emptyShelf/emptyShelf",
     "pages/quickNote/quickNote",
-    "pages/migrateNotes/migrateNotes",
     "pages/createBook/createBook",
     "pages/book/book",
     "pages/bookNotes/bookNotes",

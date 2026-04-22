@@ -24,6 +24,75 @@ function getOpenid(event) {
   return cloud.getWXContext().OPENID;
 }
 
+// ─── 最近笔记索引（recent_notes）──────────────────────────────
+
+const RECENT_NOTES_COLLECTION = 'recent_notes';
+const RECENT_NOTES_KEEP = 200;
+
+function makeNoteId(bookId, timestamp) {
+  return `${bookId}_${timestamp}`;
+}
+
+function clipText(text, maxLen = 300) {
+  const s = String(text || '').trim();
+  if (!s) return '';
+  return s.length > maxLen ? s.slice(0, maxLen) : s;
+}
+
+async function upsertRecentNote({ openid, bookId, bookName, note }) {
+  const ts = Number(note?.timestamp || 0);
+  if (!bookId || !ts) return;
+  const noteId = makeNoteId(bookId, ts);
+  const payload = {
+    _openid: openid,
+    noteId,
+    bookId,
+    bookName: String(bookName || '').trim() || '未命名',
+    type: note.type === 'quote' ? 'quote' : 'thought',
+    text: clipText(note.text),
+    timestamp: ts,
+    updatedAt: Date.now()
+  };
+  // Use set() to be idempotent for retries.
+  await db.collection(RECENT_NOTES_COLLECTION).doc(noteId).set({ data: payload });
+}
+
+async function removeRecentNote({ bookId, timestamp }) {
+  const ts = Number(timestamp || 0);
+  if (!bookId || !ts) return;
+  const noteId = makeNoteId(bookId, ts);
+  await db.collection(RECENT_NOTES_COLLECTION).doc(noteId).remove();
+}
+
+async function trimRecentNotes(openid, keep = RECENT_NOTES_KEEP) {
+  const keepN = Math.max(0, Number(keep || 0));
+  if (!openid) return;
+
+  let offset = keepN;
+  const batchSize = 50;
+  while (true) {
+    const res = await db
+      .collection(RECENT_NOTES_COLLECTION)
+      .where({ _openid: openid })
+      .orderBy('timestamp', 'desc')
+      .skip(offset)
+      .limit(batchSize)
+      .field({ _id: true })
+      .get();
+
+    const ids = (res.data || []).map((d) => d._id).filter(Boolean);
+    if (ids.length === 0) break;
+
+    await db
+      .collection(RECENT_NOTES_COLLECTION)
+      .where({ _openid: openid, _id: _.in(ids) })
+      .remove();
+
+    // Continue deleting beyond keepN
+    offset += ids.length;
+  }
+}
+
 // ─── 书籍操作 ────────────────────────────────────────────────
 
 /**
@@ -162,6 +231,16 @@ async function addNote(event) {
       quoteCount
     }
   });
+
+  // Maintain lightweight recent notes index for 首页展示（强一致写入云端）
+  await upsertRecentNote({
+    openid,
+    bookId,
+    bookName: book.data.bookName,
+    note
+  });
+  await trimRecentNotes(openid, RECENT_NOTES_KEEP);
+
   return { thoughtCount, quoteCount, notesCount: notes.length };
 }
 
@@ -188,6 +267,15 @@ async function editNote(event) {
   await db.collection('books').doc(bookId).update({
     data: { notes, notesCount: notes.length, thoughtCount, quoteCount }
   });
+
+  // Sync recent notes index if exists (or create if missing)
+  await upsertRecentNote({
+    openid,
+    bookId,
+    bookName: book.data.bookName,
+    note: notes[idx]
+  });
+
   return { thoughtCount, quoteCount, notesCount: notes.length };
 }
 
@@ -214,6 +302,14 @@ async function deleteNote(event) {
   await db.collection('books').doc(bookId).update({
     data: { notes, notesCount: notes.length, thoughtCount, quoteCount }
   });
+
+  // Remove from recent notes index (ignore if missing)
+  try {
+    await removeRecentNote({ bookId, timestamp });
+  } catch (e) {
+    // ignore
+  }
+
   return { thoughtCount, quoteCount, notesCount: notes.length };
 }
 

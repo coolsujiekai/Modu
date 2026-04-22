@@ -13,6 +13,17 @@ Page({
     homeViewMode: 'grid',
     recentNotes: []
   },
+  onShareAppMessage() {
+    return {
+      title: '翻书随手记',
+      path: '/pages/index/index'
+    };
+  },
+  onShareTimeline() {
+    return {
+      title: '翻书随手记'
+    };
+  },
   onLoad() {
     // runtime-only fields; avoid putting complex values on Page() definition
     this._recentTap = { key: '', at: 0, timer: null };
@@ -136,9 +147,9 @@ Page({
         withRetry(() =>
           db
             .collection('books')
-            .where(withOpenIdFilter({ status: 'reading' }))
+            .where(withOpenIdFilter({}))
             .orderBy('startTime', 'desc')
-            .limit(5)
+            .limit(50)
             .get()
         )
       );
@@ -165,20 +176,19 @@ Page({
       }));
     };
 
-    // Prefer global notes collection; fallback to reading books aggregation
+    // Prefer recent_notes index (strongly consistent), fallback to books aggregation
     try {
-      // 不用 traced：避免「集合不存在」这类预期情况刷屏报错（会走 fallback）。
       const res = await withRetry(() =>
         db
-          .collection('notes')
+          .collection('recent_notes')
           .where(withOpenIdFilter({}))
           .orderBy('timestamp', 'desc')
-          .limit(2)
+          .limit(3)
           .get()
       );
       const recentNotes = (res.data || [])
         .map((n) => ({
-          key: n._id || `${n.bookId || ''}_${Number(n.timestamp || 0)}`,
+          key: n.noteId || n._id || `${n.bookId || ''}_${Number(n.timestamp || 0)}`,
           bookId: n.bookId,
           bookName: n.bookName || '未命名',
           text: (n.text || '').trim(),
@@ -193,7 +203,7 @@ Page({
         return;
       }
     } catch (e) {
-      // ignore and fallback (e.g. notes 集合未创建 / 无索引 / 权限限制)
+      // ignore and fallback (e.g. collection not created / no index / permission)
     }
 
     try {

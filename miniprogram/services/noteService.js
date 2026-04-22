@@ -64,24 +64,6 @@ export async function addNote(bookId, noteData) {
   });
   const result = assertCloudCallResult(res);
 
-  // Best-effort: also write a global "notes" record for 首页「全局最近」。
-  // 不影响主流程（写失败也不阻塞保存）
-  try {
-    await withRetry(() =>
-      db.collection('notes').add({
-        data: {
-          bookId,
-          bookName: (bookName || '').trim(),
-          text: String(text),
-          type: type === 'thought' ? 'thought' : 'quote',
-          timestamp: Date.now()
-        }
-      })
-    );
-  } catch (e) {
-    // ignore
-  }
-
   return result;
 }
 
