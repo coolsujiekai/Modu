@@ -1,0 +1,70 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
+.page { min-height: 100vh; }
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1rpx solid var(--border-soft);
+  margin-bottom: 16rpx;
+  box-shadow: var(--shadow-soft);
+  padding: 22rpx 22rpx;
+}
+
+.h1 {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.p { margin-top: 12rpx; }
+
+.muted { color: var(--text-light); font-size: 24rpx; }
+
+.seg {
+  background: var(--bg-surface-muted);
+  border-radius: 999rpx;
+  padding: 8rpx;
+  display: flex;
+  gap: 16rpx;
+}
+
+.seg-item {
+  flex: 1 1 0;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-light);
+  border-radius: 999rpx;
+}
+
+.seg-item.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 700;
+  box-shadow: var(--shadow-soft);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: var(--text-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count { flex: none; font-size: 22rpx; }
+

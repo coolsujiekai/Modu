@@ -255,6 +255,13 @@ Page({
         if (items.length === 0) break;
         await Promise.all(items.map(it => db.collection('wishlist').doc(it._id).remove()));
       }
+      // 清空 recent_notes（否则首页会残留“最近记录”）
+      while (true) {
+        const res = await db.collection('recent_notes').where(withOpenIdFilter({})).limit(50).get();
+        const items = res.data || [];
+        if (items.length === 0) break;
+        await Promise.all(items.map(it => db.collection('recent_notes').doc(it._id).remove()));
+      }
 
       wx.hideLoading();
       wx.showToast({ title: '已清空', icon: 'success', duration: 900 });

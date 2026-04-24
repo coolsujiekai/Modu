@@ -104,10 +104,31 @@
   flex-direction: column;
   align-items: center;
   background: var(--bg-surface);
+  position: relative;
+  transition: transform 120ms ease;
 }
 
 .avatar-item.active {
   border-color: var(--text-accent);
+  border-width: 2rpx;
+  box-shadow: 0 12rpx 28rpx rgba(192, 125, 107, 0.18);
+  transform: scale(1.02);
+}
+
+.check-badge {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 999rpx;
+  background: var(--text-accent);
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 900;
+  line-height: 34rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 18rpx rgba(192, 125, 107, 0.25);
 }
 
 .avatar {
@@ -128,6 +149,13 @@
   display: flex;
   align-items: center;
   gap: 14rpx;
+  padding: 10rpx 10rpx;
+  border-radius: 18rpx;
+}
+
+.upload-row.active {
+  border: 2rpx solid var(--text-accent);
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .upload-btn.weui-btn {

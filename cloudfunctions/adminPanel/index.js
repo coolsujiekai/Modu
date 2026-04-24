@@ -195,6 +195,36 @@ async function listFeedback(event) {
   return { ok: true, items: res.data || [], nextOffset: offset + (res.data || []).length };
 }
 
+async function listWishlistHot(event) {
+  const openid = getOpenid();
+  if (!(await isAdmin(openid))) return deny();
+
+  const limit = Math.min(50, Math.max(1, Number(event.limit || 20)));
+  const offset = Math.max(0, Number(event.offset || 0));
+
+  const res = await db
+    .collection('wishlist')
+    .aggregate()
+    .match({ title: _.neq('') })
+    .group({
+      _id: '$title',
+      count: $.sum(1),
+      lastAt: $.max($.ifNull(['$createdAt', 0])),
+    })
+    .sort({ count: -1, lastAt: -1 })
+    .skip(offset)
+    .limit(limit)
+    .end()
+    .catch(() => ({ list: [] }));
+
+  const items = (res.list || []).map((it) => ({
+    title: String(it?._id || '').trim(),
+    count: Number(it?.count || 0),
+  })).filter((it) => it.title);
+
+  return { ok: true, items, nextOffset: offset + items.length };
+}
+
 async function listTestDevices() {
   const openid = getOpenid();
   if (!(await isAdmin(openid))) return deny();
@@ -307,6 +337,7 @@ exports.main = async (event, context) => {
       case 'listTestDevices': return await listTestDevices();
       case 'resetTestUser': return await resetTestUser(event);
       case 'listFeedback': return await listFeedback(event);
+      case 'listWishlistHot': return await listWishlistHot(event);
       default:
         return { ok: false, error: 'unknown action' };
     }

@@ -38,6 +38,10 @@ Page({
     await this.loadFeedback(true);
   },
 
+  goHotWishlist() {
+    wx.navigateTo({ url: '/pages/adminWishlist/adminWishlist' });
+  },
+
   formatTs(ts) {
     const n = Number(ts || 0);
     if (!n) return '';

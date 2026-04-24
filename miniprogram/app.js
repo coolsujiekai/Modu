@@ -30,6 +30,16 @@ function ingest(data) {
   }
 }
 
+function safeGet(key) {
+  try { return wx.getStorageSync(key); } catch (e) { return null; }
+}
+function safeSet(key, value) {
+  try { wx.setStorageSync(key, value); } catch (e) {}
+}
+
+const INTRO_SEEN_KEY = '_intro_v2_seen';
+const PROFILE_DONE_KEY = '_profile_v2_done';
+
 App({
   onError(err) {
     // 捕获脚本错误，便于定位“timeout”来源
@@ -47,8 +57,17 @@ App({
 
     // Show intro at most once per install (can still be opened later from settings).
     try {
-      const seen = wx.getStorageSync('_intro_v2_seen') === '1';
+      const seen = safeGet(INTRO_SEEN_KEY) === '1';
       if (seen) return;
+    } catch (e) {}
+
+    // If profile already completed, do not redirect to intro (avoid flash).
+    try {
+      const profileDone = safeGet(PROFILE_DONE_KEY) === '1';
+      if (profileDone) {
+        safeSet(INTRO_SEEN_KEY, '1');
+        return;
+      }
     } catch (e) {}
 
     ingest({
@@ -66,6 +85,29 @@ App({
       // Avoid redirecting before openid is ready.
       const openid = this.globalData?.openid || '';
       if (!openid) return;
+
+      // Strong check: query profile once to avoid intro flash for existing users.
+      try {
+        const res = await new Promise((resolve, reject) => {
+          wx.cloud.callFunction({
+            name: 'userProfile',
+            data: { action: 'get' },
+            success: resolve,
+            fail: reject
+          });
+        });
+        const r = res?.result || {};
+        const nick = String(r?.profile?.nickname || '').trim();
+        const profileFound = !!r?.found && nick.length >= 2;
+        if (profileFound) {
+          safeSet(PROFILE_DONE_KEY, '1');
+          safeSet(INTRO_SEEN_KEY, '1');
+          return;
+        }
+      } catch (e) {
+        // ignore (cloud function may not be deployed); fallback to intro
+      }
+
       wx.redirectTo({ url: '/pages/intro/intro' });
       return;
     } catch (e) {

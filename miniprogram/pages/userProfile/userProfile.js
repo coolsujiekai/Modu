@@ -1,5 +1,10 @@
 import { getUserProfile, upsertUserProfile, uploadAvatar } from '../../services/userService.js';
 
+const PROFILE_DONE_KEY = '_profile_v2_done';
+function safeSet(key, value) {
+  try { wx.setStorageSync(key, value); } catch (e) {}
+}
+
 Page({
   data: {
     loading: true,
@@ -18,9 +23,24 @@ Page({
     customAvatarPreview: '',
   },
 
+  ensureDefaultAvatarSelected(options) {
+    const key = String(this.data.selectedAvatarKey || '');
+    if (key) return;
+    const first = (options?.male || [])[0] || null;
+    if (!first?.key || !first?.src) return;
+    this.setData({
+      selectedAvatarKey: first.key,
+      avatarType: 'default',
+      avatar: first.src,
+      avatarPreview: '',
+      customAvatarPreview: ''
+    });
+  },
+
   async onLoad() {
     const { male, female } = this.buildAvatarOptions();
     this.setData({ avatarOptionsMale: male, avatarOptionsFemale: female });
+    this.ensureDefaultAvatarSelected({ male, female });
     await this.load();
   },
 
@@ -53,6 +73,14 @@ Page({
         selectedAvatarKey: selectedKey,
         customAvatarPreview,
       });
+
+      const nick = String(p.nickname || '').trim();
+      if (nick.length >= 2) safeSet(PROFILE_DONE_KEY, '1');
+
+      // profile doesn't have avatar (or avatar mismatch) => fallback to first default
+      if (!selectedKey) {
+        this.ensureDefaultAvatarSelected({ male: this.data.avatarOptionsMale, female: this.data.avatarOptionsFemale });
+      }
     } catch (e) {
       this.setData({ loading: false });
       // If cloud function not deployed, still allow editing but saving will fail.
@@ -171,6 +199,8 @@ Page({
         gender: String(this.data.gender ?? ''),
         age: String(this.data.age ?? ''),
       });
+
+      safeSet(PROFILE_DONE_KEY, '1');
 
       wx.hideLoading();
       wx.showToast({ title: '已保存', icon: 'success', duration: 800 });

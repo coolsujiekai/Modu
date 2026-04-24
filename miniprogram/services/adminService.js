@@ -41,3 +41,8 @@ export async function adminListFeedback(offset = 0, limit = 20) {
   return assertCloudOk(res);
 }
 
+export async function adminListWishlistHot(offset = 0, limit = 20) {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'listWishlistHot', offset, limit });
+  return assertCloudOk(res);
+}
+

@@ -4,6 +4,7 @@ import { getUserProfile, upsertUserProfile, uploadAvatar } from '../../services/
 const INTRO_SEEN_KEY = '_intro_v2_seen';
 const PROFILE_SKIPPED_KEY = 'profile_onboarding_skipped_v2';
 const BOOK_SEEN_KEY = '_book_onboarding_v2_seen';
+const PROFILE_DONE_KEY = '_profile_v2_done';
 
 function safeGet(key) {
   try { return wx.getStorageSync(key); } catch (e) { return null; }
@@ -29,6 +30,33 @@ Page({
 
     gender: '',
     age: '',
+  },
+
+  inferSelectedAvatarKey(avatarType, avatar) {
+    if (avatarType === 'custom') return 'custom';
+    const mapping = {
+      '/images/avatar/avatar_male_1.png': 'm1',
+      '/images/avatar/avatar_male_2.png': 'm2',
+      '/images/avatar/avatar_male_3.png': 'm3',
+      '/images/avatar/avatar_female_1.png': 'f1',
+      '/images/avatar/avatar_female_2.png': 'f2',
+      '/images/avatar/avatar_female_3.png': 'f3',
+    };
+    return mapping[String(avatar || '')] || 'm1';
+  },
+
+  ensureDefaultAvatarSelected(options) {
+    const key = String(this.data.selectedAvatarKey || '');
+    if (key) return;
+    const first = (options?.male || [])[0] || null;
+    if (!first?.key || !first?.src) return;
+    this.setData({
+      selectedAvatarKey: first.key,
+      selectedAvatarType: 'default',
+      selectedAvatarSrc: first.src,
+      selectedAvatarLocalPath: '',
+      customAvatarPreview: ''
+    });
   },
 
   onLoad() {
@@ -60,6 +88,7 @@ Page({
   async bootstrap() {
     const { male, female } = this.buildAvatarOptions();
     this.setData({ avatarOptionsMale: male, avatarOptionsFemale: female });
+    this.ensureDefaultAvatarSelected({ male, female });
 
     let profileFound = false;
     try {
@@ -71,9 +100,44 @@ Page({
       const age = String(res?.profile?.age ?? '').trim();
       if (['', 'male', 'female'].includes(gender)) this.setData({ gender });
       if (age !== undefined) this.setData({ age });
+
+      const avatarTypeRaw = String(res?.profile?.avatarType || 'default') || 'default';
+      const avatarType = ['custom', 'default', 'defaultMale', 'defaultFemale'].includes(avatarTypeRaw) ? avatarTypeRaw : 'default';
+      const avatar = String(res?.profile?.avatar || '');
+      const selectedKey = this.inferSelectedAvatarKey(avatarType, avatar);
+      if (selectedKey === 'custom') {
+        if (avatar) {
+          this.setData({
+            selectedAvatarKey: 'custom',
+            selectedAvatarType: 'custom',
+            selectedAvatarSrc: '',
+            selectedAvatarLocalPath: '',
+            customAvatarPreview: avatar
+          });
+        }
+      } else {
+        const mapping = {
+          m1: '/images/avatar/avatar_male_1.png',
+          m2: '/images/avatar/avatar_male_2.png',
+          m3: '/images/avatar/avatar_male_3.png',
+          f1: '/images/avatar/avatar_female_1.png',
+          f2: '/images/avatar/avatar_female_2.png',
+          f3: '/images/avatar/avatar_female_3.png',
+        };
+        const src = mapping[selectedKey] || '/images/avatar/avatar_male_1.png';
+        this.setData({
+          selectedAvatarKey: selectedKey,
+          selectedAvatarType: 'default',
+          selectedAvatarSrc: src,
+          selectedAvatarLocalPath: '',
+          customAvatarPreview: ''
+        });
+      }
     } catch (e) {
       profileFound = false;
     }
+
+    if (profileFound) safeSet(PROFILE_DONE_KEY, '1');
 
     const profileSkipped = safeGet(PROFILE_SKIPPED_KEY) === '1';
     const shouldProfile = !profileFound && !profileSkipped;
@@ -203,6 +267,9 @@ Page({
         gender: String(this.data.gender ?? ''),
         age: String(this.data.age ?? '')
       });
+
+      safeSet(PROFILE_DONE_KEY, '1');
+      safeSet(INTRO_SEEN_KEY, '1');
 
       wx.hideLoading();
       this.setData({ saving: false });

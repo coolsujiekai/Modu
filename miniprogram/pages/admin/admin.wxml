@@ -36,10 +36,11 @@
   <view class="card">
     <view class="h2">热门书单 TOP10</view>
     <view wx:if="{{!stats.wishlistTop || stats.wishlistTop.length === 0}}" class="muted">暂无</view>
-    <view wx:for="{{stats.wishlistTop}}" wx:key="title" class="hot-row">
+    <view wx:for="{{stats.wishlistTop}}" wx:key="title" class="hot-row" bindtap="goHotWishlist">
       <view class="hot-title">{{item.title}}</view>
       <view class="hot-count muted">{{item.count}}</view>
     </view>
+    <button class="weui-btn weui-btn_default" bindtap="goHotWishlist">查看详情</button>
   </view>
 
   <view class="card">

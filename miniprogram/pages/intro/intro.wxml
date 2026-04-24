@@ -32,6 +32,7 @@
           data-src="{{item.src}}"
           bindtap="onPickDefaultAvatar"
         >
+          <view wx:if="{{selectedAvatarKey === item.key}}" class="check-badge">✓</view>
           <image class="avatar" src="{{item.src}}" mode="aspectFill" />
         </view>
       </view>
@@ -48,12 +49,13 @@
           data-src="{{item.src}}"
           bindtap="onPickDefaultAvatar"
         >
+          <view wx:if="{{selectedAvatarKey === item.key}}" class="check-badge">✓</view>
           <image class="avatar" src="{{item.src}}" mode="aspectFill" />
         </view>
       </view>
     </view>
 
-    <view class="upload-row">
+    <view class="upload-row {{selectedAvatarKey === 'custom' ? 'active' : ''}}">
       <button class="weui-btn weui-btn_default upload-btn" bindtap="onUploadCustomAvatar">上传自定义头像</button>
       <image wx:if="{{customAvatarPreview}}" class="upload-preview" src="{{customAvatarPreview}}" mode="aspectFill" />
     </view>

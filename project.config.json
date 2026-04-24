@@ -40,7 +40,13 @@
   "condition": {},
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "cloudfunctions" },
+      { "type": "folder", "value": ".agents" },
+      { "type": "folder", "value": "plans" },
+      { "type": "file", "value": ".follow_ups.json" },
+      { "type": "file", "value": "skills-lock.json" }
+    ],
     "include": []
   },
   "editorSetting": {},
