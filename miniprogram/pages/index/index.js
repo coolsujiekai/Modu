@@ -11,7 +11,14 @@ Page({
     primaryBook: null,
     heroSub: '从一本书开始今天的阅读',
     homeViewMode: 'grid',
-    recentNotes: []
+    recentNotes: [],
+    // Reading activity banner summary
+    activity: {
+      streak: 7,
+      todayMinutes: 45,
+      totalNotes: 23
+    },
+    recommendTop3: []
   },
   onShareAppMessage() {
     return {
@@ -28,22 +35,23 @@ Page({
     // runtime-only fields; avoid putting complex values on Page() definition
     this._recentTap = { key: '', at: 0, timer: null };
     this._shelfTipTimer = null;
+    this._homeLoadedAt = 0;
 
-    const app = getApp();
-    if (typeof app?.onOpenIdReady === 'function') {
-      app.onOpenIdReady(() => {
-        // refresh once after openid is ready to ensure _openid filtering is applied
-        this.loadReadingBooks();
-        this.loadRecentNotes();
-      });
-    }
+    // Avoid double-loading on cold start; onShow already loads data.
   },
 
   async onShow() {
+    const now = Date.now();
+    if (this._homeLoadedAt && now - this._homeLoadedAt < 800) {
+      return;
+    }
+    this._homeLoadedAt = now;
     this.applyPersonalizeSettings();
     await this.loadReadingBooks();
 
     this.loadRecentNotes();
+    this.refreshHomeActivity();
+    this.loadRecommendTop3();
   },
 
   applyPersonalizeSettings() {
@@ -51,6 +59,62 @@ Page({
     this.setData({
       homeViewMode: settings.homeViewMode
     });
+  },
+
+  goActivity() {
+    wx.navigateTo({ url: '/pages/activity/activity' });
+  },
+
+  refreshHomeActivity() {
+    // Keep lightweight for now: cache for activity page
+    try {
+      wx.setStorageSync('_activity_summary_v1', this.data.activity);
+    } catch (e) {}
+  },
+
+  async loadRecommendTop3() {
+    try {
+      const res = await withRetry(() =>
+        db.collection('public_rankings').doc('today_pool').get()
+      );
+      const pool = Array.isArray(res?.data?.items) ? res.data.items : [];
+      const cleaned = pool.map((t) => String(t?.title || t || '').trim()).filter(Boolean);
+      const top3 = this.pickDailyStable(cleaned, 3);
+      this.setData({ recommendTop3: top3.map((t) => ({ title: t })) });
+    } catch (e) {
+      this.setData({ recommendTop3: [] });
+    }
+  },
+
+  // Stable daily pick: same for all users on same day.
+  pickDailyStable(items, k = 3) {
+    const list = Array.isArray(items) ? items : [];
+    const n = list.length;
+    if (n <= 0) return [];
+    if (n <= k) return list.slice(0, k);
+
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const seedStr = `${y}-${m}-${day}`;
+    let seed = 2166136261;
+    for (let i = 0; i < seedStr.length; i++) {
+      seed ^= seedStr.charCodeAt(i);
+      seed = Math.imul(seed, 16777619);
+    }
+    // LCG
+    let x = seed >>> 0;
+    const picked = [];
+    const used = new Set();
+    while (picked.length < k && used.size < n) {
+      x = (Math.imul(1664525, x) + 1013904223) >>> 0;
+      const idx = x % n;
+      if (used.has(idx)) continue;
+      used.add(idx);
+      picked.push(list[idx]);
+    }
+    return picked;
   },
 
   async deleteBookById(id, name) {
@@ -140,6 +204,7 @@ Page({
   onQuickRecordTap() {
     wx.navigateTo({ url: '/pages/quickNote/quickNote' });
   },
+
 
   async loadRecentNotes() {
     const buildFromBooks = async () => {

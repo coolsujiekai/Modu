@@ -12,6 +12,8 @@ const $ = db.command.aggregate;
 const ADMINS_COLLECTION = 'admins';
 const TEST_DEVICES_COLLECTION = 'test_devices';
 const FEEDBACK_COLLECTION = 'feedback';
+const PUBLIC_RANKINGS_COLLECTION = 'public_rankings';
+const TODAY_POOL_DOC_ID = 'today_pool';
 
 function getOpenid() {
   return cloud.getWXContext().OPENID;
@@ -327,6 +329,68 @@ async function resetTestUser(event) {
   return { ok: true, counts };
 }
 
+async function getTodayPool() {
+  const openid = getOpenid();
+  if (!(await isAdmin(openid))) return deny();
+  try {
+    const res = await db.collection(PUBLIC_RANKINGS_COLLECTION).doc(TODAY_POOL_DOC_ID).get();
+    const items = Array.isArray(res?.data?.items) ? res.data.items : [];
+    // 兼容旧字符串格式 & 新对象格式 { title }
+    const normalized = items.map((t) => {
+      if (typeof t === 'object' && t !== null) return String(t.title || '').trim();
+      return String(t || '').trim();
+    }).filter(Boolean);
+    return { ok: true, items: normalized, updatedAt: Number(res?.data?.updatedAt || 0) };
+  } catch (e) {
+    return { ok: true, items: [], updatedAt: 0 };
+  }
+}
+
+async function appendTodayPool(event) {
+  const openid = getOpenid();
+  if (!(await isAdmin(openid))) return deny();
+
+  const raw = String(event?.text || '');
+  const incoming = raw
+    .split('\n')
+    .map((s) => String(s || '').trim())
+    .filter(Boolean);
+
+  if (incoming.length === 0) return { ok: true, items: [], added: 0, total: 0 };
+
+  const existingRes = await db.collection(PUBLIC_RANKINGS_COLLECTION).doc(TODAY_POOL_DOC_ID).get().catch(() => ({ data: null }));
+  const existingRaw = Array.isArray(existingRes?.data?.items) ? existingRes.data.items : [];
+
+  // 兼容旧字符串格式 & 新对象格式 { title }
+  const existingTitles = new Set(
+    existingRaw.map((t) => {
+      if (typeof t === 'object' && t !== null) return String(t.title || '').trim();
+      return String(t || '').trim();
+    }).filter(Boolean)
+  );
+
+  const seen = new Set(existingTitles);
+  const merged = [...existingRaw]; // 保留旧数据格式
+  for (const title of incoming) {
+    if (seen.has(title)) continue;
+    seen.add(title);
+    merged.push({ title }); // 统一存为对象
+    if (merged.length >= 1000) break; // safety cap
+  }
+
+  const added = merged.length - existingRaw.length;
+
+  await db.collection(PUBLIC_RANKINGS_COLLECTION).doc(TODAY_POOL_DOC_ID).set({
+    data: {
+      items: merged,
+      updatedAt: Date.now(),
+      updatedBy: openid
+    }
+  });
+
+  return { ok: true, added: Math.max(0, added), total: merged.length };
+}
+
 exports.main = async (event, context) => {
   const action = String(event?.action || '').trim();
   try {
@@ -338,6 +402,8 @@ exports.main = async (event, context) => {
       case 'resetTestUser': return await resetTestUser(event);
       case 'listFeedback': return await listFeedback(event);
       case 'listWishlistHot': return await listWishlistHot(event);
+      case 'getTodayPool': return await getTodayPool();
+      case 'appendTodayPool': return await appendTodayPool(event);
       default:
         return { ok: false, error: 'unknown action' };
     }

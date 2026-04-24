@@ -46,3 +46,13 @@ export async function adminListWishlistHot(offset = 0, limit = 20) {
   return assertCloudOk(res);
 }
 
+export async function adminGetTodayPool() {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'getTodayPool' });
+  return assertCloudOk(res);
+}
+
+export async function adminAppendTodayPool(text) {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'appendTodayPool', text });
+  return assertCloudOk(res);
+}
+
