@@ -1,0 +1,164 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
+.page {
+  min-height: 100vh;
+}
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1rpx solid var(--border-soft);
+  margin-bottom: 16rpx;
+  box-shadow: var(--shadow-soft);
+  padding: 22rpx 22rpx;
+}
+
+.h1 {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.h2 {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 14rpx;
+}
+
+.p {
+  margin-top: 12rpx;
+}
+
+.muted {
+  color: var(--text-light);
+  font-size: 24rpx;
+}
+
+.stats-row {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 14rpx;
+}
+
+.stat {
+  flex: 1;
+  padding: 18rpx 14rpx;
+  border-radius: 16rpx;
+  background: var(--bg-surface-muted);
+}
+
+.stat-num {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.stat-label {
+  margin-top: 8rpx;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+}
+
+.user-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+
+.user-no {
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+.user-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-title);
+}
+
+.user-meta {
+  font-size: 22rpx;
+}
+
+.hot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+}
+
+.hot-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: var(--text-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hot-count {
+  flex: none;
+  font-size: 22rpx;
+}
+
+.msg-row {
+  padding: 14rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+}
+
+.msg-content {
+  font-size: 26rpx;
+  line-height: 1.55;
+  color: var(--text-title);
+  word-break: break-word;
+}
+
+.msg-meta {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+}
+
+.picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+}
+
+.picker-label {
+  flex: none;
+  width: 140rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--text-title);
+}
+
+.picker-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  font-size: 24rpx;
+  color: var(--text-title);
+}
+
+.picker-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  font-size: 24rpx;
+  color: var(--text-title);
+}
+

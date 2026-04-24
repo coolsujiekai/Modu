@@ -1,0 +1,45 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
+.page { min-height: 100vh; }
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1rpx solid var(--border-soft);
+  margin-bottom: 16rpx;
+  box-shadow: var(--shadow-soft);
+  padding: 22rpx 22rpx;
+}
+
+.h1 {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.p { margin-top: 12rpx; }
+
+.muted {
+  color: var(--text-light);
+  font-size: 24rpx;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 220rpx;
+  padding: 16rpx 16rpx;
+  box-sizing: border-box;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1rpx solid var(--border-faint);
+  font-size: 28rpx;
+  color: var(--text-title);
+}
+
+.counter {
+  margin-top: 10rpx;
+  text-align: right;
+}
+

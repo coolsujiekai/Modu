@@ -6,6 +6,26 @@
 
   <view class="card">
     <view class="weui-cells weui-cells_in-card">
+    <view class="weui-cell weui-cell_access" bindtap="goUserProfile">
+      <view class="weui-cell__hd">
+        <view class="icon-wrap icon-personalize">
+          <image class="cell-icon" src="/assets/icons/user-star.svg" mode="aspectFit" />
+        </view>
+      </view>
+      <view class="weui-cell__bd">个人资料</view>
+      <view class="weui-cell__ft"></view>
+    </view>
+
+    <view wx:if="{{isAdmin}}" class="weui-cell weui-cell_access" bindtap="goAdmin">
+      <view class="weui-cell__hd">
+        <view class="icon-wrap icon-personalize">
+          <image class="cell-icon" src="/assets/icons/shield.svg" mode="aspectFit" />
+        </view>
+      </view>
+      <view class="weui-cell__bd">管理面板</view>
+      <view class="weui-cell__ft"></view>
+    </view>
+
     <view class="weui-cell weui-cell_access" bindtap="goWishlist">
       <view class="weui-cell__hd">
         <view class="icon-wrap icon-wishlist">
@@ -33,6 +53,16 @@
         </view>
       </view>
       <view class="weui-cell__bd">个性化设置</view>
+      <view class="weui-cell__ft"></view>
+    </view>
+
+    <view class="weui-cell weui-cell_access" bindtap="goFeedback">
+      <view class="weui-cell__hd">
+        <view class="icon-wrap icon-personalize">
+          <image class="cell-icon" src="/assets/icons/warning.svg" mode="aspectFit" />
+        </view>
+      </view>
+      <view class="weui-cell__bd">留言与反馈</view>
       <view class="weui-cell__ft"></view>
     </view>
 

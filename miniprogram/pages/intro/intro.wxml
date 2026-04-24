@@ -1,0 +1,127 @@
+<view class="page intro-page">
+  <view class="intro-hero">
+    <view class="intro-title">翻书随手记</view>
+    <view class="intro-sub muted">把触动你的句子，随手记下来。</view>
+  </view>
+
+  <!-- Step A：个人资料（可跳过） -->
+  <view wx:if="{{step === 'profile'}}" class="card intro-card">
+    <view class="h2">先设置一个昵称</view>
+    <view class="p muted">不需要微信授权，也可以随时修改。</view>
+
+    <view class="row">
+      <view class="row-label">昵称</view>
+      <input
+        class="row-input"
+        placeholder="2-20 个字"
+        maxlength="20"
+        value="{{profileNickname}}"
+        bindinput="onNickInput"
+      />
+    </view>
+
+    <view class="h2 mt">头像</view>
+    <view class="avatar-group">
+      <view class="avatar-group-title muted">男生</view>
+      <view class="avatar-grid">
+        <view
+          wx:for="{{avatarOptionsMale}}"
+          wx:key="key"
+          class="avatar-item {{selectedAvatarKey === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          data-src="{{item.src}}"
+          bindtap="onPickDefaultAvatar"
+        >
+          <image class="avatar" src="{{item.src}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="avatar-group">
+      <view class="avatar-group-title muted">女生</view>
+      <view class="avatar-grid">
+        <view
+          wx:for="{{avatarOptionsFemale}}"
+          wx:key="key"
+          class="avatar-item {{selectedAvatarKey === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          data-src="{{item.src}}"
+          bindtap="onPickDefaultAvatar"
+        >
+          <image class="avatar" src="{{item.src}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="upload-row">
+      <button class="weui-btn weui-btn_default upload-btn" bindtap="onUploadCustomAvatar">上传自定义头像</button>
+      <image wx:if="{{customAvatarPreview}}" class="upload-preview" src="{{customAvatarPreview}}" mode="aspectFill" />
+    </view>
+
+    <view class="h2 mt">性别</view>
+    <view class="seg">
+      <view class="seg-item {{gender === '' ? 'active' : ''}}" data-gender="" bindtap="setGender">保密</view>
+      <view class="seg-item {{gender === 'male' ? 'active' : ''}}" data-gender="male" bindtap="setGender">男</view>
+      <view class="seg-item {{gender === 'female' ? 'active' : ''}}" data-gender="female" bindtap="setGender">女</view>
+    </view>
+
+    <view class="h2 mt">年龄段</view>
+    <view class="seg seg-3">
+      <view class="seg-item {{age === '' ? 'active' : ''}}" data-age="" bindtap="setAge">保密</view>
+      <view class="seg-item {{age === '18-25' ? 'active' : ''}}" data-age="18-25" bindtap="setAge">18-25</view>
+      <view class="seg-item {{age === '26-35' ? 'active' : ''}}" data-age="26-35" bindtap="setAge">26-35</view>
+    </view>
+    <view class="seg seg-3">
+      <view class="seg-item {{age === '36-45' ? 'active' : ''}}" data-age="36-45" bindtap="setAge">36-45</view>
+      <view class="seg-item {{age === '46-60' ? 'active' : ''}}" data-age="46-60" bindtap="setAge">46-60</view>
+      <view class="seg-item {{age === '60+' ? 'active' : ''}}" data-age="60+" bindtap="setAge">60+</view>
+    </view>
+
+    <view class="actions">
+      <button class="weui-btn weui-btn_default btn" bindtap="skipProfile">跳过</button>
+      <button class="weui-btn weui-btn_primary btn" loading="{{saving}}" disabled="{{saving}}" bindtap="saveProfile">继续</button>
+    </view>
+  </view>
+
+  <!-- Step B：读书引导（可跳过） -->
+  <view wx:elif="{{step === 'book'}}" class="card intro-card">
+    <view class="h2">开始读一本书</view>
+    <view class="p muted">从你脑海中出现的那本书开始。</view>
+
+    <view class="steps">
+      <view class="step">
+        <view class="dot"></view>
+        <view class="step-main">
+          <view class="step-title">添加一本在读书</view>
+          <view class="step-desc muted">从你脑海中出现的那本书开始</view>
+        </view>
+      </view>
+      <view class="step">
+        <view class="dot"></view>
+        <view class="step-main">
+          <view class="step-title">记下一句</view>
+          <view class="step-desc muted">金句或想法，都可以</view>
+        </view>
+      </view>
+      <view class="step">
+        <view class="dot"></view>
+        <view class="step-main">
+          <view class="step-title">读完回看</view>
+          <view class="step-desc muted">整理导出，生成分享卡</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="actions">
+      <button class="weui-btn weui-btn_primary btn" bindtap="startBook">开始使用</button>
+      <button class="weui-btn weui-btn_default btn btn-secondary" bindtap="skipBook">先看看</button>
+    </view>
+  </view>
+
+  <!-- 完成：占位，马上会被 redirectTo -->
+  <view wx:else class="card intro-card">
+    <view class="h2">准备好了</view>
+    <view class="p muted">马上进入…</view>
+  </view>
+</view>
+

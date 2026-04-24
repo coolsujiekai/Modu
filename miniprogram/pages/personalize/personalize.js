@@ -41,6 +41,10 @@ Page({
     this.refresh();
   },
 
+  goUserProfile() {
+    wx.navigateTo({ url: '/pages/userProfile/userProfile' });
+  },
+
   refresh() {
     const saved = safeGetStorage(STORAGE_KEY);
     const enabled = !!saved?.enabled;

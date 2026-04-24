@@ -1,7 +1,7 @@
 function isRouteAllowed(route) {
   // Avoid redirect loops while onboarding / creating book.
   return (
-    route === 'pages/onboarding/onboarding' ||
+    route === 'pages/intro/intro' ||
     route === 'pages/emptyShelf/emptyShelf' ||
     route === 'pages/createBook/createBook'
   );
@@ -41,69 +41,45 @@ App({
     console.error('[App.onUnhandledRejection]', res?.reason || res);
   },
 
-  async maybeForceOnboarding(route, runId = 'pre-fix') {
-    if (this._onboardingRedirecting) return;
+  async maybeForceIntro(route, runId = 'intro-v2') {
+    if (this._introRedirecting) return;
     if (!route || isRouteAllowed(route)) return;
+
+    // Show intro at most once per install (can still be opened later from settings).
+    try {
+      const seen = wx.getStorageSync('_intro_v2_seen') === '1';
+      if (seen) return;
+    } catch (e) {}
 
     ingest({
       sessionId: '7934e3',
       runId,
       hypothesisId: 'H2',
-      location: 'miniprogram/app.js:maybeForceOnboarding',
-      message: 'maybeForceOnboarding enter',
+      location: 'miniprogram/app.js:maybeForceIntro',
+      message: 'maybeForceIntro enter',
       data: { route, hasCloud: !!wx.cloud, hasCloudDb: !!(wx.cloud && wx.cloud.database) },
       timestamp: Date.now()
     });
 
     try {
-      this._onboardingRedirecting = true;
-      // Avoid expensive cross-user counts before openid is ready.
+      this._introRedirecting = true;
+      // Avoid redirecting before openid is ready.
       const openid = this.globalData?.openid || '';
       if (!openid) return;
-      const db = wx.cloud.database();
-      const [readingRes, finishedRes] = await Promise.all([
-        db.collection('books').where({ _openid: openid, status: 'reading' }).count(),
-        db.collection('books').where({ _openid: openid, status: 'finished' }).count()
-      ]);
-      const readingCount = Number(readingRes?.total || 0);
-      const finishedCount = Number(finishedRes?.total || 0);
-
-      ingest({
-        sessionId: '7934e3',
-        runId,
-        hypothesisId: 'H2',
-        location: 'miniprogram/app.js:maybeForceOnboarding',
-        message: 'count result',
-        data: { route, readingCount, finishedCount },
-        timestamp: Date.now()
-      });
-
-      if (readingCount === 0 && finishedCount === 0) {
-        const onboardingSeen = wx.getStorageSync('_onboarding_v1_seen') === '1';
-        const emptyShelfSeen = wx.getStorageSync('_empty_shelf_v1_seen') === '1';
-
-        if (!onboardingSeen) {
-          wx.redirectTo({ url: '/pages/onboarding/onboarding' });
-          return;
-        }
-        if (!emptyShelfSeen) {
-          wx.redirectTo({ url: '/pages/emptyShelf/emptyShelf' });
-          return;
-        }
-        // Both intro pages have been shown once; do not force redirect.
-      }
+      wx.redirectTo({ url: '/pages/intro/intro' });
+      return;
     } catch (e) {
       ingest({
         sessionId: '7934e3',
         runId,
         hypothesisId: 'H2',
-        location: 'miniprogram/app.js:maybeForceOnboarding',
-        message: 'count failed',
+        location: 'miniprogram/app.js:maybeForceIntro',
+        message: 'redirect failed',
         data: { route, errMsg: String(e?.errMsg || e?.message || e) },
         timestamp: Date.now()
       });
     } finally {
-      this._onboardingRedirecting = false;
+      this._introRedirecting = false;
     }
   },
 
@@ -180,7 +156,7 @@ App({
       wx.onAppRoute(() => {
         const pages = getCurrentPages ? getCurrentPages() : [];
         const currentRoute = pages?.[pages.length - 1]?.route || '';
-        this.maybeForceOnboarding(currentRoute, 'pre-fix');
+        this.maybeForceIntro(currentRoute, 'intro-v2');
       });
     }
   }

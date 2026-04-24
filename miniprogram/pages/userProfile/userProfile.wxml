@@ -1,0 +1,87 @@
+<view class="page">
+  <view class="card">
+    <view class="h1">个人资料</view>
+    <view class="p muted">仅用于小程序内展示，不需要微信授权。</view>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <view class="row-label">昵称</view>
+      <input
+        class="row-input"
+        placeholder="2-20 个字"
+        maxlength="20"
+        value="{{nickname}}"
+        bindinput="onNickInput"
+      />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">头像</view>
+    <view class="avatar-group">
+      <view class="avatar-group-title muted">男生</view>
+      <view class="avatar-grid">
+        <view
+          wx:for="{{avatarOptionsMale}}"
+          wx:key="key"
+          class="avatar-item {{selectedAvatarKey === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          data-src="{{item.src}}"
+          bindtap="onPickDefaultAvatar"
+        >
+          <image class="avatar" src="{{item.src}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="avatar-group">
+      <view class="avatar-group-title muted">女生</view>
+      <view class="avatar-grid">
+        <view
+          wx:for="{{avatarOptionsFemale}}"
+          wx:key="key"
+          class="avatar-item {{selectedAvatarKey === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          data-src="{{item.src}}"
+          bindtap="onPickDefaultAvatar"
+        >
+          <image class="avatar" src="{{item.src}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="upload-row">
+      <button class="weui-btn weui-btn_default upload-btn" bindtap="onUploadCustomAvatar">上传自定义头像</button>
+      <image wx:if="{{customAvatarPreview || (avatarType === 'custom' && avatar)}}" class="upload-preview" src="{{customAvatarPreview || avatar}}" mode="aspectFill" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">性别</view>
+    <view class="seg">
+      <view class="seg-item {{gender === '' ? 'active' : ''}}" data-gender="" bindtap="setGender">保密</view>
+      <view class="seg-item {{gender === 'male' ? 'active' : ''}}" data-gender="male" bindtap="setGender">男</view>
+      <view class="seg-item {{gender === 'female' ? 'active' : ''}}" data-gender="female" bindtap="setGender">女</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">年龄段</view>
+    <view class="seg seg-3">
+      <view class="seg-item {{age === '' ? 'active' : ''}}" data-age="" bindtap="setAge">保密</view>
+      <view class="seg-item {{age === '18-25' ? 'active' : ''}}" data-age="18-25" bindtap="setAge">18-25</view>
+      <view class="seg-item {{age === '26-35' ? 'active' : ''}}" data-age="26-35" bindtap="setAge">26-35</view>
+    </view>
+    <view class="seg seg-3">
+      <view class="seg-item {{age === '36-45' ? 'active' : ''}}" data-age="36-45" bindtap="setAge">36-45</view>
+      <view class="seg-item {{age === '46-60' ? 'active' : ''}}" data-age="46-60" bindtap="setAge">46-60</view>
+      <view class="seg-item {{age === '60+' ? 'active' : ''}}" data-age="60+" bindtap="setAge">60+</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <button class="weui-btn weui-btn_primary" loading="{{saving}}" disabled="{{saving}}" bindtap="save">保存</button>
+  </view>
+</view>
+

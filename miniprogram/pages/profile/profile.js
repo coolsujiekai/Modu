@@ -1,6 +1,7 @@
 import { normalizeAuthorName } from '../../utils/author';
 import { db, withOpenIdFilter } from '../../utils/db.js';
 import { debounce, escapeRegExp, highlightText } from '../../utils/util.js';
+import { adminMe } from '../../services/adminService.js';
 
 Page({
   data: {
@@ -10,11 +11,21 @@ Page({
     searchPlaceholder: '',
     searchQuery: '',
     searchLoading: false,
-    searchResults: []
+    searchResults: [],
+    isAdmin: false
   },
 
   onShow() {
-    // 这里先固定版本号，后续如果你希望自动读取 package.json 再做
+    this.checkAdmin();
+  },
+
+  async checkAdmin() {
+    try {
+      const res = await adminMe();
+      this.setData({ isAdmin: !!res?.isAdmin });
+    } catch (e) {
+      this.setData({ isAdmin: false });
+    }
   },
 
   goWishlist() {
@@ -155,6 +166,18 @@ Page({
 
   goPersonalize() {
     wx.navigateTo({ url: '/pages/personalize/personalize' });
+  },
+
+  goUserProfile() {
+    wx.navigateTo({ url: '/pages/userProfile/userProfile' });
+  },
+
+  goAdmin() {
+    wx.navigateTo({ url: '/pages/admin/admin' });
+  },
+
+  goFeedback() {
+    wx.navigateTo({ url: '/pages/feedback/feedback' });
   },
 
   async openDangerZone() {

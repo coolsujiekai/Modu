@@ -1,0 +1,19 @@
+<view class="page">
+  <view class="card">
+    <view class="h1">留言与反馈</view>
+    <view class="p muted">欢迎告诉我你想要的功能，或遇到的问题。</view>
+  </view>
+
+  <view class="card">
+    <textarea
+      class="textarea"
+      placeholder="写下你的留言（最多 300 字）"
+      maxlength="300"
+      value="{{content}}"
+      bindinput="onInput"
+    />
+    <view class="muted counter">{{content.length}} / 300</view>
+    <button class="weui-btn weui-btn_primary" loading="{{saving}}" disabled="{{saving}}" bindtap="submit">发送</button>
+  </view>
+</view>
+

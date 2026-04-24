@@ -1,0 +1,158 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
+.page {
+  min-height: 100vh;
+}
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1rpx solid var(--border-soft);
+  margin-bottom: 16rpx;
+  box-shadow: var(--shadow-soft);
+  padding: 22rpx 22rpx;
+}
+
+.h1 {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.h2 {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 14rpx;
+}
+
+.p {
+  margin-top: 12rpx;
+}
+
+.muted {
+  color: var(--text-light);
+  font-size: 24rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 14rpx 14rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1rpx solid var(--border-faint);
+}
+
+.row-label {
+  flex: none;
+  width: 96rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--text-title);
+}
+
+.row-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 28rpx;
+  color: var(--text-title);
+}
+
+.avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+
+.avatar-group {
+  margin-top: 12rpx;
+}
+
+.avatar-group-title {
+  font-size: 22rpx;
+}
+
+.avatar-item {
+  width: calc((100% - 28rpx) / 3);
+  min-width: 0;
+  padding: 16rpx 12rpx;
+  border-radius: 20rpx;
+  background: var(--bg-surface);
+  border: 1rpx solid var(--border-faint);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-item.active {
+  border-color: var(--text-accent);
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 999rpx;
+  background: #f3f4f6;
+}
+
+.label {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+.upload-row {
+  margin-top: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.upload-btn.weui-btn {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.upload-preview {
+  flex: none;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 999rpx;
+  background: #f3f4f6;
+  border: 1rpx solid var(--border-faint);
+}
+
+.seg {
+  margin-top: 6rpx;
+  background: var(--bg-surface-muted);
+  border-radius: 999rpx;
+  padding: 8rpx;
+  display: flex;
+  gap: 16rpx;
+}
+
+.seg-3 .seg-item {
+  flex: 1 1 0;
+}
+
+.seg-item {
+  flex: 1 1 0;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-light);
+  border-radius: 999rpx;
+}
+
+.seg-item.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 700;
+  box-shadow: var(--shadow-soft);
+}
+

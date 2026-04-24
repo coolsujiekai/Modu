@@ -1,0 +1,10 @@
+{
+  "name": "adminPanel",
+  "version": "1.0.0",
+  "description": "管理员面板云函数：鉴权后查询全量数据",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.4.0"
+  }
+}
+

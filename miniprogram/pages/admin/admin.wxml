@@ -1,0 +1,94 @@
+<view class="page">
+  <view class="card">
+    <view class="h1">管理面板</view>
+    <view class="p muted">仅管理员可见。</view>
+  </view>
+
+  <view class="card">
+    <view class="h2">概览</view>
+    <view class="stats-row">
+      <view class="stat">
+        <view class="stat-num">{{stats.registeredUsers}}</view>
+        <view class="stat-label muted">注册用户</view>
+      </view>
+      <view class="stat">
+        <view class="stat-num">{{stats.booksReading}} / {{stats.booksFinished}}</view>
+        <view class="stat-label muted">在读 / 已读</view>
+      </view>
+      <view class="stat">
+        <view class="stat-num">{{stats.wishlistTotal}}</view>
+        <view class="stat-label muted">书单</view>
+      </view>
+    </view>
+    <view class="stats-row">
+      <view class="stat">
+        <view class="stat-num">{{stats.quoteTotal}} / {{stats.thoughtTotal}}</view>
+        <view class="stat-label muted">金句 / 心得</view>
+      </view>
+      <view class="stat">
+        <view class="stat-num">{{stats.aiGenerations}}</view>
+        <view class="stat-label muted">AI 生成次数</view>
+      </view>
+    </view>
+    <button class="weui-btn weui-btn_default" bindtap="refresh">刷新</button>
+  </view>
+
+  <view class="card">
+    <view class="h2">热门书单 TOP10</view>
+    <view wx:if="{{!stats.wishlistTop || stats.wishlistTop.length === 0}}" class="muted">暂无</view>
+    <view wx:for="{{stats.wishlistTop}}" wx:key="title" class="hot-row">
+      <view class="hot-title">{{item.title}}</view>
+      <view class="hot-count muted">{{item.count}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">测试账号重置</view>
+    <view class="p muted">仅对白名单 `test_devices` 生效。输入 DELETE 后可重置。</view>
+
+    <picker mode="selector" range="{{testDevices}}" range-key="label" value="{{testDeviceIndex}}" bindchange="onPickTestDevice">
+      <view class="picker-row">
+        <view class="picker-label">测试设备</view>
+        <view class="picker-value">
+          <text wx:if="{{testDevices.length > 0}}">{{testDeviceDisplayText}}</text>
+          <text wx:else class="muted">暂无白名单设备</text>
+        </view>
+      </view>
+    </picker>
+
+    <view class="picker-row">
+      <view class="picker-label">确认口令</view>
+      <input class="picker-input" placeholder="请输入 DELETE" value="{{confirmText}}" bindinput="onConfirmInput" />
+    </view>
+
+    <button class="weui-btn weui-btn_warn" bindtap="resetSelectedTestUser" loading="{{resetting}}" disabled="{{resetting || testDevices.length === 0}}">重置该测试账号</button>
+
+    <view wx:if="{{lastResetResult}}" class="p muted">
+      已删除：users {{lastResetResult.users}}，books {{lastResetResult.books}}，wishlist {{lastResetResult.wishlist}}，recent_notes {{lastResetResult.recent_notes}}
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">最近注册用户</view>
+    <view wx:if="{{users.length === 0}}" class="muted">暂无</view>
+    <view wx:for="{{users}}" wx:key="_openid" class="user-row">
+      <view class="user-left">
+        <view class="user-no">#{{item.userNo}}</view>
+        <view class="user-name">{{item.nickname}}</view>
+      </view>
+      <view class="user-meta muted">{{formatTs(item.registeredAt)}}</view>
+    </view>
+    <button wx:if="{{hasMore}}" class="weui-btn weui-btn_default" bindtap="loadMore" loading="{{loadingMore}}" disabled="{{loadingMore}}">加载更多</button>
+  </view>
+
+  <view class="card">
+    <view class="h2">用户留言</view>
+    <view wx:if="{{feedbackItems.length === 0}}" class="muted">暂无</view>
+    <view wx:for="{{feedbackItems}}" wx:key="_id" class="msg-row">
+      <view class="msg-content">{{item.content}}</view>
+      <view class="msg-meta muted">{{item.createdText}} · {{item._openid}}</view>
+    </view>
+    <button wx:if="{{feedbackHasMore}}" class="weui-btn weui-btn_default" bindtap="loadMoreFeedback" loading="{{feedbackLoadingMore}}" disabled="{{feedbackLoadingMore}}">加载更多留言</button>
+  </view>
+</view>
+

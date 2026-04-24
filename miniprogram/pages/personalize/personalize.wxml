@@ -3,6 +3,14 @@
     <view class="h1">个性化</view>
   </view>
 
+  <view class="card">
+    <view class="h2">个人资料</view>
+    <view class="setting-row" bindtap="goUserProfile">
+      <view class="setting-title">编辑昵称与头像</view>
+      <view class="muted">去设置</view>
+    </view>
+  </view>
+
 
 
   <view class="card">

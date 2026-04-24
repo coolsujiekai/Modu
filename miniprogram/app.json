@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/intro/intro",
     "pages/index/index",
     "pages/onboarding/onboarding",
     "pages/emptyShelf/emptyShelf",
@@ -11,6 +12,9 @@
     "pages/wishlist/wishlist",
     "pages/history/history",
     "pages/profile/profile",
+    "pages/userProfile/userProfile",
+    "pages/admin/admin",
+    "pages/feedback/feedback",
     "pages/privacy/privacy",
     "pages/personalize/personalize",
     "pages/author/author",
