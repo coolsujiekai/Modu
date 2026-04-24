@@ -12,6 +12,7 @@ Page({
     heroSub: '从一本书开始今天的阅读',
     homeViewMode: 'grid',
     recentNotes: [],
+    dailyQuote: '读一本好书，就是和许多高尚的人谈话。',
     // Reading activity banner summary
     activity: {
       streak: 7,
@@ -63,6 +64,14 @@ Page({
 
   goActivity() {
     wx.navigateTo({ url: '/pages/activity/activity' });
+  },
+
+  goHistory() {
+    wx.switchTab({ url: '/pages/history/history' });
+  },
+
+  goProfile() {
+    wx.switchTab({ url: '/pages/profile/profile' });
   },
 
   refreshHomeActivity() {

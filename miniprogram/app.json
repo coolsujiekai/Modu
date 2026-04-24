@@ -26,7 +26,7 @@
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTitleText": "翻书随手记",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#f5f5f5"
+    "backgroundColor": "#FAFAF8"
   },
   "darkmode": true,
   "plugins": {
@@ -52,6 +52,14 @@
         "text": "更多"
       }
     ]
+  },
+  "usingComponents": {
+    "van-icon": "@vant/weapp/icon/index",
+    "van-tag": "@vant/weapp/tag/index",
+    "van-progress": "@vant/weapp/progress/index",
+    "van-loading": "@vant/weapp/loading/index",
+    "van-button": "@vant/weapp/button/index",
+    "van-card": "@vant/weapp/card/index"
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",

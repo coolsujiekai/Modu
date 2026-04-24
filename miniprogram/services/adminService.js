@@ -56,3 +56,23 @@ export async function adminAppendTodayPool(text) {
   return assertCloudOk(res);
 }
 
+export async function adminListChallenges(status) {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'listChallenges', status: status || '' });
+  return assertCloudOk(res);
+}
+
+export async function adminCreateChallenge(name, desc, startDate, endDate) {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'createChallenge', name, desc, startDate, endDate });
+  return assertCloudOk(res);
+}
+
+export async function adminStartChallenge(id) {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'startChallenge', id });
+  return assertCloudOk(res);
+}
+
+export async function adminEndChallenge(id) {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'endChallenge', id });
+  return assertCloudOk(res);
+}
+

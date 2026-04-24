@@ -13,6 +13,8 @@ const ADMINS_COLLECTION = 'admins';
 const TEST_DEVICES_COLLECTION = 'test_devices';
 const FEEDBACK_COLLECTION = 'feedback';
 const PUBLIC_RANKINGS_COLLECTION = 'public_rankings';
+const COUNTERS_COLLECTION = 'counters';
+const COUNTER_DOC_ID = 'users';
 const TODAY_POOL_DOC_ID = 'today_pool';
 
 function getOpenid() {
@@ -314,6 +316,17 @@ async function resetTestUser(event) {
     recent_notes: 0
   };
 
+  // 先把该用户的 userNo 加入回收列表，再删数据
+  let userNoToRecycle = null;
+  try {
+    const userDoc = await db.collection('users').doc(target).get();
+    if (userDoc?.data) {
+      userNoToRecycle = Number(userDoc.data.userNo || 0) || null;
+    }
+  } catch (e) {
+    // ignore
+  }
+
   // Remove profile doc (id is openid)
   try {
     await db.collection('users').doc(target).remove();
@@ -322,12 +335,110 @@ async function resetTestUser(event) {
     // ignore
   }
 
+  // 把序号加入回收列表
+  if (userNoToRecycle) {
+    try {
+      const counterRef = db.collection(COUNTERS_COLLECTION).doc(COUNTER_DOC_ID);
+      const counterSnap = await counterRef.get().catch(() => null);
+      const recycledNos = Array.isArray(counterSnap?.data?.recycledNos) ? counterSnap.data.recycledNos : [];
+      if (!recycledNos.includes(userNoToRecycle)) {
+        recycledNos.push(userNoToRecycle);
+        if (counterSnap?.data) {
+          await counterRef.update({ data: { recycledNos } });
+        } else {
+          await counterRef.set({ data: { recycledNos, createdAt: Date.now() } });
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
   counts.books = await deleteByOpenid('books', target, 20);
   counts.wishlist = await deleteByOpenid('wishlist', target, 20);
   counts.recent_notes = await deleteByOpenid('recent_notes', target, 50);
 
   return { ok: true, counts };
 }
+
+// ===================== 活动管理 =====================
+
+async function createChallenge(event) {
+  const caller = getOpenid();
+  if (!(await isAdmin(caller))) return deny();
+
+  const name = String(event.name || '').trim();
+  const desc = String(event.desc || '').trim();
+  const startDate = Number(event.startDate || 0);
+  const endDate = Number(event.endDate || 0);
+
+  if (!name) return { ok: false, error: 'name is required' };
+  if (!startDate || !endDate) return { ok: false, error: 'startDate and endDate are required' };
+  if (endDate <= startDate) return { ok: false, error: 'endDate must be after startDate' };
+
+  const now = Date.now();
+  const res = await db.collection('reading_challenges').add({
+    data: {
+      status: 'pending',
+      name,
+      desc,
+      startDate,
+      endDate,
+      createdAt: now,
+      createdBy: caller,
+    }
+  });
+
+  return { ok: true, id: res._id };
+}
+
+async function startChallenge(event) {
+  const caller = getOpenid();
+  if (!(await isAdmin(caller))) return deny();
+
+  const id = String(event.id || '').trim();
+  if (!id) return { ok: false, error: 'id is required' };
+
+  try {
+    await db.collection('reading_challenges').doc(id).update({
+      data: { status: 'active', startedAt: Date.now() }
+    });
+  } catch (e) {
+    return { ok: false, error: 'challenge not found' };
+  }
+  return { ok: true };
+}
+
+async function endChallenge(event) {
+  const caller = getOpenid();
+  if (!(await isAdmin(caller))) return deny();
+
+  const id = String(event.id || '').trim();
+  if (!id) return { ok: false, error: 'id is required' };
+
+  try {
+    await db.collection('reading_challenges').doc(id).update({
+      data: { status: 'ended', endedAt: Date.now() }
+    });
+  } catch (e) {
+    return { ok: false, error: 'challenge not found' };
+  }
+  return { ok: true };
+}
+
+async function listChallenges(event) {
+  const caller = getOpenid();
+  if (!(await isAdmin(caller))) return deny();
+
+  const status = String(event.status || '').trim();
+  let query = db.collection('reading_challenges').orderBy('createdAt', 'desc');
+  if (status) query = query.where({ status });
+
+  const res = await query.limit(50).get();
+  return { ok: true, items: res.data || [] };
+}
+
+// ===================== 今日热榜 =====================
 
 async function getTodayPool() {
   const openid = getOpenid();
@@ -404,6 +515,10 @@ exports.main = async (event, context) => {
       case 'listWishlistHot': return await listWishlistHot(event);
       case 'getTodayPool': return await getTodayPool();
       case 'appendTodayPool': return await appendTodayPool(event);
+      case 'createChallenge': return await createChallenge(event);
+      case 'startChallenge': return await startChallenge(event);
+      case 'endChallenge': return await endChallenge(event);
+      case 'listChallenges': return await listChallenges(event);
       default:
         return { ok: false, error: 'unknown action' };
     }

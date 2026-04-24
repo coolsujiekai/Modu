@@ -40,10 +40,27 @@ export async function uploadAvatar(localPath, options = {}) {
   const ext = String(options.ext || 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'jpg';
   const cloudPath = `user-avatars/${openid || 'unknown'}/${ts}_${rand}.${ext}`;
 
+  // ── 自动压缩：超过 500KB 压缩到 80% 质量 ──
+  let uploadPath = localPath;
+  try {
+    const info = await wx.getFileInfo({ filePath: localPath });
+    if (info?.size > 500 * 1024) {
+      const compressed = await wx.compressImage({
+        filePath: localPath,
+        quality: 80
+      });
+      if (compressed?.tempFilePath) {
+        uploadPath = compressed.tempFilePath;
+      }
+    }
+  } catch (e) {
+    // 压缩失败时尝试直接上传原图
+  }
+
   try {
     const res = await wx.cloud.uploadFile({
       cloudPath,
-      filePath: localPath
+      filePath: uploadPath
     });
     const fileID = res?.fileID || '';
     if (!fileID) throw new Error('upload failed: missing fileID');

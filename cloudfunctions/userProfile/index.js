@@ -119,19 +119,29 @@ async function upsertProfile(event) {
 
     const counterRef = transaction.collection(COUNTERS_COLLECTION).doc(COUNTER_DOC_ID);
     const counterSnap = await counterRef.get().catch(() => null);
-    const nextNo = Math.max(1, Number(counterSnap?.data?.nextNo || 1));
+    let nextNo = Math.max(1, Number(counterSnap?.data?.nextNo || 1));
+    let recycledNos = Array.isArray(counterSnap?.data?.recycledNos) ? counterSnap.data.recycledNos : [];
 
-    // Increment counter (idempotent in transaction scope)
-    if (counterSnap?.data) {
-      await counterRef.update({ data: { nextNo: _.inc(1), updatedAt: now } });
+    // 优先使用回收的最小序号
+    let userNo;
+    if (recycledNos.length > 0) {
+      userNo = Math.min(...recycledNos);
+      recycledNos = recycledNos.filter((n) => n !== userNo);
+      await counterRef.update({ data: { recycledNos, updatedAt: now } });
     } else {
-      await counterRef.set({ data: { nextNo: nextNo + 1, createdAt: now, updatedAt: now } });
+      userNo = nextNo;
+      // Increment counter (idempotent in transaction scope)
+      if (counterSnap?.data) {
+        await counterRef.update({ data: { nextNo: _.inc(1), updatedAt: now } });
+      } else {
+        await counterRef.set({ data: { nextNo: nextNo + 1, createdAt: now, updatedAt: now } });
+      }
     }
 
     await transaction.collection(USERS_COLLECTION).doc(openid).set({
       data: {
         _openid: openid,
-        userNo: nextNo,
+        userNo,
         registeredAt: now,
         ...patch,
         createdAt: now,
@@ -139,7 +149,7 @@ async function upsertProfile(event) {
       },
     });
 
-    return { ok: true, created: true, createdAt: now, userNo: nextNo };
+    return { ok: true, created: true, createdAt: now, userNo };
   });
 
   return result;

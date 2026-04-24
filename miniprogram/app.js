@@ -55,71 +55,41 @@ App({
     if (this._introRedirecting) return;
     if (!route || isRouteAllowed(route)) return;
 
-    // Show intro at most once per install (can still be opened later from settings).
+    // ── 优先读本地 flag，快速返回，避免每次都请求云函数 ──
     try {
-      const seen = safeGet(INTRO_SEEN_KEY) === '1';
-      if (seen) return;
+      if (safeGet(INTRO_SEEN_KEY) === '1') return;
     } catch (e) {}
 
-    // If profile already completed, do not redirect to intro (avoid flash).
+    // openid 未就绪时跳过，等下次路由变化再试
+    const openid = this.globalData?.openid || '';
+    if (!openid) return;
+
+    // 云函数查询用户是否已有昵称（已有用户不再弹引导）
     try {
-      const profileDone = safeGet(PROFILE_DONE_KEY) === '1';
-      if (profileDone) {
+      const res = await new Promise((resolve, reject) => {
+        wx.cloud.callFunction({
+          name: 'userProfile',
+          data: { action: 'get' },
+          success: resolve,
+          fail: reject
+        });
+      });
+      const r = res?.result || {};
+      const nick = String(r?.profile?.nickname || '').trim();
+      const profileFound = !!r?.found && nick.length >= 2;
+      if (profileFound) {
+        safeSet(PROFILE_DONE_KEY, '1');
         safeSet(INTRO_SEEN_KEY, '1');
         return;
       }
-    } catch (e) {}
+    } catch (e) {
+      // 云函数未部署或调用失败，走本地 flag 逻辑，不弹引导
+    }
 
-    ingest({
-      sessionId: '7934e3',
-      runId,
-      hypothesisId: 'H2',
-      location: 'miniprogram/app.js:maybeForceIntro',
-      message: 'maybeForceIntro enter',
-      data: { route, hasCloud: !!wx.cloud, hasCloudDb: !!(wx.cloud && wx.cloud.database) },
-      timestamp: Date.now()
-    });
-
+    // 新用户：跳引导页（仅首次）
     try {
       this._introRedirecting = true;
-      // Avoid redirecting before openid is ready.
-      const openid = this.globalData?.openid || '';
-      if (!openid) return;
-
-      // Strong check: query profile once to avoid intro flash for existing users.
-      try {
-        const res = await new Promise((resolve, reject) => {
-          wx.cloud.callFunction({
-            name: 'userProfile',
-            data: { action: 'get' },
-            success: resolve,
-            fail: reject
-          });
-        });
-        const r = res?.result || {};
-        const nick = String(r?.profile?.nickname || '').trim();
-        const profileFound = !!r?.found && nick.length >= 2;
-        if (profileFound) {
-          safeSet(PROFILE_DONE_KEY, '1');
-          safeSet(INTRO_SEEN_KEY, '1');
-          return;
-        }
-      } catch (e) {
-        // ignore (cloud function may not be deployed); fallback to intro
-      }
-
       wx.redirectTo({ url: '/pages/intro/intro' });
-      return;
-    } catch (e) {
-      ingest({
-        sessionId: '7934e3',
-        runId,
-        hypothesisId: 'H2',
-        location: 'miniprogram/app.js:maybeForceIntro',
-        message: 'redirect failed',
-        data: { route, errMsg: String(e?.errMsg || e?.message || e) },
-        timestamp: Date.now()
-      });
     } finally {
       this._introRedirecting = false;
     }

@@ -3,281 +3,271 @@
 
 .page.home-page {
   min-height: 100vh;
-  position: relative;
+  background: #FAFAF8;
+  padding: 0 40rpx;
 }
 
-/* ============ 主 Hero ============ */
-.home-hero {
-  margin-top: 0;
-  padding: 40rpx 36rpx !important;
-  border-radius: var(--radius-xl) !important;
-  background: var(--hero-bg-gradient) !important;
+/* ============ 顶部状态栏占位 ============ */
+.top-bar {
+  height: calc(var(--status-bar-height) + 16rpx);
 }
 
-.home-hero__title {
-  font-size: 48rpx;
-  font-weight: 700;
-  color: var(--text-title);
-  line-height: 1.14;
-  letter-spacing: -0.02em;
+/* ============ 书架区域 ============ */
+.shelf-section {
+  padding-bottom: 8rpx;
 }
 
-.home-hero__sub {
-  margin-top: 14rpx;
-  font-size: 26rpx;
-  line-height: 1.6;
-  color: var(--text-light);
-}
-
-.home-hero__actions {
-  margin-top: 32rpx;
+.shelf-header {
   display: flex;
-  gap: 16rpx;
-}
-
-.home-hero__btn.weui-btn {
-  flex: 1;
-  margin: 0;
-}
-
-.home-empty {
-  padding: 8rpx 8rpx 24rpx;
-}
-
-/* ============ 最近记录 ============ */
-.recent-section {
-  margin-top: 44rpx;
+  align-items: baseline;
+  gap: 10rpx;
   margin-bottom: 32rpx;
 }
 
-.recent-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 0 6rpx 18rpx;
-}
-
-.recent-title {
-  font-size: 40rpx;
+.shelf-label {
+  font-size: 44rpx;
   font-weight: 700;
-  color: var(--text-title);
-  letter-spacing: -0.02em;
-}
-
-.recent-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.recent-item {
-  padding: 28rpx;
-  border-radius: var(--radius-lg);
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-soft);
-  transition: opacity 0.15s ease;
-}
-
-.recent-item__text {
-  font-size: 28rpx;
-  line-height: 1.6;
-  color: var(--text-title);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  word-break: break-word;
-}
-
-.recent-item__tag {
-  margin-right: 8rpx;
-}
-
-.recent-item__meta {
-  margin-top: 14rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
-  font-size: 22rpx;
-  color: var(--text-light);
-}
-
-.recent-item__book {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-accent);
-}
-
-.recent-item__time {
-  flex: none;
-}
-
-/* ============ 在读书架（横向弱化） ============ */
-.shelf-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12rpx;
-  padding: 0 6rpx 18rpx;
-}
-
-.shelf-title {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: var(--text-title);
-  letter-spacing: -0.02em;
+  color: #1A1A1A;
+  letter-spacing: -0.03em;
 }
 
 .shelf-count {
   font-size: 24rpx;
-  color: var(--text-light);
+  color: #9A9A9A;
+  font-weight: 400;
 }
 
-.shelf-scroll {
-  width: 100%;
-  white-space: nowrap;
-  margin: 0 -32rpx;
-  padding: 0 32rpx;
-  box-sizing: content-box;
+.shelf-loading {
+  display: flex;
+  justify-content: center;
+  padding: 80rpx 0;
 }
 
-.shelf-inner {
-  display: inline-flex;
-  gap: 24rpx;
-  padding-right: 32rpx;
+/* ============ 空书架 ============ */
+.shelf-empty {
+  padding: 40rpx 0;
 }
 
-.shelf-item {
-  flex: none;
-  width: 168rpx;
+.shelf-empty__inner {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
+  padding: 64rpx 0;
 }
 
-.shelf-cover {
+.shelf-empty__icon {
+  font-size: 64rpx;
+  display: block;
+  margin-bottom: 20rpx;
+  opacity: 0.4;
+}
+
+.shelf-empty__text {
+  font-size: 28rpx;
+  color: #B0B0B0;
+  display: block;
+  margin-bottom: 32rpx;
+}
+
+.shelf-empty__btn {
+  background: #8B7355 !important;
+  color: #fff !important;
+  border: none !important;
+  font-size: 26rpx !important;
+}
+
+/* ============ 书籍行 ============ */
+.book-row {
+  display: flex;
+  gap: 28rpx;
+  overflow-x: auto;
+  padding-bottom: 12rpx;
+  margin: 0 -40rpx;
+  padding-left: 40rpx;
+  padding-right: 40rpx;
+  -webkit-overflow-scrolling: touch;
+}
+
+.book-row::-webkit-scrollbar {
+  display: none;
+}
+
+.book-item {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+}
+
+/* ============ 书籍封面 ============ */
+.book-cover {
   position: relative;
-  width: 168rpx;
-  height: 228rpx;
-  border-radius: 24rpx;
-  border: none;
+  width: 120rpx;
+  height: 168rpx;
+  border-radius: 8rpx;
   overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.10), 0 1rpx 4rpx rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: stretch;
-  box-shadow: var(--shadow-book-cover);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.shelf-cover__spine {
+.book-item:active .book-cover {
+  transform: scale(0.96);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+}
+
+.book-cover__left-bar {
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
-  width: 10rpx;
-  background: var(--cover-spine-gradient);
-  border-right: 1rpx solid var(--border-dark-faint);
+  width: 8rpx;
+  background: rgba(0, 0, 0, 0.12);
   z-index: 1;
 }
 
-.shelf-cover__inner {
+.book-cover__content {
   flex: 1;
-  padding: 18rpx 16rpx 16rpx 24rpx;
+  padding: 14rpx 12rpx 14rpx 18rpx;
   display: flex;
   align-items: flex-start;
   z-index: 2;
 }
 
-.shelf-cover__title {
-  font-size: 24rpx;
-  line-height: 1.45;
+.book-cover__title {
+  font-size: 22rpx;
+  line-height: 1.5;
   font-weight: 600;
-  color: var(--cover-title-color);
-  letter-spacing: 0.01em;
+  color: #2C2C2C;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
+  -webkit-line-clamp: 4;
   overflow: hidden;
   word-break: break-word;
-  white-space: normal;
 }
 
-/* 复用首页既有的底色变量 */
-.cover-tone-1 {
-  background: var(--book-tone-shine-1), var(--book-tone-1);
-}
-.cover-tone-2 {
-  background: var(--book-tone-shine-2), var(--book-tone-2);
-}
-.cover-tone-3 {
-  background: var(--book-tone-shine-3), var(--book-tone-3);
-}
-.cover-tone-4 {
-  background: var(--book-tone-shine-4), var(--book-tone-4);
-}
-.cover-tone-5 {
-  background: var(--book-tone-shine-5), var(--book-tone-5);
+.book-cover--add {
+  background: #F0EFED !important;
+  border: 1.5rpx dashed #CFCFC9 !important;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
 }
 
-.shelf-author {
-  margin-top: 12rpx;
+.book-cover__plus {
+  font-size: 48rpx;
+  color: #B0B0B0;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* 封面配色 */
+.book-cover.cover-tone-1 { background: linear-gradient(155deg, #F2F4FF 0%, #E8EDFF 100%); }
+.book-cover.cover-tone-2 { background: linear-gradient(155deg, #F5F6FA 0%, #EDF1F7 100%); }
+.book-cover.cover-tone-3 { background: linear-gradient(155deg, #FFF3EC 0%, #FFE8DF 100%); }
+.book-cover.cover-tone-4 { background: linear-gradient(155deg, #F3FFF6 0%, #E4F8EC 100%); }
+.book-cover.cover-tone-5 { background: linear-gradient(155deg, #F8F4FF 0%, #EEE6FF 100%); }
+
+/* ============ 书名 ============ */
+.book-name {
   font-size: 22rpx;
-  color: var(--text-light);
+  color: #2C2C2C;
+  font-weight: 500;
   text-align: center;
+  max-width: 120rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.shelf-add {
-  width: 168rpx;
-  height: 228rpx;
-  border-radius: 24rpx;
-  background: var(--bg-surface);
-  border: none;
+.book-name--muted {
+  color: #B0B0B0;
+  font-weight: 400;
+}
+
+/* ============ 分隔线 ============ */
+.divider {
+  height: 1rpx;
+  background: #EBEBEB;
+  margin: 40rpx 0;
+}
+
+/* ============ 笔记区域 ============ */
+.notes-section {
+  padding-bottom: 20rpx;
+}
+
+.notes-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28rpx;
+}
+
+.notes-label {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+  letter-spacing: -0.03em;
+}
+
+.notes-more {
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-soft);
-}
-
-.shelf-add__plus {
-  font-size: 56rpx;
-  color: var(--text-light);
-  line-height: 1;
-  font-weight: 200;
-}
-
-/* ============ 空书架 ============ */
-.empty-shelf {
-  padding: 96rpx 32rpx;
-  text-align: center;
-}
-
-.empty-shelf__icon {
-  font-size: 84rpx;
-  margin-bottom: 16rpx;
-}
-
-.empty-shelf__title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-title);
-}
-
-.empty-shelf__desc {
-  margin-top: 12rpx;
+  gap: 4rpx;
   font-size: 24rpx;
-  color: var(--text-warm-muted);
+  color: #9A9A9A;
 }
 
-.empty-shelf__btn {
-  margin-top: 32rpx !important;
-  display: inline-block;
-  min-width: 240rpx;
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
 }
 
-.tap-active {
-  opacity: 0.86;
+.note-item {
+  padding: 28rpx 32rpx;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.note-item__top {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 14rpx;
+}
+
+.note-item__book {
+  font-size: 22rpx;
+  color: #9A9A9A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-item__text {
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: #1A1A1A;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.note-item__time {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 21rpx;
+  color: #C0C0C0;
+}
+
+/* ============ 安全区 ============ */
+.safe-area {
+  height: calc(env(safe-area-inset-bottom) + 24rpx);
 }

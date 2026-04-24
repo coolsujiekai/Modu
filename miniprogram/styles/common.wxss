@@ -20,6 +20,7 @@ page,
   box-sizing: border-box;
 }
 
+/* ===== 卡片基础 ===== */
 .card,
 .hero,
 .section-card,
@@ -51,9 +52,9 @@ page,
 
 .export-card {
   background: var(--bg-surface-soft) !important;
-  box-shadow: var(--shadow-soft) !important;
 }
 
+/* ===== 列表项无投影 ===== */
 .quote-item,
 .result-item,
 .book-cover-large,
@@ -95,6 +96,7 @@ page,
   margin-bottom: var(--space-2) !important;
 }
 
+/* ===== 间距 ===== */
 .page-head,
 .hero-top,
 .hero-sub,
@@ -128,6 +130,7 @@ page,
   margin-bottom: 0 !important;
 }
 
+/* ===== WeUI 基础重置 ===== */
 .weui-panel,
 .weui-cells {
   overflow: hidden;
@@ -187,6 +190,7 @@ page,
   color: var(--text-light) !important;
 }
 
+/* ===== 文字层级 ===== */
 .h1,
 .h2,
 .hero-title,
@@ -204,7 +208,7 @@ page,
   font-size: var(--font-title) !important;
   font-weight: var(--font-title-weight) !important;
   color: var(--text-primary) !important;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .p,
@@ -238,6 +242,7 @@ page,
   color: var(--text-light) !important;
 }
 
+/* ===== 按钮 ===== */
 .btn-primary,
 .weui-btn_primary,
 .btn-confirm,
@@ -248,8 +253,8 @@ page,
   color: var(--button-text) !important;
   border-radius: var(--radius-md) !important;
   border: none !important;
-  box-shadow: 0 12rpx 28rpx rgba(10, 132, 255, 0.2) !important;
-  font-weight: 700;
+  box-shadow: var(--shadow-soft) !important;
+  font-weight: 600;
   letter-spacing: var(--btn-letter-spacing);
 }
 
@@ -260,9 +265,9 @@ page,
   background: var(--bg-surface) !important;
   color: var(--button-text-secondary) !important;
   border-radius: var(--radius-md) !important;
-  border: none !important;
-  box-shadow: var(--shadow-soft) !important;
-  font-weight: 700;
+  border: 1.5rpx solid var(--border-color) !important;
+  box-shadow: none !important;
+  font-weight: 600;
   letter-spacing: var(--btn-letter-spacing);
 }
 
@@ -278,14 +283,14 @@ page,
 .btn-share-card:active {
   opacity: 1 !important;
   background: var(--btn-active-bg-primary) !important;
-  transform: scale(0.985);
+  transform: scale(0.98);
 }
 
 .weui-btn_default:not(.weui-btn_disabled):active,
 .btn-secondary:active {
   opacity: 1 !important;
   background: var(--btn-active-bg-secondary) !important;
-  transform: scale(0.985);
+  transform: scale(0.98);
 }
 
 .tap-active {
@@ -293,6 +298,7 @@ page,
   opacity: 1 !important;
 }
 
+/* ===== 滑动删除 ===== */
 .slide-row {
   overflow: hidden;
 }

@@ -4,16 +4,6 @@
   </view>
 
   <view class="card">
-    <view class="h2">个人资料</view>
-    <view class="setting-row" bindtap="goUserProfile">
-      <view class="setting-title">编辑昵称与头像</view>
-      <view class="muted">去设置</view>
-    </view>
-  </view>
-
-
-
-  <view class="card">
     <view class="h2">记录习惯</view>
     <view class="setting-row">
       <view class="setting-title">时间显示</view>
@@ -35,7 +25,6 @@
   <view class="card">
     <view class="h2">阅读分享图片模版</view>
     <view class="setting-row">
-     
       <view class="seg seg-3">
         <view class="seg-item {{settings.shareTemplateId === 'nebula' ? 'active' : ''}}" data-template="nebula" bindtap="setShareTemplate">夜色</view>
         <view class="seg-item {{settings.shareTemplateId === 'paper' ? 'active' : ''}}" data-template="paper" bindtap="setShareTemplate">纸页</view>
@@ -45,16 +34,4 @@
     <view class="p muted">首次生成时会提示，之后可在这里统一修改默认模板。</view>
   </view>
 
-  <view class="card" wx:if="{{enabled}}">
-    <view class="h2">当前显示</view>
-    <view class="profile">
-      <image class="avatar" src="{{profile.avatarUrl || defaultAvatar}}" mode="aspectFill" />
-      <view class="info">
-        <view class="name">{{profile.nickName || '未设置昵称'}}</view>
-        <view class="muted">仅用于本机展示，可随时关闭。</view>
-      </view>
-    </view>
-  </view>
-
 </view>
-
