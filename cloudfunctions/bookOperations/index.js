@@ -467,6 +467,7 @@ async function addBook(event) {
       authorName: authorName || '',
       authorNameNorm: authorNameNorm || '',
       startTime,
+      updatedAt: startTime,
       status: 'reading',
       durationMin: 0
     }
@@ -510,7 +511,7 @@ async function finishBook(event) {
   const endTime = Date.now();
   const durationMin = startTime ? Math.floor((endTime - startTime) / 60000) : 0;
   await db.collection('books').doc(bookId).update({
-    data: { endTime, durationMin, status: 'finished' }
+    data: { endTime, durationMin, status: 'finished', updatedAt: endTime }
   });
   return { endTime, durationMin };
 }
@@ -529,7 +530,8 @@ async function unfinishBook(event) {
   await db.collection('books').doc(bookId).update({
     data: {
       status: 'reading',
-      endTime: _.remove()
+      endTime: _.remove(),
+      updatedAt: Date.now()
     }
   });
   return { success: true };

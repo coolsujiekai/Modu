@@ -2,6 +2,7 @@ import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 import { deleteBook, finishBook } from '../../services/bookService.js';
 import { formatNoteTime } from '../../services/noteService.js';
+import { cacheGet, cacheSet, cacheRemove, CacheKeys, CacheTTL } from '../../utils/cache.js';
 
 Page({
   data: {
@@ -136,6 +137,8 @@ Page({
     wx.showLoading({ title: '删除中', mask: true });
     try {
       await deleteBook(id);
+      cacheRemove(CacheKeys.READING_BOOKS);
+      cacheRemove(CacheKeys.RECENT_NOTES);
       wx.hideLoading();
       wx.showToast({ title: '已删除', icon: 'success', duration: 800 });
       await this.loadReadingBooks();
@@ -212,6 +215,11 @@ Page({
 
 
   async loadRecentNotes() {
+    const cached = cacheGet(CacheKeys.RECENT_NOTES);
+    if (cached) {
+      this.setData({ recentNotes: cached });
+      return;
+    }
     try {
       const res = await withRetry(() =>
         db
@@ -234,6 +242,7 @@ Page({
         .filter((n) => n.bookId && n.timestamp && n.text);
 
       this.setData({ recentNotes });
+      cacheSet(CacheKeys.RECENT_NOTES, recentNotes, CacheTTL.RECENT_NOTES);
     } catch (e) {
       this.setData({ recentNotes: [] });
     }
@@ -270,6 +279,8 @@ Page({
         wx.showLoading({ title: '保存中', mask: true });
         try {
           await finishBook(id, startTime);
+          cacheRemove(CacheKeys.READING_BOOKS);
+          cacheRemove(CacheKeys.RECENT_NOTES);
           wx.hideLoading();
           wx.showToast({ title: '已标记已读', icon: 'success', duration: 800 });
           await this.loadReadingBooks();
@@ -300,56 +311,26 @@ Page({
   },
 
   async loadReadingBooks() {
+    // 尝试从缓存读取
+    const cached = cacheGet(CacheKeys.READING_BOOKS);
+    if (cached) {
+      this.setData({
+        loading: false,
+        readingBooks: cached.books,
+        readingCount: cached.books.length,
+        primaryBook: cached.books[0] || null,
+        heroSub: cached.heroSub
+      });
+      // 后台静默刷新（非阻塞）
+      this._refreshReadingBooksSilently();
+      return;
+    }
+
     this.setData({ loading: true });
     try {
-      let res;
-      try {
-        // 优先：按开始时间倒序（需要组合索引）
-        res = await traced('books.reading.list(orderBy startTime)', () =>
-          withRetry(() =>
-            db
-              .collection('books')
-              .where(withOpenIdFilter({ status: 'reading' }))
-              .orderBy('startTime', 'desc')
-              .limit(50)
-              .field({ notes: false })
-              .get()
-          )
-        );
-      } catch (e) {
-        // 兜底：不排序查询（不依赖组合索引），确保页面可用
-        const msg = e?.errMsg || '';
-        if (msg.includes('timeout') || msg.includes('index')) {
-          wx.showToast({ title: '排序暂不可用，请先建索引', icon: 'none', duration: 2000 });
-        }
-        res = await traced('books.reading.list(no orderBy)', () =>
-          withRetry(() =>
-            db
-              .collection('books')
-              .where(withOpenIdFilter({ status: 'reading' }))
-              .limit(50)
-              .field({ notes: false })
-              .get()
-          )
-        );
-      }
-      const books = res.data || [];
-      const seen = new Set();
-      const normalizedBooks = [];
-      for (const b of books) {
-        const id = b._id;
-        if (!id || seen.has(id)) continue;
-        seen.add(id);
-        const authorName = (b.authorName || '').trim();
-        normalizedBooks.push({
-          ...b,
-          coverToneClass: this.coverToneClassById(b._id),
-          authorName: authorName || ''
-        });
-      }
-      normalizedBooks.sort((a, b) => Number(b.startTime || 0) - Number(a.startTime || 0));
-      const readingCount = normalizedBooks.length;
-      const primaryBook = normalizedBooks[0] || null;
+      const books = await this._fetchReadingBooksFromDb();
+      const readingCount = books.length;
+      const primaryBook = books[0] || null;
       let heroSub = '今天想读哪一本？';
       if (readingCount === 1) {
         heroSub = '1 本在读，打开它继续读';
@@ -358,11 +339,14 @@ Page({
       }
       this.setData({
         loading: false,
-        readingBooks: normalizedBooks,
+        readingBooks: books,
         readingCount,
         primaryBook,
         heroSub
       });
+
+      // 写入缓存
+      cacheSet(CacheKeys.READING_BOOKS, { books, heroSub }, CacheTTL.READING_BOOKS);
 
       // One-time lightweight shelf tip (WeChat-like).
       this.maybeShowShelfTip(readingCount);
@@ -380,8 +364,76 @@ Page({
         showCancel: false
       });
     }
-  }
-  ,
+  },
+
+  async _fetchReadingBooksFromDb() {
+    let res;
+    try {
+      res = await traced('books.reading.list(orderBy startTime)', () =>
+        withRetry(() =>
+          db
+            .collection('books')
+            .where(withOpenIdFilter({ status: 'reading' }))
+            .orderBy('startTime', 'desc')
+            .limit(50)
+            .field({ notes: false })
+            .get()
+        )
+      );
+    } catch (e) {
+      const msg = e?.errMsg || '';
+      if (msg.includes('timeout') || msg.includes('index')) {
+        wx.showToast({ title: '排序暂不可用，请先建索引', icon: 'none', duration: 2000 });
+      }
+      res = await traced('books.reading.list(no orderBy)', () =>
+        withRetry(() =>
+          db
+            .collection('books')
+            .where(withOpenIdFilter({ status: 'reading' }))
+            .limit(50)
+            .field({ notes: false })
+            .get()
+        )
+      );
+    }
+    const books = res.data || [];
+    const seen = new Set();
+    const normalizedBooks = [];
+    for (const b of books) {
+      const id = b._id;
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      const authorName = (b.authorName || '').trim();
+      normalizedBooks.push({
+        ...b,
+        coverToneClass: this.coverToneClassById(b._id),
+        authorName: authorName || ''
+      });
+    }
+    normalizedBooks.sort((a, b) => Number(b.startTime || 0) - Number(a.startTime || 0));
+    return normalizedBooks;
+  },
+
+  async _refreshReadingBooksSilently() {
+    try {
+      const books = await this._fetchReadingBooksFromDb();
+      const readingCount = books.length;
+      let heroSub = '今天想读哪一本？';
+      if (readingCount === 1) {
+        heroSub = '1 本在读，打开它继续读';
+      } else if (readingCount > 1) {
+        heroSub = `${readingCount} 本在读，先从最想读的那本开始`;
+      }
+      cacheSet(CacheKeys.READING_BOOKS, { books, heroSub }, CacheTTL.READING_BOOKS);
+      // 仅在数据有变化时更新 UI
+      const prev = this.data.readingBooks;
+      if (prev.length !== books.length || JSON.stringify(prev) !== JSON.stringify(books)) {
+        this.setData({ readingBooks: books, readingCount, primaryBook: books[0] || null, heroSub });
+      }
+    } catch (e) {
+      // 静默失败，不打扰用户
+    }
+  },
 
   maybeShowShelfTip(readingCount) {
     if (readingCount <= 0) return;

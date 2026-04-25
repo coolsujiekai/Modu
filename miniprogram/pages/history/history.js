@@ -1,6 +1,7 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { formatDate } from '../../utils/util.js';
 import { deleteBook } from '../../services/bookService.js';
+import { cacheGet, cacheSet, cacheRemove, CacheKeys, CacheTTL } from '../../utils/cache.js';
 
 Page({
   data: {
@@ -56,6 +57,8 @@ Page({
     wx.showLoading({ title: '删除中', mask: true });
     try {
       await deleteBook(id);
+      cacheRemove(CacheKeys.FINISHED_BOOKS);
+      cacheRemove(CacheKeys.RECENT_NOTES);
       wx.hideLoading();
       this.setData({ openSlideId: null });
       wx.showToast({ title: '已删除', icon: 'success', duration: 800 });
@@ -106,45 +109,20 @@ Page({
   },
 
   async loadFinishedBooks() {
+    // 尝试从缓存读取
+    const cached = cacheGet(CacheKeys.FINISHED_BOOKS);
+    if (cached) {
+      this.setData({ groupedBooks: cached });
+      // 后台静默刷新
+      this._refreshFinishedBooksSilently(cached);
+      return;
+    }
+
     wx.showLoading({ title: '加载中' });
     try {
-      const res = await traced('books.finished.list(orderBy endTime)', () =>
-        withRetry(() =>
-          db
-            .collection('books')
-            .where(withOpenIdFilter({ status: 'finished' }))
-            .orderBy('endTime', 'desc')
-            .limit(50)
-            .field({ notes: false })
-            .get()
-        )
-      );
-      const books = (res.data || []).map(b => ({
-        ...b,
-        endText: formatDate(b.endTime),
-        slideButtons: [
-          {
-            text: '删除',
-            extClass: 'slide-btn-delete',
-            data: { id: b._id, name: b.bookName }
-          }
-        ]
-      }));
-      const groups = {};
-      books.forEach(book => {
-        const date = new Date(book.endTime);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
-        if (!groups[yearMonth]) groups[yearMonth] = [];
-        groups[yearMonth].push(book);
-      });
-      const groupedBooks = Object.keys(groups).sort().reverse().map(yearMonth => ({
-        yearMonth: yearMonth,
-        yearMonthText: `${yearMonth.slice(0, 4)}年${Number(yearMonth.slice(5))}月`,
-        books: groups[yearMonth]
-      }));
-      this.setData({ groupedBooks: groupedBooks });
+      const groupedBooks = await this._fetchFinishedBooksFromDb();
+      this.setData({ groupedBooks });
+      cacheSet(CacheKeys.FINISHED_BOOKS, groupedBooks, CacheTTL.FINISHED_BOOKS);
       wx.hideLoading();
     } catch (err) {
       wx.hideLoading();
@@ -153,6 +131,57 @@ Page({
         content: err?.errMsg || JSON.stringify(err),
         showCancel: false
       });
+    }
+  },
+
+  async _fetchFinishedBooksFromDb() {
+    const res = await traced('books.finished.list(orderBy endTime)', () =>
+      withRetry(() =>
+        db
+          .collection('books')
+          .where(withOpenIdFilter({ status: 'finished' }))
+          .orderBy('endTime', 'desc')
+          .limit(50)
+          .field({ notes: false })
+          .get()
+      )
+    );
+    const books = (res.data || []).map(b => ({
+      ...b,
+      endText: formatDate(b.endTime),
+      slideButtons: [
+        {
+          text: '删除',
+          extClass: 'slide-btn-delete',
+          data: { id: b._id, name: b.bookName }
+        }
+      ]
+    }));
+    const groups = {};
+    books.forEach(book => {
+      const date = new Date(book.endTime);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
+      if (!groups[yearMonth]) groups[yearMonth] = [];
+      groups[yearMonth].push(book);
+    });
+    return Object.keys(groups).sort().reverse().map(yearMonth => ({
+      yearMonth: yearMonth,
+      yearMonthText: `${yearMonth.slice(0, 4)}年${Number(yearMonth.slice(5))}月`,
+      books: groups[yearMonth]
+    }));
+  },
+
+  async _refreshFinishedBooksSilently(prevGrouped) {
+    try {
+      const groupedBooks = await this._fetchFinishedBooksFromDb();
+      cacheSet(CacheKeys.FINISHED_BOOKS, groupedBooks, CacheTTL.FINISHED_BOOKS);
+      if (JSON.stringify(prevGrouped) !== JSON.stringify(groupedBooks)) {
+        this.setData({ groupedBooks: groupedBooks });
+      }
+    } catch (e) {
+      // 静默失败
     }
   },
 
