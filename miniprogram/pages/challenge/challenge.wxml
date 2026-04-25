@@ -74,8 +74,8 @@
     </view>
 
     <view class="calendar-grid">
-      <text class="calendar-weekday" wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="{{item}}">{{item}}</text>
-      <block wx:for="{{calendarDays}}" wx:key="{{index}}">
+      <text class="calendar-weekday" wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="item">{{item}}</text>
+      <block wx:for="{{calendarDays}}" wx:key="index">
         <view wx:if="{{item.empty}}" class="calendar-day calendar-day--empty"></view>
         <view
           wx:else
