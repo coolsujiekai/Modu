@@ -270,6 +270,7 @@ Page({
       wx.showToast({ title: '打卡成功', icon: 'success' });
       this.setData({ checkinContent: '', selectedBookName: '', customBookName: '', bookIndex: -1 });
       await this.loadMyStatus();
+      await this.loadReadingBooks();
     } catch (e) {
       logger.error('[challenge] submitCheckin error:', e);
       wx.showToast({ title: e?.message || '提交失败', icon: 'none' });

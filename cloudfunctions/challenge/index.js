@@ -17,6 +17,42 @@ function getOpenid() {
   return cloud.getWXContext().OPENID;
 }
 
+async function ensureReadingBookExists(openid, bookNameRaw) {
+  const bookName = String(bookNameRaw || '').trim();
+  if (!bookName) return null;
+
+  // Try find existing book (same name) for current user
+  const existingRes = await db
+    .collection('books')
+    .where({ _openid: openid, bookName })
+    .limit(1)
+    .get();
+
+  const existing = (existingRes.data || [])[0] || null;
+  if (existing?._id) return existing._id;
+
+  // Create a minimal "reading" book so it appears on the shelf immediately
+  const now = Date.now();
+  const addRes = await db.collection('books').add({
+    data: {
+      _openid: openid,
+      bookName,
+      authorId: '',
+      authorName: '',
+      authorNameNorm: '',
+      startTime: now,
+      status: 'reading',
+      notes: [],
+      notesCount: 0,
+      thoughtCount: 0,
+      quoteCount: 0,
+      durationMin: 0,
+      updatedAt: now,
+    }
+  });
+  return addRes?._id || null;
+}
+
 // 获取当前进行中的活动
 async function getActiveChallenge() {
   try {
@@ -158,6 +194,9 @@ async function submitCheckin(event) {
 
   try {
     const now = Date.now();
+
+    // If user types a custom book name, auto-create it in "books" so it appears on the shelf
+    await ensureReadingBookExists(openid, bookName);
 
     // 添加打卡记录
     await db.collection(CHECKINS_COLLECTION).add({
