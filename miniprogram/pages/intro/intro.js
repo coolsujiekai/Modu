@@ -300,7 +300,7 @@ Page({
 
   skipBook() {
     safeSet(BOOK_SEEN_KEY, '1');
-    wx.redirectTo({ url: '/pages/emptyShelf/emptyShelf' });
+    wx.redirectTo({ url: '/pages/index/index' });
   }
 });
 

@@ -12,8 +12,7 @@ Page({
   },
 
   onSkip() {
-    // Do not mark dismissed; user still has no books.
-    wx.redirectTo({ url: '/pages/emptyShelf/emptyShelf' });
+    wx.redirectTo({ url: '/pages/index/index' });
   }
 });
 

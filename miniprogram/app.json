@@ -20,7 +20,8 @@
     "pages/personalize/personalize",
     "pages/author/author",
     "pages/editBookInfo/editBookInfo",
-    "pages/shareCard/shareCard"
+    "pages/shareCard/shareCard",
+    "pages/search/search"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

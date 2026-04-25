@@ -36,7 +36,7 @@
       <view class="weui-cell__ft"></view>
     </view>
 
-    <view class="weui-cell weui-cell_access" bindtap="openShelfSearch">
+    <navigator class="weui-cell weui-cell_access" url="/pages/search/search?type=book" open-type="navigate">
       <view class="weui-cell__hd">
         <view class="icon-wrap icon-search">
           <image class="cell-icon" src="/assets/icons/shelf-search.svg" mode="aspectFit" />
@@ -44,7 +44,7 @@
       </view>
       <view class="weui-cell__bd">书架搜索</view>
       <view class="weui-cell__ft"></view>
-    </view>
+    </navigator>
 
     <view class="weui-cell weui-cell_access" bindtap="goPersonalize">
       <view class="weui-cell__hd">
@@ -92,19 +92,3 @@
     </view>
   </view>
 </view>
-
-<search-modal
-  visible="{{searchVisible}}"
-  search-type="{{searchType}}"
-  title="{{searchTitle}}"
-  placeholder="{{searchPlaceholder}}"
-  query="{{searchQuery}}"
-  loading="{{searchLoading}}"
-  results="{{searchResults}}"
-  bind:input="onSearchInput"
-  bind:confirm="onSearchConfirm"
-  bind:clear="clearSearch"
-  bind:switchtype="switchSearchType"
-  bind:pick="onPickResult"
-  bind:close="closeSearch"
-/>
