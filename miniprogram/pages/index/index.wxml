@@ -76,7 +76,7 @@
 
     <view class="notes-list">
       <view wx:for="{{recentNotes}}" wx:key="key" class="slide-row">
-        <slideview buttons="{{item.slideButtons}}" bind:buttontap="onRecentNoteSlideButtonTap">
+        <slideview buttons="{{item.slideButtons}}" bind:buttontap="onRecentNoteSlideButtonTap" data-ts="{{item.timestamp}}" data-bookid="{{item.bookId}}">
           <view
             class="note-item"
             catchtap="onRecentNoteTap"

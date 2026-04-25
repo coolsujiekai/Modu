@@ -366,7 +366,14 @@ Page({
   // ─── 今日笔记滑动删除 ────────────────────────
 
   onTodayNoteSlideButtonTap(e) {
-    const { ts, bookid } = e.detail?.data || {};
+    const ts =
+      e?.detail?.data?.ts ??
+      e?.detail?.ts ??
+      e?.currentTarget?.dataset?.ts;
+    const bookid =
+      e?.detail?.data?.bookid ??
+      e?.detail?.bookid ??
+      e?.currentTarget?.dataset?.bookid;
     if (!ts || !bookid) return;
     this.deleteTodayNote(bookid, ts);
   },

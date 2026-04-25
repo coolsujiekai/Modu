@@ -119,7 +119,7 @@
 
     <view wx:if="{{todayNotes.length > 0}}" class="notes-list">
       <view wx:for="{{todayNotes}}" wx:key="timestamp" class="slide-row">
-        <slideview buttons="{{item.slideButtons}}" bind:buttontap="onTodayNoteSlideButtonTap">
+        <slideview buttons="{{item.slideButtons}}" bind:buttontap="onTodayNoteSlideButtonTap" data-ts="{{item.timestamp}}" data-bookid="{{item.bookId}}">
           <view
             class="note-item"
             bindtap="openBook"
