@@ -13,7 +13,7 @@ const CHALLENGES_COLLECTION = 'reading_challenges';
 const PARTICIPANTS_COLLECTION = 'challenge_participants';
 const CHECKINS_COLLECTION = 'challenge_checkins';
 const CONFIG_COLLECTION = 'app_config';
-const FEATURE_FLAG_DOC_ID = 'reading_challenge_feature';
+const FEATURE_FLAG_DOC_ID = 'rc_feature';
 
 function getOpenid() {
   return cloud.getWXContext().OPENID;
