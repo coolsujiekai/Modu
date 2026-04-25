@@ -74,9 +74,8 @@ Page({
         getTodayNotes()
       ]);
 
-      console.log('[challenge loadAll] notes raw:', JSON.stringify(notes));
-
       const todayNotes = (notes || []).slice(0, 5).map(n => ({
+        _id: n._id,
         bookId: n.bookId,
         text: n.text || '',
         type: n.type || 'thought',
@@ -86,7 +85,7 @@ Page({
         slideButtons: [{
           text: '删除',
           extClass: 'slide-btn-delete',
-          data: { ts: Number(n.timestamp || 0), bookId: n.bookId }
+          data: { noteId: n._id, ts: Number(n.timestamp || 0), bookId: n.bookId }
         }]
       }));
 
@@ -367,12 +366,15 @@ Page({
   // ─── 今日笔记滑动删除 ────────────────────────
 
   onTodayNoteSlideButtonTap(e) {
-    const { ts, bookid } = e.detail?.data || {};
-    if (!ts || !bookid) return;
-    this.deleteTodayNote(bookid, ts);
+    const { noteid, ts, bookid } = e.detail?.data || {};
+    if (!noteid) {
+      wx.showToast({ title: '笔记标识缺失', icon: 'none' });
+      return;
+    }
+    this.deleteTodayNote(noteid, bookid, ts);
   },
 
-  async deleteTodayNote(bookId, timestamp) {
+  async deleteTodayNote(noteId, bookId, timestamp) {
     const confirm = await wx.showModal({
       title: '删除这条记录？',
       content: '删除后不可恢复。',
@@ -381,8 +383,8 @@ Page({
     });
     if (!confirm.confirm) return;
     try {
-      await deleteNote(bookId, timestamp);
-      const updated = this.data.todayNotes.filter(n => Number(n.timestamp) !== Number(timestamp));
+      await deleteNote(bookId, Number(timestamp));
+      const updated = this.data.todayNotes.filter(n => n._id !== noteId);
       this.setData({ todayNotes: updated });
       wx.showToast({ title: '已删除', icon: 'none', duration: 700 });
     } catch (e) {
