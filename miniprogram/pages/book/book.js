@@ -3,7 +3,7 @@ import { formatDate } from '../../utils/util.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 import { formatNoteTime, addNote as addNoteToCloud, deleteNote as deleteNoteFromCloud, recognizePrintedText } from '../../services/noteService.js';
 import { loadBook as fetchBook, finishBook, unfinishBook } from '../../services/bookService.js';
-// 自动打卡已移到云端（写笔记时由 bookOperations 统一处理）
+import { autoCheckinByNote } from '../../services/challengeService.js';
 
 let siManager = null;
 
@@ -584,10 +584,7 @@ Page({
     const currentDraft = this.data.noteDraft;
 
     try {
-      const result = await addNoteToCloud(this.data.book._id, { text, type, bookName: this.data.book?.bookName });
-      const thoughtCount = Number(result?.thoughtCount || 0);
-      const quoteCount = Number(result?.quoteCount || 0);
-      const autoCheckin = result?.autoCheckin || null;
+      const { thoughtCount, quoteCount } = await addNoteToCloud(this.data.book._id, { text, type, bookName: this.data.book?.bookName });
       const newNotes = [
         ...this.data.notes,
         { text, type, timestamp: Date.now() }
@@ -616,9 +613,17 @@ Page({
       }, 900);
       wx.showToast({ title: '已保存', icon: 'success', duration: 700 });
 
-      // 自动打卡：由云端（bookOperations.addNote）统一处理，这里根据返回值做提示
-      if (autoCheckin?.checked) {
-        wx.showToast({ title: '已记录，并完成今日打卡 ✅', icon: 'none', duration: 1200 });
+      // 自动打卡（失败不影响笔记保存）
+      try {
+        const res = await autoCheckinByNote(this.data.book._id, type, Date.now());
+        if (res?.disabled || res?.skipped) {
+          return;
+        }
+        if (res?.checked) {
+          wx.showToast({ title: '已记录，并完成今日打卡 ✅', icon: 'none', duration: 1200 });
+        }
+      } catch (e2) {
+        // ignore
       }
     } catch (e) {
       wx.showToast({ title: e?.message ? `保存失败: ${e.message}` : '保存失败', icon: 'none' });
