@@ -74,6 +74,8 @@ Page({
         getTodayNotes()
       ]);
 
+      console.log('[challenge loadAll] notes raw:', JSON.stringify(notes));
+
       const todayNotes = (notes || []).slice(0, 5).map(n => ({
         bookId: n.bookId,
         text: n.text || '',

@@ -227,12 +227,16 @@ export async function getMonthData(year, month) {
  * @returns {Promise<Array>}
  */
 export async function getTodayNotes() {
-  const today = todayStr();
-  const dayStart = new Date(today);
-  const dayEnd = new Date(dayStart);
-  dayEnd.setDate(dayEnd.getDate() + 1);
-  const tsStart = dayStart.getTime();
-  const tsEnd = dayEnd.getTime() - 1;
+  // 用 UTC 计算今日范围，避免 UTC+8 用户在凌晨 00:00~01:00 时今日笔记查不到
+  const now = new Date();
+  const utcYear = now.getUTCFullYear();
+  const utcMonth = now.getUTCMonth();
+  const utcDate = now.getUTCDate();
+
+  const tsStart = Date.UTC(utcYear, utcMonth, utcDate);
+  const tsEnd = Date.UTC(utcYear, utcMonth, utcDate + 1) - 1;
+
+  console.log('[getTodayNotes] tsStart:', tsStart, 'tsEnd:', tsEnd, 'now:', now.getTime());
 
   try {
     const res = await withRetry(() =>
@@ -242,8 +246,10 @@ export async function getTodayNotes() {
         .limit(20)
         .get()
     );
+    console.log('[getTodayNotes] returned:', (res.data || []).length, 'notes');
     return res.data || [];
   } catch (e) {
+    console.error('[getTodayNotes] error:', e);
     return [];
   }
 }
