@@ -53,7 +53,7 @@ export function formatNoteTime(timestamp, noteTimeMode = 'both') {
  * 向指定书籍追加一条笔记（写操作，走云函数）
  * @param {string} bookId
  * @param {{ text: string, type: 'thought'|'quote', bookName?: string }} noteData
- * @returns {Promise<{ thoughtCount: number, quoteCount: number, notesCount: number }>}
+ * @returns {Promise<{ ok: boolean }>}
  */
 export async function addNote(bookId, noteData) {
   const { text, type, bookName } = noteData || {};
@@ -62,9 +62,7 @@ export async function addNote(bookId, noteData) {
   const res = await callCloudFunctionWithRetry('bookOperations', {
     action: 'addNote', bookId, text, type
   });
-  const result = assertCloudCallResult(res);
-
-  return result;
+  return assertCloudCallResult(res);
 }
 
 /**
@@ -72,7 +70,7 @@ export async function addNote(bookId, noteData) {
  * @param {string} bookId
  * @param {number} timestamp - 笔记时间戳（唯一标识）
  * @param {string} newText
- * @returns {Promise<{ thoughtCount: number, quoteCount: number, notesCount: number }>}
+ * @returns {Promise<{ ok: boolean }>}
  */
 export async function editNote(bookId, timestamp, newText) {
   const res = await callCloudFunctionWithRetry('bookOperations', {
@@ -85,7 +83,7 @@ export async function editNote(bookId, timestamp, newText) {
  * 删除指定书籍中某条笔记（写操作，走云函数）
  * @param {string} bookId
  * @param {number} timestamp - 笔记时间戳（唯一标识）
- * @returns {Promise<{ thoughtCount: number, quoteCount: number, notesCount: number }>}
+ * @returns {Promise<{ ok: boolean }>}
  */
 export async function deleteNote(bookId, timestamp) {
   const res = await callCloudFunctionWithRetry('bookOperations', {
@@ -108,21 +106,3 @@ export async function recognizePrintedText(fileID) {
   return assertCloudCallResult(res);
 }
 
-/**
- * 重新计算并同步书籍的笔记计数（写操作，走云函数）
- * @param {string} bookId
- */
-export async function recalcNoteCounts(bookId) {
-  const bookRes = await withRetry(() => db.collection('books').doc(bookId).get());
-  const book = bookRes.data;
-  if (!book) return null;
-  const notes = Array.isArray(book.notes) ? book.notes : [];
-  const thoughtCount = notes.filter(n => n.type === 'thought').length;
-  const quoteCount = notes.filter(n => n.type === 'quote').length;
-  if (notes.length > 0 && (book.thoughtCount !== thoughtCount || book.quoteCount !== quoteCount)) {
-    await db.collection('books').doc(bookId).update({
-      data: { thoughtCount, quoteCount }
-    });
-  }
-  return { thoughtCount, quoteCount, notesCount: notes.length };
-}

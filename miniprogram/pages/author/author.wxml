@@ -19,7 +19,7 @@
           <view class="weui-cell weui-cell_access" catchtap="openBook" data-id="{{item._id}}">
             <view class="weui-cell__bd">
               <view class="title">{{item.bookName}}</view>
-              <view class="meta muted">开始 {{item.startText}} · {{item.notesCount}} 条记录</view>
+              <view class="meta muted">开始 {{item.startText}}</view>
             </view>
             <view class="weui-cell__ft"></view>
           </view>
@@ -43,7 +43,7 @@
           <view class="weui-cell weui-cell_access" catchtap="openBook" data-id="{{item._id}}">
             <view class="weui-cell__bd">
               <view class="title">{{item.bookName}}</view>
-              <view class="meta muted">{{item.endText}} 读完 · {{item.notesCount}} 条记录</view>
+              <view class="meta muted">{{item.endText}} 读完</view>
             </view>
             <view class="weui-cell__ft"></view>
           </view>

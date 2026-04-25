@@ -1,5 +1,5 @@
 import { db, _, withRetry } from '../../utils/db.js';
-import { formatDate } from '../../utils/util.js';
+import { loadBookNotes as fetchBookNotes } from '../../services/bookService.js';
 import { formatNoteTime, deleteNote } from '../../services/noteService.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 
@@ -50,9 +50,7 @@ Page({
 
     this.setData({ loading: true });
     try {
-      const res = await withRetry(() => db.collection('books').doc(bookId).get());
-      const book = res.data;
-      const all = Array.isArray(book.notes) ? book.notes : [];
+      const all = await fetchBookNotes(bookId);
       const notes = all
         .filter(n => n && n.type === type)
         .slice()
@@ -66,7 +64,7 @@ Page({
             data: { ts: n.timestamp }
           }]
         }));
-      this.setData({ loading: false, book, notes });
+      this.setData({ loading: false, notes });
     } catch (e) {
       this.setData({ loading: false, book: null, notes: [] });
       wx.showToast({ title: '加载失败', icon: 'none' });

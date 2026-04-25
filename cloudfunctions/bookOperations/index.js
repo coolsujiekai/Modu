@@ -163,10 +163,13 @@ function packToMaxChars(lines, maxTotalChars) {
   return out;
 }
 
-function buildReflectionMaterial(book) {
-  const notes = Array.isArray(book?.notes) ? book.notes : [];
+async function queryReflectionNotes(bookId) {
+  const res = await db.collection('notes').where({ bookId }).limit(500).get();
+  return res.data || [];
+}
+
+function buildReflectionMaterialFromNotes(notes) {
   const sorted = [...notes].sort((a, b) => Number(b?.timestamp || 0) - Number(a?.timestamp || 0));
-  // 强制“全部利用”：尽可能包含所有 notes，但为防止 prompt 过长，做总长度上限控制。
   const thoughtAll = sorted
     .filter((n) => n?.type !== 'quote')
     .map((n) => clip(n?.text, 120))
@@ -176,7 +179,6 @@ function buildReflectionMaterial(book) {
     .map((n) => clip(n?.text, 80))
     .filter(Boolean);
 
-  // Total prompt budget (rough): keep each section within ~6000 chars.
   return {
     thoughts: packToMaxChars(thoughtAll, 30000),
     quotes: packToMaxChars(quoteAll, 6000)
@@ -243,7 +245,8 @@ async function prepareReflection(event) {
     };
   }
 
-  const { thoughts, quotes } = buildReflectionMaterial(book);
+  const notes = await queryReflectionNotes(bookId);
+  const { thoughts, quotes } = buildReflectionMaterialFromNotes(notes);
 
   if (thoughts.length < 1 && quotes.length < 2) {
     return { ok: false, code: 'INSUFFICIENT_MATERIAL', message: 'not enough notes' };
@@ -297,6 +300,9 @@ async function commitReflection(event) {
 
   const day = dayKeyCN(now);
 
+  // Query notes outside transaction for material stats
+  const reflectionNotes = await queryReflectionNotes(bookId);
+
   // Use a transaction to avoid quota races.
   const result = await db.runTransaction(async (transaction) => {
     const bookRef = db.collection('books').doc(bookId);
@@ -336,7 +342,7 @@ async function commitReflection(event) {
     }
 
     // Save reflection to book.
-    const material = buildReflectionMaterial(book);
+    const material = buildReflectionMaterialFromNotes(reflectionNotes);
     await transaction.collection('books').doc(bookId).update({
       data: {
         aiReflection: finalText,
@@ -462,10 +468,6 @@ async function addBook(event) {
       authorNameNorm: authorNameNorm || '',
       startTime,
       status: 'reading',
-      notes: [],
-      notesCount: 0,
-      thoughtCount: 0,
-      quoteCount: 0,
       durationMin: 0
     }
   });
@@ -545,6 +547,22 @@ async function removeBook(event) {
   if (!book.data || book.data._openid !== openid) throw new Error('book not found or not owned');
 
   await db.collection('books').doc(bookId).remove();
+
+  // Also remove all notes for this book
+  try {
+    const notesRes = await db.collection('notes').where({ bookId }).field({ _id: true }).get();
+    const noteIds = (notesRes.data || []).map((n) => n._id).filter(Boolean);
+    if (noteIds.length > 0) {
+      // Remove in batches of 50
+      while (noteIds.length > 0) {
+        const batch = noteIds.splice(0, 50);
+        await db.collection('notes').where({ _id: _.in(batch) }).remove();
+      }
+    }
+  } catch (e) {
+    // ignore cleanup errors
+  }
+
   return { success: true };
 }
 
@@ -562,25 +580,28 @@ async function addNote(event) {
   const book = await db.collection('books').doc(bookId).get();
   if (!book.data || book.data._openid !== openid) throw new Error('book not found or not owned');
 
+  const timestamp = Date.now();
+  const noteId = `${bookId}_${timestamp}`;
   const note = {
     text: String(text).trim(),
     type: type === 'quote' ? 'quote' : 'thought',
-    timestamp: Date.now()
+    timestamp
   };
-  const notes = Array.isArray(book.data.notes) ? [...book.data.notes, note] : [note];
-  const thoughtCount = notes.filter(n => n.type === 'thought').length;
-  const quoteCount = notes.filter(n => n.type === 'quote').length;
 
-  await db.collection('books').doc(bookId).update({
+  await db.collection('notes').doc(noteId).set({
     data: {
-      notes,
-      notesCount: notes.length,
-      thoughtCount,
-      quoteCount
+      _openid: openid,
+      bookId,
+      bookName: (book.data.bookName || '').trim() || '未命名',
+      text: note.text,
+      type: note.type,
+      timestamp,
+      createdAt: timestamp,
+      updatedAt: timestamp
     }
   });
 
-  // Maintain lightweight recent notes index for 首页展示（强一致写入云端）
+  // Maintain lightweight recent notes index for 首页展示
   await upsertRecentNote({
     openid,
     bookId,
@@ -589,7 +610,7 @@ async function addNote(event) {
   });
   await trimRecentNotes(openid, RECENT_NOTES_KEEP);
 
-  return { thoughtCount, quoteCount, notesCount: notes.length };
+  return { ok: true };
 }
 
 /**
@@ -601,30 +622,24 @@ async function editNote(event) {
   const { bookId, timestamp, text } = event;
   if (!bookId || !timestamp || !text) throw new Error('bookId, timestamp, and text are required');
 
-  const book = await db.collection('books').doc(bookId).get();
-  if (!book.data || book.data._openid !== openid) throw new Error('book not found or not owned');
+  const noteId = `${bookId}_${Number(timestamp)}`;
+  const existing = await db.collection('notes').doc(noteId).get();
+  if (!existing.data || existing.data._openid !== openid) throw new Error('note not found or not owned');
 
-  const notes = Array.isArray(book.data.notes) ? book.data.notes : [];
-  const idx = notes.findIndex(n => Number(n.timestamp) === Number(timestamp));
-  if (idx < 0) throw new Error('note not found');
-
-  notes[idx] = { ...notes[idx], text: String(text).trim() };
-  const thoughtCount = notes.filter(n => n.type === 'thought').length;
-  const quoteCount = notes.filter(n => n.type === 'quote').length;
-
-  await db.collection('books').doc(bookId).update({
-    data: { notes, notesCount: notes.length, thoughtCount, quoteCount }
+  const newText = String(text).trim();
+  await db.collection('notes').doc(noteId).update({
+    data: { text: newText, updatedAt: Date.now() }
   });
 
-  // Sync recent notes index if exists (or create if missing)
+  // Sync recent notes index
   await upsertRecentNote({
     openid,
     bookId,
-    bookName: book.data.bookName,
-    note: notes[idx]
+    bookName: existing.data.bookName,
+    note: { text: newText, type: existing.data.type, timestamp: Number(timestamp) }
   });
 
-  return { thoughtCount, quoteCount, notesCount: notes.length };
+  return { ok: true };
 }
 
 /**
@@ -636,20 +651,11 @@ async function deleteNote(event) {
   const { bookId, timestamp } = event;
   if (!bookId || !timestamp) throw new Error('bookId and timestamp are required');
 
-  const book = await db.collection('books').doc(bookId).get();
-  if (!book.data || book.data._openid !== openid) throw new Error('book not found or not owned');
+  const noteId = `${bookId}_${Number(timestamp)}`;
+  const existing = await db.collection('notes').doc(noteId).get();
+  if (!existing.data || existing.data._openid !== openid) throw new Error('note not found or not owned');
 
-  const notes = Array.isArray(book.data.notes) ? book.data.notes : [];
-  const idx = notes.findIndex(n => Number(n.timestamp) === Number(timestamp));
-  if (idx < 0) throw new Error('note not found');
-
-  notes.splice(idx, 1);
-  const thoughtCount = notes.filter(n => n.type === 'thought').length;
-  const quoteCount = notes.filter(n => n.type === 'quote').length;
-
-  await db.collection('books').doc(bookId).update({
-    data: { notes, notesCount: notes.length, thoughtCount, quoteCount }
-  });
+  await db.collection('notes').doc(noteId).remove();
 
   // Remove from recent notes index (ignore if missing)
   try {
@@ -658,7 +664,7 @@ async function deleteNote(event) {
     // ignore
   }
 
-  return { thoughtCount, quoteCount, notesCount: notes.length };
+  return { ok: true };
 }
 
 // ─── OCR（拍照识字） ──────────────────────────────────────────

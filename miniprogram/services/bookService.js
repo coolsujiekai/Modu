@@ -18,7 +18,7 @@ function assertCloudCallResult(res) {
 }
 
 /**
- * 加载单本书籍（读操作，直接 DB）
+ * 加载单本书籍（读操作，直接 DB），不包含笔记
  * @param {string} bookId
  * @returns {Promise<object|null>}
  */
@@ -26,6 +26,23 @@ export async function loadBook(bookId) {
   if (!bookId) return null;
   const res = await withRetry(() => db.collection('books').doc(bookId).get());
   return res.data || null;
+}
+
+/**
+ * 加载某本书的所有笔记（按时间倒序）
+ * @param {string} bookId
+ * @returns {Promise<Array>}
+ */
+export async function loadBookNotes(bookId) {
+  if (!bookId) return [];
+  const res = await withRetry(() =>
+    db.collection('notes')
+      .where(withOpenIdFilter({ bookId }))
+      .orderBy('timestamp', 'desc')
+      .limit(500)
+      .get()
+  );
+  return res.data || [];
 }
 
 /**

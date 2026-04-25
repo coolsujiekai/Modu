@@ -68,14 +68,13 @@ async function stats() {
   // 书单总量
   const wishlistTotalPromise = db.collection('wishlist').count().catch(() => ({ total: 0 }));
 
-  // 内容总量：优先汇总 books 上的 quoteCount/thoughtCount（强一致、全量）
+  // 内容总量：从 notes 集合分 type 统计
   const notesAggPromise = db
-    .collection('books')
+    .collection('notes')
     .aggregate()
     .group({
-      _id: null,
-      quoteTotal: $.sum($.ifNull(['$quoteCount', 0])),
-      thoughtTotal: $.sum($.ifNull(['$thoughtCount', 0])),
+      _id: '$type',
+      count: $.sum(1),
     })
     .end()
     .catch(() => ({ list: [] }));
@@ -124,7 +123,14 @@ async function stats() {
     wishlistTopPromise
   ]);
 
-  const notesRow = (notesAggRes?.list || [])[0] || {};
+  const notesAgg = (notesAggRes?.list || []);
+  let quoteTotal = 0;
+  let thoughtTotal = 0;
+  for (const row of notesAgg) {
+    if (row._id === 'quote') quoteTotal = Number(row.count || 0);
+    if (row._id === 'thought') thoughtTotal = Number(row.count || 0);
+  }
+  const notesRow = {};
   const aiRow = (aiAggRes?.list || [])[0] || {};
   const top = (wishlistTopRes?.list || []).map((it) => ({
     title: String(it?._id || '').trim(),
@@ -137,8 +143,8 @@ async function stats() {
       registeredUsers: Number(registeredUsersRes?.total || 0),
       booksReading: Number(readingBooksRes?.total || 0),
       booksFinished: Number(finishedBooksRes?.total || 0),
-      quoteTotal: Number(notesRow?.quoteTotal || 0),
-      thoughtTotal: Number(notesRow?.thoughtTotal || 0),
+      quoteTotal: Number(quoteTotal),
+      thoughtTotal: Number(thoughtTotal),
       aiGenerations: Number(aiRow?.total || 0),
       wishlistTotal: Number(wishlistTotalRes?.total || 0),
       wishlistTop: top,
@@ -313,7 +319,8 @@ async function resetTestUser(event) {
     users: 0,
     books: 0,
     wishlist: 0,
-    recent_notes: 0
+    recent_notes: 0,
+    notes: 0
   };
 
   // 先把该用户的 userNo 加入回收列表，再删数据
@@ -357,6 +364,7 @@ async function resetTestUser(event) {
   counts.books = await deleteByOpenid('books', target, 20);
   counts.wishlist = await deleteByOpenid('wishlist', target, 20);
   counts.recent_notes = await deleteByOpenid('recent_notes', target, 50);
+  counts.notes = await deleteByOpenid('notes', target, 50);
 
   return { ok: true, counts };
 }

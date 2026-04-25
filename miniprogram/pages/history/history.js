@@ -1,5 +1,5 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
-import { formatDate, countNoteTypes } from '../../utils/util.js';
+import { formatDate } from '../../utils/util.js';
 import { deleteBook } from '../../services/bookService.js';
 
 Page({
@@ -90,72 +90,15 @@ Page({
     }
   },
 
-  sumNoteStatsFromBooks(books) {
-    let totalThoughts = 0;
-    let totalQuotes = 0;
-    (books || []).forEach(b => {
-      // 有 notes 数组时以数组为准（含空数组），避免已删笔记但 thoughtCount/quoteCount 未同步导致虚高
-      if (Array.isArray(b.notes)) {
-        const { thoughtCount, quoteCount } = countNoteTypes(b.notes);
-        totalThoughts += thoughtCount;
-        totalQuotes += quoteCount;
-      } else {
-        totalThoughts += Number(b.thoughtCount || 0);
-        totalQuotes += Number(b.quoteCount || 0);
-      }
-    });
-    return { totalThoughts, totalQuotes };
-  },
-
   async loadStats() {
     try {
-      let totalThoughts = 0;
-      let totalQuotes = 0;
-      const batchSize = 100;
-      let skip = 0;
-      // 与「已读回顾」一致：只统计已读完书籍上的心得 / 金句（不含在读、想读等）
-      const finishedWhere = withOpenIdFilter({ status: 'finished' });
-      try {
-        while (true) {
-          const res = await traced(`books.stats(skip=${skip})`, () =>
-            withRetry(() =>
-              db
-                .collection('books')
-                .where(finishedWhere)
-                .orderBy('_id', 'asc')
-                .field({ notes: true, thoughtCount: true, quoteCount: true })
-                .skip(skip)
-                .limit(batchSize)
-                .get()
-            )
-          );
-          const books = res.data || [];
-          if (books.length === 0) break;
-          const part = this.sumNoteStatsFromBooks(books);
-          totalThoughts += part.totalThoughts;
-          totalQuotes += part.totalQuotes;
-          if (books.length < batchSize) break;
-          skip += batchSize;
-        }
-      } catch (pagErr) {
-        console.warn('Stats pagination failed, fallback single batch', pagErr);
-        const res = await traced('books.stats(fallback no order)', () =>
-          withRetry(() =>
-            db
-              .collection('books')
-              .where(finishedWhere)
-              .field({ notes: true, thoughtCount: true, quoteCount: true })
-              .limit(100)
-              .get()
-          )
-        );
-        const part = this.sumNoteStatsFromBooks(res.data || []);
-        totalThoughts = part.totalThoughts;
-        totalQuotes = part.totalQuotes;
-      }
+      const [thoughtRes, quoteRes] = await Promise.all([
+        withRetry(() => db.collection('notes').where(withOpenIdFilter({ type: 'thought' })).count()),
+        withRetry(() => db.collection('notes').where(withOpenIdFilter({ type: 'quote' })).count())
+      ]);
       this.setData({
-        totalThoughts,
-        totalQuotes
+        totalThoughts: Number(thoughtRes?.total || 0),
+        totalQuotes: Number(quoteRes?.total || 0)
       });
     } catch (e) {
       console.warn('Stats load failed', e);
@@ -178,7 +121,6 @@ Page({
       );
       const books = (res.data || []).map(b => ({
         ...b,
-        notesCount: Number(b.notesCount || 0),
         endText: formatDate(b.endTime),
         slideButtons: [
           {

@@ -1,5 +1,6 @@
 import { db, withOpenIdFilter } from '../../utils/db.js';
 import { formatDate } from '../../utils/util.js';
+import { deleteBook } from '../../services/bookService.js';
 
 Page({
   data: {
@@ -61,7 +62,7 @@ Page({
 
     wx.showLoading({ title: '删除中', mask: true });
     try {
-      await db.collection('books').doc(id).remove();
+      await deleteBook(id);
       wx.hideLoading();
       wx.showToast({ title: '已删除', icon: 'success', duration: 800 });
       this.setData({ openSlideId: null });
@@ -123,7 +124,6 @@ Page({
       const readingBooks = (readingRes.data || []).map(b => ({
         ...b,
         startText: formatDate(b.startTime),
-        notesCount: Number(b.notesCount || 0),
         slideButtons: [
           { text: '删除', extClass: 'slide-btn-delete', data: { id: b._id, name: b.bookName } }
         ]
@@ -131,7 +131,6 @@ Page({
       const finishedBooks = (finishedRes.data || []).map(b => ({
         ...b,
         endText: formatDate(b.endTime),
-        notesCount: Number(b.notesCount || 0),
         slideButtons: [
           { text: '删除', extClass: 'slide-btn-delete', data: { id: b._id, name: b.bookName } }
         ]

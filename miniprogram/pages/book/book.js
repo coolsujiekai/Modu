@@ -2,7 +2,7 @@ import { db, _, withRetry } from '../../utils/db.js';
 import { formatDate } from '../../utils/util.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 import { formatNoteTime, addNote as addNoteToCloud, deleteNote as deleteNoteFromCloud, recognizePrintedText } from '../../services/noteService.js';
-import { loadBook as fetchBook, finishBook, unfinishBook } from '../../services/bookService.js';
+import { loadBook as fetchBook, loadBookNotes as fetchBookNotes, finishBook, unfinishBook } from '../../services/bookService.js';
 
 let siManager = null;
 
@@ -253,9 +253,11 @@ Page({
 
     this.setData({ loading: true });
     try {
-      const book = await fetchBook(bookId);
+      const [book, notes] = await Promise.all([
+        fetchBook(bookId),
+        fetchBookNotes(bookId)
+      ]);
       if (!book) throw new Error('book not found');
-      const notes = Array.isArray(book.notes) ? book.notes : [];
       const thoughtNotes = notes.filter(n => n.type === 'thought');
       const quoteNotes = notes.filter(n => n.type === 'quote');
       const thoughtCount = thoughtNotes.length;
@@ -279,17 +281,6 @@ Page({
         finishedText: formatDate(book.endTime)
       });
       wx.setNavigationBarTitle({ title: `翻书随手记 · ${book.bookName}` });
-
-      if (
-        notes.length > 0 &&
-        (book.thoughtCount !== thoughtCount || book.quoteCount !== quoteCount)
-      ) {
-        // 非阻塞式修复计数，不影响主流程
-        db.collection('books')
-          .doc(bookId)
-          .update({ data: { thoughtCount, quoteCount } })
-          .catch(() => {});
-      }
     } catch (e) {
       this.setData({ loading: false, book: null });
       wx.showToast({ title: '加载失败', icon: 'none' });
@@ -583,18 +574,19 @@ Page({
     const currentDraft = this.data.noteDraft;
 
     try {
-      const { thoughtCount, quoteCount } = await addNoteToCloud(this.data.book._id, { text, type, bookName: this.data.book?.bookName });
+      await addNoteToCloud(this.data.book._id, { text, type, bookName: this.data.book?.bookName });
       const newNotes = [
         ...this.data.notes,
         { text, type, timestamp: Date.now() }
       ];
       const thoughtList = newNotes.filter(n => n.type === 'thought');
       const quoteList = newNotes.filter(n => n.type === 'quote');
+      const thoughtCount = thoughtList.length;
+      const quoteCount = quoteList.length;
       const timelineGroups = this.buildTimelineGroups(newNotes);
       const exportMeta = this.buildExportMeta(thoughtCount, quoteCount);
       this.setData({
         notes: newNotes,
-        book: { ...this.data.book, notes: newNotes, notesCount: newNotes.length, thoughtCount, quoteCount },
         thoughtNotes: thoughtList,
         quoteNotes: quoteList,
         timelineGroups,
@@ -674,15 +666,16 @@ Page({
     if (!confirm.confirm) return;
 
     try {
-      const { thoughtCount, quoteCount } = await deleteNoteFromCloud(this.data.book._id, ts);
+      await deleteNoteFromCloud(this.data.book._id, ts);
       const newNotes = this.data.notes.filter(n => Number(n.timestamp) !== Number(ts));
       const thoughtList = newNotes.filter(n => n.type === 'thought');
       const quoteList = newNotes.filter(n => n.type === 'quote');
+      const thoughtCount = thoughtList.length;
+      const quoteCount = quoteList.length;
       const timelineGroups = this.buildTimelineGroups(newNotes);
       const exportMeta = this.buildExportMeta(thoughtCount, quoteCount);
       this.setData({
         notes: newNotes,
-        book: { ...this.data.book, notes: newNotes, notesCount: newNotes.length, thoughtCount, quoteCount },
         thoughtNotes: thoughtList,
         quoteNotes: quoteList,
         timelineGroups,

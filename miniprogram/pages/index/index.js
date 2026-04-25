@@ -212,58 +212,18 @@ Page({
 
 
   async loadRecentNotes() {
-    const buildFromBooks = async () => {
-      const res = await traced('books.reading.recent(notes,fallback)', () =>
-        withRetry(() =>
-          db
-            .collection('books')
-            .where(withOpenIdFilter({}))
-            .orderBy('startTime', 'desc')
-            .limit(50)
-            .get()
-        )
-      );
-      const pool = [];
-      (res.data || []).forEach((book) => {
-        const notes = Array.isArray(book.notes) ? book.notes : [];
-        notes.forEach((n) => {
-          const ts = Number(n.timestamp || 0);
-          if (!ts) return;
-          pool.push({
-            key: `${book._id}_${ts}`,
-            bookId: book._id,
-            bookName: book.bookName || '未命名',
-            text: (n.text || '').trim(),
-            type: n.type || 'thought',
-            timestamp: ts
-          });
-        });
-      });
-      pool.sort((a, b) => b.timestamp - a.timestamp);
-      return pool.slice(0, 2).map((n) => ({
-        ...n,
-        timeText: formatNoteTime(n.timestamp, 'relative')
-      }));
-    };
-
-    // Prefer recent_notes index (strongly consistent), fallback to books aggregation
-    // Wrap with short timeout to avoid blocking UI on slow queries
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000));
     try {
-      const res = await Promise.race([
-        withRetry(() =>
-          db
-            .collection('recent_notes')
-            .where(withOpenIdFilter({}))
-            .orderBy('timestamp', 'desc')
-            .limit(3)
-            .get()
-        ),
-        timeoutPromise
-      ]);
+      const res = await withRetry(() =>
+        db
+          .collection('notes')
+          .where(withOpenIdFilter({}))
+          .orderBy('timestamp', 'desc')
+          .limit(3)
+          .get()
+      );
       const recentNotes = (res.data || [])
         .map((n) => ({
-          key: n.noteId || n._id || `${n.bookId || ''}_${Number(n.timestamp || 0)}`,
+          key: n._id || `${n.bookId || ''}_${Number(n.timestamp || 0)}`,
           bookId: n.bookId,
           bookName: n.bookName || '未命名',
           text: (n.text || '').trim(),
@@ -273,18 +233,8 @@ Page({
         }))
         .filter((n) => n.bookId && n.timestamp && n.text);
 
-      if (recentNotes.length > 0) {
-        this.setData({ recentNotes });
-        return;
-      }
-    } catch (e) {
-      // ignore and fallback (e.g. collection not created / no index / permission)
-    }
-
-    try {
-      const recentNotes = await buildFromBooks();
       this.setData({ recentNotes });
-    } catch (e2) {
+    } catch (e) {
       this.setData({ recentNotes: [] });
     }
   },
@@ -393,7 +343,6 @@ Page({
         const authorName = (b.authorName || '').trim();
         normalizedBooks.push({
           ...b,
-          notesCount: Number(b.notesCount || 0),
           coverToneClass: this.coverToneClassById(b._id),
           authorName: authorName || ''
         });

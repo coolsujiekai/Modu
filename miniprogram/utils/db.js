@@ -98,5 +98,5 @@ export function withOpenIdFilter(baseWhere = {}) {
     }
     return baseWhere;
   }
-  return _.and(baseWhere, { _openid: openid });
+  return { ...baseWhere, _openid: openid };
 }

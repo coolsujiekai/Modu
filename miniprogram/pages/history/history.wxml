@@ -29,8 +29,7 @@
             <view class="weui-cell weui-cell_access" catchtap="viewBookDetail" data-book="{{book}}">
               <view class="weui-cell__bd">
                 <view>{{book.bookName}}</view>
-                <view class="book-meta">{{book.endText}} 读完 · {{book.notesCount}} 条记录</view>
-              </view>
+                <view class="book-meta">{{book.endText}} 读完</view>              </view>
             </view>
           </slideview>
         </view>
