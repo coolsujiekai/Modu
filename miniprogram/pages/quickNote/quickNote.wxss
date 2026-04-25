@@ -489,3 +489,14 @@
   color: var(--text-light) !important;
   box-shadow: none !important;
 }
+
+.qn-sheet__challenge-hint {
+  font-size: 22rpx;
+  color: var(--text-light);
+  margin-top: 8rpx;
+}
+
+.qn-sheet__challenge-hint .link {
+  color: var(--primary);
+  font-weight: 600;
+}

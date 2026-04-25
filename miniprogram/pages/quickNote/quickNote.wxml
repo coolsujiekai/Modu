@@ -102,6 +102,14 @@
           <view class="qn-sheet__segItem {{sheetType === 'thought' ? 'qn-sheet__segItem--active' : ''}}" catchtap="onSheetPickType" data-type="thought">想法</view>
         </view>
       </view>
+
+      <view class="qn-sheet__section" wx:if="{{challengeActive}}">
+        <view class="qn-sheet__sectionTitle">阅读挑战</view>
+        <view class="qn-sheet__seg">
+          <view class="qn-sheet__segItem {{countToChallenge ? 'qn-sheet__segItem--active' : ''}}" catchtap="onToggleChallenge">计入本次挑战打卡</view>
+        </view>
+        <view wx:if="{{!joinedChallenge}}" class="qn-sheet__challenge-hint">需要先报名挑战才能计入 <text class="link" catchtap="goJoinChallenge">去报名</text></view>
+      </view>
     </view>
 
     <view slot="footer" class="qn-sheet__footer" catchtap="noop">

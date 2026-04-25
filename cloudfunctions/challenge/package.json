@@ -1,0 +1,9 @@
+{
+  "name": "challenge",
+  "version": "1.0.0",
+  "description": "阅读挑战活动云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.4.0"
+  }
+}

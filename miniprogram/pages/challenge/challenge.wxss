@@ -1,0 +1,410 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
+.page {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 60rpx;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.challenge-header {
+  text-align: center;
+}
+
+.challenge-name {
+  font-size: 38rpx;
+  font-weight: 800;
+  color: var(--text-title);
+  margin-bottom: 10rpx;
+}
+
+.challenge-desc {
+  font-size: 26rpx;
+  margin-bottom: 16rpx;
+  line-height: 1.5;
+}
+
+.challenge-dates {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.date-badge {
+  font-size: 22rpx;
+  background: var(--bg-surface-muted);
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  color: var(--text-light);
+}
+
+.date-arrow {
+  color: var(--text-light);
+  font-size: 22rpx;
+}
+
+.notice-box {
+  background: var(--bg-surface-muted);
+  border-radius: var(--radius-md);
+  padding: 20rpx 24rpx;
+  font-size: 26rpx;
+  color: var(--text-light);
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.tab-bar {
+  display: flex;
+  background: var(--bg-surface);
+  border-bottom: 1rpx solid var(--border-soft);
+  margin-bottom: 0;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 28rpx;
+  color: var(--text-light);
+  position: relative;
+}
+
+.tab-item.active {
+  color: var(--text-title);
+  font-weight: 700;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: var(--text-title);
+  border-radius: 2rpx;
+}
+
+.tab-content {
+  padding-top: 16rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 16rpx;
+}
+
+/* 日历 */
+.calendar {
+  margin-bottom: 16rpx;
+}
+
+.cal-month {
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--text-light);
+  margin-bottom: 16rpx;
+}
+
+.cal-weekdays {
+  display: flex;
+  margin-bottom: 8rpx;
+}
+
+.cal-weekday {
+  flex: 1;
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-light);
+  padding: 8rpx 0;
+}
+
+.cal-days {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cal-day {
+  width: calc(100% / 7);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: var(--text-light);
+  box-sizing: border-box;
+}
+
+.cal-day.inRange {
+  color: var(--text-title);
+}
+
+.cal-day.hasCheckin {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 28rpx;
+  font-weight: 800;
+  box-shadow: 0 6rpx 14rpx rgba(7, 193, 96, 0.24);
+}
+
+.cal-day.hasCheckin::after {
+  content: '';
+}
+
+.cal-day-disabled {
+  color: var(--text-light);
+  opacity: 0.4;
+}
+
+.cal-legend {
+  display: flex;
+  gap: 24rpx;
+  justify-content: center;
+  margin-top: 12rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 2rpx solid var(--text-light);
+}
+
+.legend-dot.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* 统计行 */
+.stat-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 20rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+  border-bottom: 1rpx solid var(--border-soft);
+  margin: 16rpx 0;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.stat-num {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.stat-num.completed {
+  color: var(--primary);
+}
+
+.stat-label {
+  font-size: 22rpx;
+}
+
+/* 打卡记录 */
+.checkin-item {
+  padding: 16rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+}
+
+.checkin-book {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 8rpx;
+}
+
+.checkin-content {
+  font-size: 26rpx;
+  color: var(--text-title);
+  line-height: 1.55;
+  margin-bottom: 8rpx;
+}
+
+.checkin-time {
+  font-size: 22rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 26rpx;
+}
+
+/* 表单 */
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.form-label {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  width: 100rpx;
+  flex: none;
+}
+
+.form-input {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--text-title);
+  border-bottom: 1rpx solid var(--border-soft);
+  padding: 8rpx 0;
+}
+
+.picker-value {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--text-title);
+  border-bottom: 1rpx solid var(--border-soft);
+  padding: 8rpx 0;
+}
+
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1rpx solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 16rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  min-height: 120rpx;
+  margin-bottom: 8rpx;
+}
+
+.counter {
+  font-size: 22rpx;
+  text-align: right;
+  margin-bottom: 16rpx;
+}
+
+.small {
+  font-size: 24rpx;
+  padding: 12rpx 0;
+}
+
+/* 排行榜 */
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+  gap: 16rpx;
+}
+
+.rank-num {
+  width: 44rpx;
+  flex: none;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.rank-num.rank-top {
+  color: #f59e0b;
+}
+
+.rank-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  flex: none;
+}
+
+.rank-avatar-default {
+  background: var(--bg-surface-muted);
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.rank-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rank-nickname {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 4rpx;
+}
+
+.rank-books {
+  font-size: 22rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-badges {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6rpx;
+}
+
+.badge-days {
+  font-size: 22rpx;
+  background: var(--bg-surface-muted);
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  color: var(--text-light);
+}
+
+.badge-done {
+  font-size: 20rpx;
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+}

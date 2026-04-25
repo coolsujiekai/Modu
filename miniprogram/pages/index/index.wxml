@@ -2,6 +2,15 @@
   <!-- 顶部间距 -->
   <view class="top-bar"></view>
 
+  <!-- 阅读活动横幅 -->
+  <view wx:if="{{challengeBanner}}" class="challenge-banner" bindtap="goActivity">
+    <view class="banner-left">
+      <text class="banner-tag">📖</text>
+      <text class="banner-text">{{challengeBanner.name}}</text>
+    </view>
+    <view class="banner-arrow">→</view>
+  </view>
+
   <!-- 书架区域 -->
   <view class="shelf-section">
     <view class="shelf-header">

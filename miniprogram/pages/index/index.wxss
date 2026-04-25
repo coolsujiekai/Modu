@@ -271,3 +271,44 @@
 .safe-area {
   height: calc(env(safe-area-inset-bottom) + 24rpx);
 }
+
+/* ============ 阅读活动横幅 ============ */
+.challenge-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 24rpx 16rpx;
+  padding: 20rpx 24rpx;
+  background: linear-gradient(135deg, #8B7355, #A89070);
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(139, 115, 85, 0.25);
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-tag {
+  font-size: 32rpx;
+  flex: none;
+}
+
+.banner-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.banner-arrow {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+  flex: none;
+  margin-left: 16rpx;
+}

@@ -272,13 +272,35 @@ Page({
 
   async openCreateChallenge() {
     if (this.data.creating) return;
-    const name = await wx.showInputDialog({ title: '活动名称', placeholder: '如：五一阅读挑战赛' }).catch(() => null);
-    if (!name) return;
-    const desc = await wx.showInputDialog({ title: '活动描述', placeholder: '简要描述' }).catch(() => null);
 
-    const startPicker = await this.pickDate('选择开始日期');
+    // 输入活动名称（wx.showModal editable 模式）
+    const nameResult = await wx.showModal({
+      title: '活动名称',
+      placeholderText: '如：五一阅读挑战赛',
+      editable: true,
+      confirmText: '下一步',
+      cancelText: '取消',
+    });
+    if (!nameResult.confirm || !nameResult.content) return;
+    const name = nameResult.content.trim();
+    if (!name) return;
+
+    // 输入活动描述
+    const descResult = await wx.showModal({
+      title: '活动描述',
+      placeholderText: '简要描述（可选）',
+      editable: true,
+      confirmText: '下一步',
+      cancelText: '取消',
+    });
+    const desc = descResult.content?.trim() || '';
+
+    // 选择开始日期
+    const { dateStr: startPicker } = await this.chooseDate('开始日期');
     if (!startPicker) return;
-    const endPicker = await this.pickDate('选择结束日期');
+
+    // 选择结束日期
+    const { dateStr: endPicker } = await this.chooseDate('结束日期');
     if (!endPicker) return;
 
     const startDate = new Date(startPicker).getTime();
@@ -291,7 +313,7 @@ Page({
 
     this.setData({ creating: true });
     try {
-      await adminCreateChallenge(name.trim(), (desc || '').trim(), startDate, endDate);
+      await adminCreateChallenge(name, desc, startDate, endDate);
       wx.showToast({ title: '已创建', icon: 'success' });
       await this.loadChallenges();
     } catch (e) {
@@ -301,22 +323,27 @@ Page({
     }
   },
 
-  async pickDate(title) {
+  chooseDate(title = '输入日期') {
     return new Promise((resolve) => {
       wx.showModal({
         title,
-        content: '请在控制台选择日期（简化实现）',
+        editable: true,
+        placeholderText: '格式：2026-05-01',
         confirmText: '确定',
-        cancelText: '取消',
         success: (res) => {
-          if (!res.confirm) return resolve(null);
-          // 简化：弹出日期选择器
-          wx.chooseDate({
-            success: (r) => resolve(r.dateStr),
-            fail: () => resolve(null)
-          });
+          if (res.confirm && res.content) {
+            const val = res.content.trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+              resolve({ dateStr: val });
+            } else {
+              wx.showToast({ title: '日期格式错误', icon: 'none' });
+              resolve({ dateStr: null });
+            }
+          } else {
+            resolve({ dateStr: null });
+          }
         },
-        fail: () => resolve(null)
+        fail: () => resolve({ dateStr: null })
       });
     });
   },

@@ -2,6 +2,7 @@ import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 import { deleteBook, finishBook } from '../../services/bookService.js';
 import { formatNoteTime } from '../../services/noteService.js';
+import { getActiveChallenge } from '../../services/challengeService.js';
 
 Page({
   data: {
@@ -19,7 +20,8 @@ Page({
       todayMinutes: 45,
       totalNotes: 23
     },
-    recommendTop3: []
+    recommendTop3: [],
+    challengeBanner: null  // 进行中的活动横幅
   },
   onShareAppMessage() {
     return {
@@ -53,6 +55,7 @@ Page({
     this.loadRecentNotes();
     this.refreshHomeActivity();
     this.loadRecommendTop3();
+    this.loadChallengeBanner();
   },
 
   applyPersonalizeSettings() {
@@ -63,7 +66,7 @@ Page({
   },
 
   goActivity() {
-    wx.navigateTo({ url: '/pages/activity/activity' });
+    wx.navigateTo({ url: '/pages/challenge/challenge' });
   },
 
   goHistory() {
@@ -92,6 +95,15 @@ Page({
       this.setData({ recommendTop3: top3.map((t) => ({ title: t })) });
     } catch (e) {
       this.setData({ recommendTop3: [] });
+    }
+  },
+
+  async loadChallengeBanner() {
+    try {
+      const res = await getActiveChallenge();
+      this.setData({ challengeBanner: res?.challenge || null });
+    } catch (e) {
+      this.setData({ challengeBanner: null });
     }
   },
 
@@ -251,15 +263,20 @@ Page({
     };
 
     // Prefer recent_notes index (strongly consistent), fallback to books aggregation
+    // Wrap with short timeout to avoid blocking UI on slow queries
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000));
     try {
-      const res = await withRetry(() =>
-        db
-          .collection('recent_notes')
-          .where(withOpenIdFilter({}))
-          .orderBy('timestamp', 'desc')
-          .limit(3)
-          .get()
-      );
+      const res = await Promise.race([
+        withRetry(() =>
+          db
+            .collection('recent_notes')
+            .where(withOpenIdFilter({}))
+            .orderBy('timestamp', 'desc')
+            .limit(3)
+            .get()
+        ),
+        timeoutPromise
+      ]);
       const recentNotes = (res.data || [])
         .map((n) => ({
           key: n.noteId || n._id || `${n.bookId || ''}_${Number(n.timestamp || 0)}`,
