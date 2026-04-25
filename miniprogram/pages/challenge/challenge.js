@@ -57,10 +57,10 @@ Page({
   },
 
   async onShow() {
-    await this.loadAll();
+    await this.loadAll(true);
   },
 
-  async loadAll() {
+  async loadAll(bypassCache = false) {
     this.setData({ loading: true });
     try {
       const now = new Date();
@@ -68,7 +68,7 @@ Page({
       const m = now.getMonth() + 1;
 
       const [todayStatus, monthData, books, notes] = await Promise.all([
-        getTodayStatus(),
+        getTodayStatus(bypassCache),
         getMonthData(y, m),
         this._loadReadingBooks(),
         getTodayNotes()

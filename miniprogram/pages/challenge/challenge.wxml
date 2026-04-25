@@ -79,10 +79,10 @@
         <view wx:if="{{item.empty}}" class="calendar-day calendar-day--empty"></view>
         <view
           wx:else
-          class="calendar-day {{item.isToday ? 'calendar-day--today' : ''}} {{item.isChecked ? 'calendar-day--checked' : ''}} {{item.isFuture ? 'calendar-day--future' : ''}}"
+          class="calendar-day {{item.isToday ? 'calendar-day--today' : ''}} {{item.isFuture ? 'calendar-day--future' : ''}}"
         >
-          <text class="calendar-day__num">{{item.date}}</text>
-          <text class="calendar-day__check" wx:if="{{item.isChecked}}">✓</text>
+          <text class="calendar-day__num {{item.isChecked ? 'calendar-day__num--checked' : ''}}">{{item.date}}</text>
+          <view class="calendar-day__check" wx:if="{{item.isChecked}}"></view>
         </view>
       </block>
     </view>

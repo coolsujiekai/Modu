@@ -289,9 +289,10 @@
 
 .calendar-day {
   width: calc(100% / 7);
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 10rpx 0;
 }
 
@@ -303,7 +304,7 @@
   font-size: 26rpx;
   color: var(--text-primary);
   line-height: 1;
-  min-height: 36rpx;
+  z-index: 1;
 }
 
 .calendar-day--today .calendar-day__num {
@@ -315,21 +316,34 @@
   color: var(--text-light);
 }
 
-.calendar-day--checked {
-  /* 已打卡日期：数字用强调色 */
-}
-
-.calendar-day--checked .calendar-day__num {
-  font-weight: 700;
+.calendar-day__num--checked {
   color: #E0632A;
+  font-weight: 700;
 }
 
+/* ✓ 小徽章：右下角重叠 */
 .calendar-day__check {
-  font-size: 18rpx;
-  color: #E0632A;
-  line-height: 1;
-  margin-top: 2rpx;
+  position: absolute;
+  bottom: 6rpx;
+  right: calc(12.5% - 10rpx);
+  width: 18rpx;
+  height: 18rpx;
+  background: #E0632A;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 2rpx 4rpx rgba(224, 99, 42, 0.3);
+}
+
+/* ✓ 符号 */
+.calendar-day__check::after {
+  content: '✓';
+  font-size: 11rpx;
+  color: #fff;
   font-weight: 700;
+  line-height: 1;
 }
 
 /* ─── 统计行 ──────────────────────────────── */

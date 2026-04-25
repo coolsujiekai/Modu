@@ -55,9 +55,12 @@ export async function addNote(bookId, noteData) {
   });
   const result = assertCloudCallResult(res);
 
-  // 自动打卡提示（仅当天首次记笔记时提示）
-  console.log('[addNote] result.autoCheckedIn:', result?.autoCheckedIn);
+  // 自动打卡：写入 checkins 后使缓存失效，确保 challenge 页面 onShow 能拿到最新状态
   if (result?.autoCheckedIn) {
+    try {
+      const { invalidateAllCaches } = require('./checkinService.js');
+      invalidateAllCaches();
+    } catch (e) {}
     try {
       wx.showToast({ title: '📖 已自动打卡', icon: 'none', duration: 1500 });
     } catch (e) {}

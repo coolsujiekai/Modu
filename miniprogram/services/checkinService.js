@@ -77,11 +77,14 @@ function calcLongestStreak(dateList) {
 
 /**
  * 获取今日打卡状态 + 连续天数
+ * @param {boolean} [bypassCache=false] - 是否跳过缓存强制拉新数据
  * @returns {Promise<{ checkedIn: boolean, streak: number }>}
  */
-export async function getTodayStatus() {
-  const cached = cacheGet(CACHE_KEY_TODAY);
-  if (cached) return cached;
+export async function getTodayStatus(bypassCache = false) {
+  if (!bypassCache) {
+    const cached = cacheGet(CACHE_KEY_TODAY);
+    if (cached) return cached;
+  }
 
   try {
     const today = todayStr();
