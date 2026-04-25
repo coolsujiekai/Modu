@@ -64,3 +64,7 @@ export async function checkinToday(challengeId, bookId) {
 export async function autoCheckinByNote(bookId, noteType, noteTimestamp) {
   return assertCloudOk(await cloud('autoCheckinByNote', { bookId, noteType, noteTimestamp }));
 }
+
+export function isChallengeDisabledResult(res) {
+  return !!(res && (res.disabled === true || res.skipped === true && res.reason === 'feature disabled'));
+}

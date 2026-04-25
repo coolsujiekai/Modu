@@ -12,6 +12,8 @@ Page({
   data: {
     loading: true,
     operating: false,
+    featureDisabled: false,
+    monthTitle: '',
 
     challenge: null,         // 当前活动
     participant: null,       // 参与记录（自动创建）
@@ -30,7 +32,14 @@ Page({
   },
 
   async onLoad() {
+    this.setData({ monthTitle: this.buildMonthTitle() });
     await this.loadPage();
+  },
+
+  buildMonthTitle() {
+    const d = new Date();
+    const m = d.getMonth() + 1;
+    return `${m}月每日阅读打卡`;
   },
 
   async onShow() {
@@ -42,6 +51,10 @@ Page({
     wx.showLoading({ title: '加载中', mask: true });
     try {
       const res = await getActiveChallenge();
+      if (res?.disabled) {
+        this.setData({ featureDisabled: true, challenge: null, loading: false });
+        return;
+      }
       const challenge = res?.challenge || null;
       this.setData({ challenge, loading: false });
       if (!challenge) return;
@@ -60,6 +73,10 @@ Page({
 
     try {
       const res = await getMyChallengeStatus(challenge._id);
+      if (res?.disabled) {
+        this.setData({ featureDisabled: true, challenge: null, participant: null, selectedBook: null, checkins: [], checkinDays: 0, todayChecked: false });
+        return;
+      }
       const participant = res?.participant || null;
       const todayChecked = !!res?.todayChecked;
       const selectedBook = res?.selectedBook || null;
@@ -162,6 +179,11 @@ Page({
     this.setData({ operating: true });
     try {
       const res = await createBookAndCheckin(challenge._id, bookName);
+      if (res?.disabled) {
+        wx.showToast({ title: '活动功能已关闭', icon: 'none' });
+        this.setData({ featureDisabled: true });
+        return;
+      }
       this.setData({
         participant: res?.participant || null,
         selectedBook: res?.selectedBook || null,
@@ -187,6 +209,11 @@ Page({
     this.setData({ operating: true });
     try {
       const res = await checkinToday(challenge._id, bookId);
+      if (res?.disabled) {
+        wx.showToast({ title: '活动功能已关闭', icon: 'none' });
+        this.setData({ featureDisabled: true });
+        return;
+      }
       this.setData({
         participant: res?.participant || this.data.participant,
         selectedBook: res?.selectedBook || this.data.selectedBook,

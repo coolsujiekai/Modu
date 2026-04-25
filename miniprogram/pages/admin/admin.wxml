@@ -71,6 +71,12 @@
 
   <view class="card">
     <view class="h2">阅读活动</view>
+    <view class="picker-row">
+      <view class="picker-label">功能总开关</view>
+      <view class="picker-value">
+        <switch checked="{{challengeFeatureEnabled}}" disabled="{{challengeFeatureLoading}}" bindchange="onToggleChallengeFeature" />
+      </view>
+    </view>
     <view wx:if="{{!challenges || challenges.length === 0}}" class="muted">暂无活动</view>
     <view wx:for="{{challenges}}" wx:key="_id" class="challenge-row">
       <view class="challenge-info">

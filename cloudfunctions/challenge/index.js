@@ -12,9 +12,22 @@ const _ = db.command;
 const CHALLENGES_COLLECTION = 'reading_challenges';
 const PARTICIPANTS_COLLECTION = 'challenge_participants';
 const CHECKINS_COLLECTION = 'challenge_checkins';
+const CONFIG_COLLECTION = 'app_config';
+const FEATURE_FLAG_DOC_ID = 'reading_challenge_feature';
 
 function getOpenid() {
   return cloud.getWXContext().OPENID;
+}
+
+async function isFeatureEnabled() {
+  // Default enabled when config is missing
+  try {
+    const res = await db.collection(CONFIG_COLLECTION).doc(FEATURE_FLAG_DOC_ID).get();
+    const enabled = res?.data?.enabled;
+    return enabled !== false;
+  } catch (e) {
+    return true;
+  }
 }
 
 function formatDateKey(ts = Date.now()) {
@@ -144,6 +157,8 @@ async function ensureBookOwned(openid, bookId) {
 // 获取当前进行中的活动
 async function getActiveChallenge() {
   try {
+    const enabled = await isFeatureEnabled();
+    if (!enabled) return { ok: true, disabled: true, challenge: null };
     const challenge = await getActiveChallengeDoc();
     return { ok: true, challenge };
   } catch (e) {
@@ -154,6 +169,8 @@ async function getActiveChallenge() {
 // 获取已结束的活动（用于排行榜）
 async function getEndedChallenge() {
   try {
+    const enabled = await isFeatureEnabled();
+    if (!enabled) return { ok: true, disabled: true, challenge: null };
     const res = await db.collection(CHALLENGES_COLLECTION)
       .where({ status: 'ended' })
       .orderBy('endedAt', 'desc')
@@ -174,6 +191,8 @@ async function getMyChallengeStatus(event) {
   if (!challengeId) return { ok: false, error: 'challengeId is required' };
 
   try {
+    const enabled = await isFeatureEnabled();
+    if (!enabled) return { ok: true, disabled: true, challenge: null, participant: null, todayChecked: false, selectedBook: null, checkins: [], checkinDays: 0 };
     const challengeRes = await db.collection(CHALLENGES_COLLECTION).doc(challengeId).get();
     const challenge = challengeRes?.data || null;
     if (!challenge) return { ok: true, challenge: null, participant: null, todayChecked: false, selectedBook: null, checkins: [] };
@@ -209,6 +228,8 @@ async function selectBook(event) {
   if (!bookId) return { ok: false, error: 'bookId is required' };
 
   try {
+    const enabled = await isFeatureEnabled();
+    if (!enabled) return { ok: true, disabled: true, skipped: true };
     const book = await ensureBookOwned(openid, bookId);
     if (!book) return { ok: false, error: 'book not found' };
 
@@ -244,6 +265,8 @@ async function createBookAndCheckin(event) {
   if (!bookName) return { ok: false, error: 'bookName is required' };
 
   try {
+    const enabled = await isFeatureEnabled();
+    if (!enabled) return { ok: true, disabled: true, skipped: true };
     const bookId = await ensureReadingBookExists(openid, bookName);
     if (!bookId) return { ok: false, error: 'failed to create book' };
 
@@ -303,6 +326,8 @@ async function checkinToday(event) {
   if (!bookId) return { ok: false, error: 'bookId is required' };
 
   try {
+    const enabled = await isFeatureEnabled();
+    if (!enabled) return { ok: true, disabled: true, skipped: true };
     const book = await ensureBookOwned(openid, bookId);
     if (!book) return { ok: false, error: 'book not found' };
 
@@ -362,6 +387,8 @@ async function autoCheckinByNote(event) {
   if (!bookId) return { ok: false, error: 'bookId is required' };
 
   try {
+    const enabled = await isFeatureEnabled();
+    if (!enabled) return { ok: true, disabled: true, skipped: true, reason: 'feature disabled' };
     const challenge = await getActiveChallengeDoc();
     if (!challenge?._id) return { ok: true, skipped: true, reason: 'no active challenge' };
 
@@ -617,6 +644,15 @@ async function getRankings(event) {
 exports.main = async (event, context) => {
   const action = String(event?.action || '').trim();
   try {
+    // Hard kill switch: when disabled, suppress all actions
+    const enabled = await isFeatureEnabled();
+    if (!enabled) {
+      if (action === 'getActiveChallenge' || action === 'getEndedChallenge') return { ok: true, disabled: true, challenge: null };
+      if (action === 'getMyChallengeStatus') return { ok: true, disabled: true, challenge: null, participant: null, todayChecked: false, selectedBook: null, checkins: [], checkinDays: 0 };
+      // all other actions are treated as no-op
+      return { ok: true, disabled: true, skipped: true };
+    }
+
     if (action === 'getActiveChallenge') return await getActiveChallenge();
     if (action === 'getEndedChallenge') return await getEndedChallenge();
     if (action === 'getMyStatus') return await getMyStatus(event.challengeId);

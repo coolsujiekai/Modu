@@ -13,6 +13,8 @@ const ADMINS_COLLECTION = 'admins';
 const TEST_DEVICES_COLLECTION = 'test_devices';
 const FEEDBACK_COLLECTION = 'feedback';
 const PUBLIC_RANKINGS_COLLECTION = 'public_rankings';
+const CONFIG_COLLECTION = 'app_config';
+const FEATURE_FLAG_DOC_ID = 'reading_challenge_feature';
 const COUNTERS_COLLECTION = 'counters';
 const COUNTER_DOC_ID = 'users';
 const TODAY_POOL_DOC_ID = 'today_pool';
@@ -34,6 +36,34 @@ async function isAdmin(openid) {
 
 function deny() {
   return { ok: false, error: 'FORBIDDEN' };
+}
+
+async function getChallengeFeatureFlag() {
+  const openid = getOpenid();
+  if (!(await isAdmin(openid))) return deny();
+  try {
+    const res = await db.collection(CONFIG_COLLECTION).doc(FEATURE_FLAG_DOC_ID).get();
+    const enabled = res?.data?.enabled;
+    return { ok: true, enabled: enabled !== false };
+  } catch (e) {
+    // default enabled
+    return { ok: true, enabled: true };
+  }
+}
+
+async function setChallengeFeatureFlag(event) {
+  const openid = getOpenid();
+  if (!(await isAdmin(openid))) return deny();
+  const enabled = event?.enabled !== false;
+  const now = Date.now();
+  try {
+    await db.collection(CONFIG_COLLECTION).doc(FEATURE_FLAG_DOC_ID).set({
+      data: { enabled, updatedAt: now, updatedBy: openid }
+    });
+  } catch (e) {
+    return { ok: false, error: e?.message || String(e) };
+  }
+  return { ok: true, enabled };
 }
 
 async function me() {
@@ -513,6 +543,8 @@ exports.main = async (event, context) => {
       case 'resetTestUser': return await resetTestUser(event);
       case 'listFeedback': return await listFeedback(event);
       case 'listWishlistHot': return await listWishlistHot(event);
+      case 'getChallengeFeatureFlag': return await getChallengeFeatureFlag();
+      case 'setChallengeFeatureFlag': return await setChallengeFeatureFlag(event);
       case 'getTodayPool': return await getTodayPool();
       case 'appendTodayPool': return await appendTodayPool(event);
       case 'createChallenge': return await createChallenge(event);

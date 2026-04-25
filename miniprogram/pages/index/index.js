@@ -21,7 +21,8 @@ Page({
       totalNotes: 23
     },
     recommendTop3: [],
-    challengeBanner: null  // 进行中的活动横幅
+    challengeBanner: null,  // 进行中的活动横幅
+    challengeMonthTitle: ''
   },
   onShareAppMessage() {
     return {
@@ -101,10 +102,21 @@ Page({
   async loadChallengeBanner() {
     try {
       const res = await getActiveChallenge();
-      this.setData({ challengeBanner: res?.challenge || null });
+      if (res?.disabled) {
+        this.setData({ challengeBanner: null, challengeMonthTitle: '' });
+        return;
+      }
+      const challenge = res?.challenge || null;
+      this.setData({ challengeBanner: challenge, challengeMonthTitle: challenge ? this.buildMonthTitle() : '' });
     } catch (e) {
       this.setData({ challengeBanner: null });
     }
+  },
+
+  buildMonthTitle() {
+    const d = new Date();
+    const m = d.getMonth() + 1;
+    return `${m}月每日阅读打卡`;
   },
 
   // Stable daily pick: same for all users on same day.

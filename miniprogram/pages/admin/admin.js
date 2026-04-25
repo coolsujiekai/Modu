@@ -1,4 +1,4 @@
-import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback, adminListChallenges, adminCreateChallenge, adminStartChallenge, adminEndChallenge } from '../../services/adminService.js';
+import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback, adminListChallenges, adminCreateChallenge, adminStartChallenge, adminEndChallenge, adminGetChallengeFeatureFlag, adminSetChallengeFeatureFlag } from '../../services/adminService.js';
 
 Page({
   data: {
@@ -33,6 +33,8 @@ Page({
     challenges: [],
     creating: false,
     templateCreating: false,
+    challengeFeatureEnabled: true,
+    challengeFeatureLoading: false,
     startingId: '',
     endingId: '',
   },
@@ -43,6 +45,7 @@ Page({
     await this.refresh();
     await this.loadFeedback(true);
     await this.loadChallenges();
+    await this.loadChallengeFeatureFlag();
   },
 
   goHotWishlist() {
@@ -253,6 +256,29 @@ Page({
       this.setData({ challenges: res.items || [] });
     } catch (e) {
       // ignore
+    }
+  },
+
+  async loadChallengeFeatureFlag() {
+    this.setData({ challengeFeatureLoading: true });
+    try {
+      const res = await adminGetChallengeFeatureFlag();
+      this.setData({ challengeFeatureEnabled: res?.enabled !== false, challengeFeatureLoading: false });
+    } catch (e) {
+      this.setData({ challengeFeatureEnabled: true, challengeFeatureLoading: false });
+    }
+  },
+
+  async onToggleChallengeFeature(e) {
+    const enabled = !!e?.detail?.value;
+    this.setData({ challengeFeatureLoading: true });
+    try {
+      const res = await adminSetChallengeFeatureFlag(enabled);
+      this.setData({ challengeFeatureEnabled: res?.enabled !== false, challengeFeatureLoading: false });
+      wx.showToast({ title: enabled ? '已开启' : '已关闭', icon: 'success', duration: 700 });
+    } catch (err) {
+      this.setData({ challengeFeatureLoading: false });
+      wx.showToast({ title: err?.message || '操作失败', icon: 'none' });
     }
   },
 

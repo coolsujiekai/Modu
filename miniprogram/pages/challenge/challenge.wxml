@@ -1,6 +1,12 @@
 <view class="page">
   <view wx:if="{{loading}}" class="state muted">加载中...</view>
 
+  <view wx:elif="{{featureDisabled}}" class="empty-state">
+    <text class="empty-icon">🛠️</text>
+    <view class="empty-title">活动暂未开放</view>
+    <view class="empty-desc">管理员已关闭阅读活动功能。</view>
+  </view>
+
   <!-- 无活动 -->
   <view wx:elif="{{!challenge}}" class="empty-state">
     <text class="empty-icon">📖</text>
@@ -11,7 +17,7 @@
   <view wx:else>
     <!-- 顶部状态卡 -->
     <view class="card hero-card">
-      <view class="hero-title">{{challenge.name || '每日阅读打卡'}}</view>
+      <view class="hero-title">{{monthTitle || (challenge.name || '每日阅读打卡')}}</view>
       <view class="hero-desc">每天读一点，点一下就算坚持。写金句或心得，也会自动完成当天打卡。</view>
       <view class="hero-stats">
         <view class="hero-stat">本期已打卡 <text class="hero-num">{{checkinDays}}</text> 天</view>

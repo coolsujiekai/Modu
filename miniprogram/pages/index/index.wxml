@@ -6,7 +6,7 @@
   <view wx:if="{{challengeBanner}}" class="challenge-banner" bindtap="goActivity">
     <view class="banner-left">
       <text class="banner-tag">📖</text>
-      <text class="banner-text">{{challengeBanner.name}}</text>
+      <text class="banner-text">{{challengeMonthTitle || challengeBanner.name}}</text>
     </view>
     <view class="banner-arrow">→</view>
   </view>

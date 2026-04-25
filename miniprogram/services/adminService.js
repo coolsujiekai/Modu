@@ -76,3 +76,13 @@ export async function adminEndChallenge(id) {
   return assertCloudOk(res);
 }
 
+export async function adminGetChallengeFeatureFlag() {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'getChallengeFeatureFlag' });
+  return assertCloudOk(res);
+}
+
+export async function adminSetChallengeFeatureFlag(enabled) {
+  const res = await callCloudFunctionWithRetry('adminPanel', { action: 'setChallengeFeatureFlag', enabled: enabled === true });
+  return assertCloudOk(res);
+}
+
