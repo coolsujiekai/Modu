@@ -2,7 +2,6 @@ import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 import { deleteBook, finishBook } from '../../services/bookService.js';
 import { formatNoteTime } from '../../services/noteService.js';
-import { getActiveChallenge } from '../../services/challengeService.js';
 
 Page({
   data: {
@@ -21,8 +20,6 @@ Page({
       totalNotes: 23
     },
     recommendTop3: [],
-    challengeBanner: null,  // 进行中的活动横幅
-    challengeMonthTitle: ''
   },
   onShareAppMessage() {
     return {
@@ -56,7 +53,6 @@ Page({
     this.loadRecentNotes();
     this.refreshHomeActivity();
     this.loadRecommendTop3();
-    this.loadChallengeBanner();
   },
 
   applyPersonalizeSettings() {
@@ -64,10 +60,6 @@ Page({
     this.setData({
       homeViewMode: settings.homeViewMode
     });
-  },
-
-  goActivity() {
-    wx.navigateTo({ url: '/pages/challenge/challenge' });
   },
 
   goHistory() {
@@ -97,26 +89,6 @@ Page({
     } catch (e) {
       this.setData({ recommendTop3: [] });
     }
-  },
-
-  async loadChallengeBanner() {
-    try {
-      const res = await getActiveChallenge();
-      if (res?.disabled) {
-        this.setData({ challengeBanner: null, challengeMonthTitle: '' });
-        return;
-      }
-      const challenge = res?.challenge || null;
-      this.setData({ challengeBanner: challenge, challengeMonthTitle: challenge ? this.buildMonthTitle() : '' });
-    } catch (e) {
-      this.setData({ challengeBanner: null });
-    }
-  },
-
-  buildMonthTitle() {
-    const d = new Date();
-    const m = d.getMonth() + 1;
-    return `${m}月每日阅读打卡`;
   },
 
   // Stable daily pick: same for all users on same day.

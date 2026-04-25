@@ -21,7 +21,7 @@
     "pages/author/author",
     "pages/editBookInfo/editBookInfo",
     "pages/shareCard/shareCard",
-    "pages/challenge/challenge"
+    "pages/shareCard/shareCard"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

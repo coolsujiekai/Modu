@@ -1,4 +1,4 @@
-import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback, adminGetChallengeFeatureFlag, adminSetChallengeFeatureFlag } from '../../services/adminService.js';
+import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback } from '../../services/adminService.js';
 
 Page({
   data: {
@@ -30,8 +30,6 @@ Page({
     feedbackHasMore: true,
     feedbackLoadingMore: false,
 
-    challengeFeatureEnabled: true,
-    challengeFeatureLoading: false,
   },
 
   async onLoad() {
@@ -39,7 +37,6 @@ Page({
     await this.loadTestDevices();
     await this.refresh();
     await this.loadFeedback(true);
-    await this.loadChallengeFeatureFlag();
   },
 
   goHotWishlist() {
@@ -244,28 +241,5 @@ Page({
     return this.loadFeedback(false);
   },
 
-  async loadChallengeFeatureFlag() {
-    this.setData({ challengeFeatureLoading: true });
-    try {
-      const res = await adminGetChallengeFeatureFlag();
-      this.setData({ challengeFeatureEnabled: res?.enabled !== false, challengeFeatureLoading: false });
-    } catch (e) {
-      this.setData({ challengeFeatureEnabled: true, challengeFeatureLoading: false });
-    }
-  },
-
-  async onToggleChallengeFeature(e) {
-    const enabled = !!e?.detail?.value;
-    this.setData({ challengeFeatureLoading: true });
-    try {
-      const res = await adminSetChallengeFeatureFlag(enabled);
-      this.setData({ challengeFeatureEnabled: res?.enabled !== false, challengeFeatureLoading: false });
-      wx.showToast({ title: enabled ? '已开启' : '已关闭', icon: 'success', duration: 700 });
-    } catch (err) {
-      this.setData({ challengeFeatureLoading: false });
-      wx.showToast({ title: err?.message || '操作失败', icon: 'none' });
-    }
-  },
-  // 活动创建/模板等运营功能先移除，后续再设计
 });
 

@@ -1,7 +1,6 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { addNote as addNoteToCloud } from '../../services/noteService.js';
 import { recognizePrintedText } from '../../services/noteService.js';
-import { getActiveChallenge, getMyStatus, submitCheckin as cloudSubmitCheckin } from '../../services/challengeService.js';
 
 const DRAFT_KEY = '_quickNote_draft';
 const LAST_TYPE_KEY = '_quickNote_lastType';
@@ -30,11 +29,6 @@ Page({
     sheetType: 'quote',
     fixedBookId: '',
 
-    // 挑战联动
-    challengeActive: false,
-    challengeId: '',
-    joinedChallenge: false,
-    countToChallenge: false,
   },
 
   noop() {},
@@ -70,30 +64,6 @@ Page({
     setTimeout(() => {
       this.setData({ autoFocus: true });
     }, 80);
-    this.loadChallenge();
-  },
-
-  async loadChallenge() {
-    try {
-      const res = await getActiveChallenge();
-      const challenge = res?.challenge || null;
-      if (!challenge) return;
-      this.setData({ challengeActive: true, challengeId: challenge._id });
-      // 检查是否已报名
-      try {
-        const status = await getMyStatus(challenge._id);
-        this.setData({ joinedChallenge: !!status?.participant });
-      } catch (e) {}
-    } catch (e) {}
-  },
-
-  onToggleChallenge() {
-    if (!this.data.joinedChallenge) return;
-    this.setData({ countToChallenge: !this.data.countToChallenge });
-  },
-
-  goJoinChallenge() {
-    wx.navigateTo({ url: '/pages/challenge/challenge' });
   },
 
   async loadFixedBook(bookId) {
@@ -534,16 +504,6 @@ Page({
         this.saveLastUsedBookId(bookId);
         this.saveLastUsedType(pickedType);
 
-        // 挑战打卡
-        if (this.data.countToChallenge && this.data.challengeId && this.data.joinedChallenge) {
-          const bookName = this.data.currentBookName || '';
-          if (bookName) {
-            try {
-              await cloudSubmitCheckin(this.data.challengeId, bookName, text);
-            } catch (e) {}
-          }
-        }
-
         this.clearDraft();
         this.setData({
           draft: '',
@@ -555,7 +515,6 @@ Page({
           type: pickedType,
           sheetType: pickedType,
           currentBookId: bookId,
-          countToChallenge: false
         });
         wx.showToast({
           title: pickedType === 'quote' ? '已存为金句' : '已存为想法',
@@ -648,18 +607,6 @@ Page({
       this.saveLastUsedType(type);
       this.clearDraft();
 
-      // 挑战打卡
-      if (this.data.countToChallenge && this.data.challengeId && this.data.joinedChallenge) {
-        const bookName = this.data.currentBookName || '';
-        if (bookName) {
-          try {
-            await cloudSubmitCheckin(this.data.challengeId, bookName, text);
-          } catch (e) {
-            // 打卡失败不影响笔记保存
-          }
-        }
-      }
-
       this.setData({
         draft: '',
         draftLength: 0,
@@ -670,7 +617,6 @@ Page({
         type,
         sheetType: type,
         currentBookId: bookId,
-        countToChallenge: false
       });
       wx.showToast({
         title: type === 'quote' ? '已存为金句' : '已存为想法',

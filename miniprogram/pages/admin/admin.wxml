@@ -70,16 +70,6 @@
   </view>
 
   <view class="card">
-    <view class="h2">阅读打卡活动</view>
-    <view class="picker-row">
-      <view class="picker-label">功能总开关</view>
-      <view class="picker-value">
-        <switch checked="{{challengeFeatureEnabled}}" disabled="{{challengeFeatureLoading}}" bindchange="onToggleChallengeFeature" />
-      </view>
-    </view>
-  </view>
-
-  <view class="card">
     <view class="h2">最近注册用户</view>
     <view wx:if="{{users.length === 0}}" class="muted">暂无</view>
     <view wx:for="{{users}}" wx:key="_openid" class="user-row">

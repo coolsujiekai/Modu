@@ -13,8 +13,6 @@ const ADMINS_COLLECTION = 'admins';
 const TEST_DEVICES_COLLECTION = 'test_devices';
 const FEEDBACK_COLLECTION = 'feedback';
 const PUBLIC_RANKINGS_COLLECTION = 'public_rankings';
-const CONFIG_COLLECTION = 'app_config';
-const FEATURE_FLAG_DOC_ID = 'rc_feature';
 const COUNTERS_COLLECTION = 'counters';
 const COUNTER_DOC_ID = 'users';
 const TODAY_POOL_DOC_ID = 'today_pool';
@@ -36,34 +34,6 @@ async function isAdmin(openid) {
 
 function deny() {
   return { ok: false, error: 'FORBIDDEN' };
-}
-
-async function getChallengeFeatureFlag() {
-  const openid = getOpenid();
-  if (!(await isAdmin(openid))) return deny();
-  try {
-    const res = await db.collection(CONFIG_COLLECTION).doc(FEATURE_FLAG_DOC_ID).get();
-    const enabled = res?.data?.enabled;
-    return { ok: true, enabled: enabled !== false };
-  } catch (e) {
-    // default enabled
-    return { ok: true, enabled: true };
-  }
-}
-
-async function setChallengeFeatureFlag(event) {
-  const openid = getOpenid();
-  if (!(await isAdmin(openid))) return deny();
-  const enabled = event?.enabled !== false;
-  const now = Date.now();
-  try {
-    await db.collection(CONFIG_COLLECTION).doc(FEATURE_FLAG_DOC_ID).set({
-      data: { enabled, updatedAt: now, updatedBy: openid }
-    });
-  } catch (e) {
-    return { ok: false, error: e?.message || String(e) };
-  }
-  return { ok: true, enabled };
 }
 
 async function me() {
@@ -391,83 +361,6 @@ async function resetTestUser(event) {
   return { ok: true, counts };
 }
 
-// ===================== 活动管理 =====================
-
-async function createChallenge(event) {
-  const caller = getOpenid();
-  if (!(await isAdmin(caller))) return deny();
-
-  const name = String(event.name || '').trim();
-  const desc = String(event.desc || '').trim();
-  const startDate = Number(event.startDate || 0);
-  const endDate = Number(event.endDate || 0);
-
-  if (!name) return { ok: false, error: 'name is required' };
-  if (!startDate || !endDate) return { ok: false, error: 'startDate and endDate are required' };
-  if (endDate <= startDate) return { ok: false, error: 'endDate must be after startDate' };
-
-  const now = Date.now();
-  const res = await db.collection('reading_challenges').add({
-    data: {
-      status: 'pending',
-      name,
-      desc,
-      startDate,
-      endDate,
-      createdAt: now,
-      createdBy: caller,
-    }
-  });
-
-  return { ok: true, id: res._id };
-}
-
-async function startChallenge(event) {
-  const caller = getOpenid();
-  if (!(await isAdmin(caller))) return deny();
-
-  const id = String(event.id || '').trim();
-  if (!id) return { ok: false, error: 'id is required' };
-
-  try {
-    await db.collection('reading_challenges').doc(id).update({
-      data: { status: 'active', startedAt: Date.now() }
-    });
-  } catch (e) {
-    return { ok: false, error: 'challenge not found' };
-  }
-  return { ok: true };
-}
-
-async function endChallenge(event) {
-  const caller = getOpenid();
-  if (!(await isAdmin(caller))) return deny();
-
-  const id = String(event.id || '').trim();
-  if (!id) return { ok: false, error: 'id is required' };
-
-  try {
-    await db.collection('reading_challenges').doc(id).update({
-      data: { status: 'ended', endedAt: Date.now() }
-    });
-  } catch (e) {
-    return { ok: false, error: 'challenge not found' };
-  }
-  return { ok: true };
-}
-
-async function listChallenges(event) {
-  const caller = getOpenid();
-  if (!(await isAdmin(caller))) return deny();
-
-  const status = String(event.status || '').trim();
-  let query = db.collection('reading_challenges').orderBy('createdAt', 'desc');
-  if (status) query = query.where({ status });
-
-  const res = await query.limit(50).get();
-  return { ok: true, items: res.data || [] };
-}
-
 // ===================== 今日热榜 =====================
 
 async function getTodayPool() {
@@ -543,14 +436,8 @@ exports.main = async (event, context) => {
       case 'resetTestUser': return await resetTestUser(event);
       case 'listFeedback': return await listFeedback(event);
       case 'listWishlistHot': return await listWishlistHot(event);
-      case 'getChallengeFeatureFlag': return await getChallengeFeatureFlag();
-      case 'setChallengeFeatureFlag': return await setChallengeFeatureFlag(event);
       case 'getTodayPool': return await getTodayPool();
       case 'appendTodayPool': return await appendTodayPool(event);
-      case 'createChallenge': return await createChallenge(event);
-      case 'startChallenge': return await startChallenge(event);
-      case 'endChallenge': return await endChallenge(event);
-      case 'listChallenges': return await listChallenges(event);
       default:
         return { ok: false, error: 'unknown action' };
     }
