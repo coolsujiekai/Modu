@@ -3,6 +3,7 @@ import { getPersonalizeSettings } from '../../utils/personalize';
 import { deleteBook, finishBook } from '../../services/bookService.js';
 import { formatNoteTime } from '../../services/noteService.js';
 import { cacheGet, cacheSet, cacheRemove, CacheKeys, CacheTTL } from '../../utils/cache.js';
+import { getTodayStatus } from '../../services/checkinService.js';
 
 Page({
   data: {
@@ -21,6 +22,9 @@ Page({
       totalNotes: 23
     },
     recommendTop3: [],
+
+    // 打卡状态
+    checkin: { checkedIn: false, streak: 0 },
   },
   onShareAppMessage() {
     return {
@@ -54,6 +58,7 @@ Page({
     this.loadRecentNotes();
     this.refreshHomeActivity();
     this.loadRecommendTop3();
+    this.loadCheckinStatus();
   },
 
   applyPersonalizeSettings() {
@@ -76,6 +81,19 @@ Page({
     try {
       wx.setStorageSync('_activity_summary_v1', this.data.activity);
     } catch (e) {}
+  },
+
+  goChallenge() {
+    wx.navigateTo({ url: '/pages/challenge/challenge' });
+  },
+
+  async loadCheckinStatus() {
+    try {
+      const status = await getTodayStatus();
+      this.setData({ checkin: status });
+    } catch (e) {
+      // ignore
+    }
   },
 
   async loadRecommendTop3() {

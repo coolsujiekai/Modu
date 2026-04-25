@@ -612,7 +612,34 @@ async function addNote(event) {
   });
   await trimRecentNotes(openid, RECENT_NOTES_KEEP);
 
-  return { ok: true };
+  // ── 自动打卡 ─────────────────────────────────
+  let autoCheckedIn = false;
+  try {
+    const today = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}-${pad2(new Date().getDate())}`;
+    const existing = await db.collection('checkins')
+      .where({ _openid: openid, date: today })
+      .limit(1)
+      .get();
+    if (!existing.data || existing.data.length === 0) {
+      const now = Date.now();
+      await db.collection('checkins').add({
+        data: {
+          _openid: openid,
+          date: today,
+          timestamp: now,
+          source: 'auto',
+          createdAt: now,
+          updatedAt: now
+        }
+      });
+      autoCheckedIn = true;
+    }
+  } catch (e) {
+    // 打卡失败不影响笔记保存
+  }
+  // ── ─────────────────────────────────────────
+
+  return { ok: true, autoCheckedIn };
 }
 
 /**

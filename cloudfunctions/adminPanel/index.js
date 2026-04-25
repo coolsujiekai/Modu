@@ -16,6 +16,8 @@ const PUBLIC_RANKINGS_COLLECTION = 'public_rankings';
 const COUNTERS_COLLECTION = 'counters';
 const COUNTER_DOC_ID = 'users';
 const TODAY_POOL_DOC_ID = 'today_pool';
+const APP_CONFIG_COLLECTION = 'app_config';
+const APP_CONFIG_DOC_ID = 'app_settings';
 
 function getOpenid() {
   return cloud.getWXContext().OPENID;
@@ -433,6 +435,27 @@ async function appendTodayPool(event) {
   return { ok: true, added: Math.max(0, added), total: merged.length };
 }
 
+// ─── 应用配置 ───────────────────────────────────────
+
+async function getAppConfig() {
+  try {
+    const res = await db.collection(APP_CONFIG_COLLECTION).doc(APP_CONFIG_DOC_ID).get();
+    return { ok: true, config: res.data || { checkinEnabled: true } };
+  } catch (e) {
+    return { ok: true, config: { checkinEnabled: true } };
+  }
+}
+
+async function setAppConfig(event) {
+  const openid = getOpenid();
+  if (!await isAdmin(openid)) return deny();
+  const { checkinEnabled } = event;
+  await db.collection(APP_CONFIG_COLLECTION).doc(APP_CONFIG_DOC_ID).set({
+    data: { checkinEnabled: !!checkinEnabled, updatedAt: Date.now() }
+  });
+  return { ok: true };
+}
+
 exports.main = async (event, context) => {
   const action = String(event?.action || '').trim();
   try {
@@ -446,6 +469,8 @@ exports.main = async (event, context) => {
       case 'listWishlistHot': return await listWishlistHot(event);
       case 'getTodayPool': return await getTodayPool();
       case 'appendTodayPool': return await appendTodayPool(event);
+      case 'getAppConfig': return await getAppConfig();
+      case 'setAppConfig': return await setAppConfig(event);
       default:
         return { ok: false, error: 'unknown action' };
     }

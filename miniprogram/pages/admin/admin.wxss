@@ -162,3 +162,15 @@
   color: var(--text-title);
 }
 
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+}
+
+.setting-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}

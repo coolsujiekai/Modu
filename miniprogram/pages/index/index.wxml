@@ -2,6 +2,18 @@
   <!-- 顶部间距 -->
   <view class="top-bar"></view>
 
+  <!-- 打卡横幅 -->
+  <view class="checkin-banner {{checkin.checkedIn ? 'checkin-banner--done' : ''}}" bindtap="goChallenge">
+    <view class="checkin-banner__left">
+      <text class="checkin-banner__icon">{{checkin.checkedIn ? '✅' : '📖'}}</text>
+      <text class="checkin-banner__text">{{checkin.checkedIn ? '今日已打卡' : '打卡记录今天的阅读'}}</text>
+    </view>
+    <view class="checkin-banner__right">
+      <text class="checkin-banner__streak">连续 {{checkin.streak}} 天</text>
+      <van-icon name="arrow-right" size="20rpx" color="{{checkin.checkedIn ? '#9A9A96' : '#8B7355'}}" />
+    </view>
+  </view>
+
   <!-- 书架区域 -->
   <view class="shelf-section">
     <view class="shelf-header">

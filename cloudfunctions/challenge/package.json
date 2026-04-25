@@ -1,0 +1,9 @@
+{
+  "name": "challenge",
+  "version": "1.0.0",
+  "description": "阅读打卡云函数：手动打卡、今日状态、当月数据统计",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.4.0"
+  }
+}

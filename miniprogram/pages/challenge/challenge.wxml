@@ -1,0 +1,214 @@
+<view class="page">
+
+  <!-- ── 头部状态卡 ─────────────────────────────── -->
+  <view class="status-card">
+    <view class="status-streak">
+      <text class="status-streak__num">{{streak}}</text>
+      <text class="status-streak__unit">天</text>
+    </view>
+    <view class="status-streak__label">连续阅读</view>
+
+    <view class="checkin-btn-wrap">
+      <button
+        class="checkin-btn {{checkedIn ? 'checkin-btn--done' : ''}} {{checkinAnimating ? 'checkin-btn--animating' : ''}}"
+        bindtap="onCheckin"
+        disabled="{{checkedIn || checkinAnimating}}"
+      >
+        <text class="checkin-btn__icon">{{checkedIn ? '✓' : '📖'}}</text>
+        <text class="checkin-btn__text">{{checkedIn ? '今日已打卡' : '打卡签到'}}</text>
+      </button>
+    </view>
+
+    <view class="status-hint" wx:if="{{justCheckedIn}}">
+      <text>🎉 打卡成功，继续保持！</text>
+    </view>
+
+    <!-- 已打卡时显示取消入口 -->
+    <view class="cancel-hint" wx:if="{{checkedIn}}" bindtap="onCancelCheckin">
+      <text>长按取消今日打卡</text>
+    </view>
+  </view>
+
+  <!-- ── 在读书架 ─────────────────────────────── -->
+  <view class="section">
+    <view class="section-hd">
+      <text class="section-label">在读书架</text>
+      <text class="section-count muted" wx:if="{{readingBooks.length > 0}}">{{readingBooks.length}} 本</text>
+    </view>
+
+    <view class="book-row">
+      <view
+        wx:for="{{readingBooks}}"
+        wx:key="_id"
+        class="book-item"
+        bindtap="openBook"
+        data-id="{{item._id}}"
+      >
+        <view class="book-cover {{item.coverToneClass}}">
+          <view class="book-cover__left-bar"></view>
+          <view class="book-cover__content">
+            <text class="book-cover__title">{{item.bookName}}</text>
+          </view>
+        </view>
+        <text class="book-name">{{item.bookName}}</text>
+      </view>
+
+      <!-- 快速建书入口 -->
+      <view class="book-item book-item--add" bindtap="openCreateBook">
+        <view class="book-cover book-cover--add">
+          <text class="book-cover__plus">+</text>
+        </view>
+        <text class="book-name book-name--muted">添加</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ── 日历 ─────────────────────────────────── -->
+  <view class="section">
+    <view class="section-hd">
+      <view class="calendar-nav">
+        <text class="calendar-nav__arrow" bindtap="onPrevMonth">‹</text>
+        <text class="calendar-title">{{monthLabel}}</text>
+        <text class="calendar-nav__arrow" bindtap="onNextMonth">›</text>
+      </view>
+    </view>
+
+    <view class="calendar-grid">
+      <text class="calendar-weekday" wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="{{item}}">{{item}}</text>
+      <block wx:for="{{calendarDays}}" wx:key="{{index}}">
+        <view wx:if="{{item.empty}}" class="calendar-day calendar-day--empty"></view>
+        <view
+          wx:else
+          class="calendar-day {{item.isToday ? 'calendar-day--today' : ''}} {{item.isChecked ? 'calendar-day--checked' : ''}} {{item.isFuture ? 'calendar-day--future' : ''}}"
+        >
+          <text class="calendar-day__num">{{item.date}}</text>
+          <text class="calendar-day__dot" wx:if="{{item.isChecked && !item.isToday}}">●</text>
+          <text class="calendar-day__dot calendar-day__dot--today" wx:if="{{item.isToday}}">◎</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 统计 -->
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-item__val">{{stats.thisMonthDays}}</text>
+        <text class="stat-item__label muted">本月</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-item__val">{{stats.longestStreak}}</text>
+        <text class="stat-item__label muted">最长</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-item__val">{{stats.totalDays}}</text>
+        <text class="stat-item__label muted">总计</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-item__val">{{stats.finishedThisMonth}}</text>
+        <text class="stat-item__label muted">读完</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ── 今日阅读 ──────────────────────────────── -->
+  <view class="section">
+    <view class="section-hd">
+      <text class="section-label">今天的阅读</text>
+    </view>
+
+    <view wx:if="{{todayNotes.length > 0}}" class="notes-list">
+      <view
+        wx:for="{{todayNotes}}"
+        wx:key="timestamp"
+        class="note-item"
+        bindtap="openBook"
+        data-id="{{item.bookId}}"
+      >
+        <view class="note-item__top">
+          <view class="note-type-tag {{item.type === 'quote' ? 'tag--quote' : 'tag--thought'}}">
+            {{item.type === 'quote' ? '金句' : '想法'}}
+          </view>
+          <text class="note-item__book muted">《{{item.bookName}}》</text>
+        </view>
+        <text class="note-item__text">"{{item.text}}"</text>
+      </view>
+    </view>
+
+    <view wx:if="{{todayNotes.length === 0}}" class="empty-state">
+      <text class="empty-state__text">还没有记录，开始读一本书吧</text>
+      <view class="empty-state__actions">
+        <button class="btn-primary" bindtap="openCreateBook">添加在读</button>
+        <button class="btn-secondary" bindtap="openQuickNoteFromEmpty" wx:if="{{readingBooks.length > 0}}">去记录</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ── 今日推荐 ──────────────────────────────── -->
+  <view class="section" wx:if="{{recommendTop3.length > 0}}">
+    <view class="section-hd">
+      <text class="section-label">今日推荐</text>
+    </view>
+    <view class="recommend-list">
+      <view
+        wx:for="{{recommendTop3}}"
+        wx:key="title"
+        class="recommend-item"
+        bindtap="onRecommendTap"
+        data-title="{{item.title}}"
+        data-author="{{item.author}}"
+      >
+        <text class="recommend-item__icon">📚</text>
+        <view class="recommend-item__info">
+          <text class="recommend-item__title">{{item.title}}</text>
+          <text class="recommend-item__author muted">{{item.author}}</text>
+        </view>
+        <text class="recommend-item__add">+</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ── 底部安全区 ────────────────────────────── -->
+  <view class="safe-area"></view>
+
+  <!-- ── 快速建书遮罩 ─────────────────────────── -->
+  <view class="modal-mask" wx:if="{{createBookVisible}}" bindtap="closeCreateBook"></view>
+  <view class="modal-create {{createBookVisible ? 'modal-create--open' : ''}}">
+    <view class="modal-create__header">
+      <text class="modal-create__title">添加在读</text>
+      <text class="modal-create__close" bindtap="closeCreateBook">×</text>
+    </view>
+    <view class="modal-create__body">
+      <view class="form-field" id="form-book-name">
+        <input
+          class="form-input"
+          placeholder="书名"
+          value="{{createBookName}}"
+          bindinput="onCreateBookNameInput"
+          focus="{{createBookVisible}}"
+          adjust-position="{{false}}"
+          cursor-spacing="120"
+        />
+      </view>
+      <view class="form-field" id="form-author">
+        <input
+          class="form-input"
+          placeholder="作者（可选）"
+          value="{{createAuthorName}}"
+          bindinput="onCreateAuthorInput"
+          adjust-position="{{false}}"
+          cursor-spacing="120"
+        />
+      </view>
+    </view>
+    <view class="modal-create__footer">
+      <button class="btn-secondary modal-create__cancel" bindtap="closeCreateBook">取消</button>
+      <button
+        class="btn-primary modal-create__confirm {{createBookSaving ? 'btn--loading' : ''}}"
+        bindtap="onConfirmCreateBook"
+        disabled="{{createBookSaving}}"
+      >{{createBookSaving ? '创建中…' : '开始读'}}</button>
+    </view>
+  </view>
+</view>

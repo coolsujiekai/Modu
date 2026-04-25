@@ -30,6 +30,8 @@ Page({
     feedbackHasMore: true,
     feedbackLoadingMore: false,
 
+    // 功能开关
+    checkinEnabled: true,
   },
 
   async onLoad() {
@@ -37,6 +39,33 @@ Page({
     await this.loadTestDevices();
     await this.refresh();
     await this.loadFeedback(true);
+    await this.loadAppConfig();
+  },
+
+  async loadAppConfig() {
+    try {
+      const res = await wx.cloud.callFunction({ name: 'adminPanel', data: { action: 'getAppConfig' } });
+      const config = res?.result?.config || {};
+      this.setData({ checkinEnabled: config.checkinEnabled !== false });
+    } catch (e) {
+      // ignore
+    }
+  },
+
+  async onToggleCheckin(e) {
+    const checkinEnabled = !!e.detail.value;
+    this.setData({ checkinEnabled });
+    try {
+      await wx.cloud.callFunction({
+        name: 'adminPanel',
+        data: { action: 'setAppConfig', checkinEnabled }
+      });
+      wx.showToast({ title: '已更新', icon: 'success', duration: 600 });
+    } catch (e) {
+      wx.showToast({ title: '更新失败', icon: 'none' });
+      // 回滚
+      this.setData({ checkinEnabled: !checkinEnabled });
+    }
   },
 
   goHotWishlist() {

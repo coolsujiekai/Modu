@@ -5,6 +5,14 @@
   </view>
 
   <view class="card">
+    <view class="h2">功能开关</view>
+    <view class="setting-row">
+      <text class="setting-label">阅读打卡</text>
+      <switch checked="{{checkinEnabled}}" bindchange="onToggleCheckin" color="#8B7355" />
+    </view>
+  </view>
+
+  <view class="card">
     <view class="h2">概览</view>
     <view class="stats-row">
       <view class="stat">
