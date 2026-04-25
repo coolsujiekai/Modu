@@ -70,15 +70,13 @@
   </view>
 
   <view class="card">
-    <view class="h2">阅读活动</view>
+    <view class="h2">阅读打卡活动</view>
     <view class="picker-row">
       <view class="picker-label">功能总开关</view>
       <view class="picker-value">
         <switch checked="{{challengeFeatureEnabled}}" disabled="{{challengeFeatureLoading}}" bindchange="onToggleChallengeFeature" />
       </view>
     </view>
-    <button class="weui-btn weui-btn_default" bindtap="createDailyReadingCheckinTemplate" loading="{{templateCreating}}" disabled="{{creating || templateCreating}}">一键创建：每日阅读打卡</button>
-    <button class="weui-btn weui-btn_default" bindtap="openCreateChallenge" loading="{{creating}}">发起新活动</button>
   </view>
 
   <view class="card">

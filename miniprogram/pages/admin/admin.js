@@ -1,4 +1,4 @@
-import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback, adminCreateChallenge, adminGetChallengeFeatureFlag, adminSetChallengeFeatureFlag } from '../../services/adminService.js';
+import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback, adminGetChallengeFeatureFlag, adminSetChallengeFeatureFlag } from '../../services/adminService.js';
 
 Page({
   data: {
@@ -30,8 +30,6 @@ Page({
     feedbackHasMore: true,
     feedbackLoadingMore: false,
 
-    creating: false,
-    templateCreating: false,
     challengeFeatureEnabled: true,
     challengeFeatureLoading: false,
   },
@@ -268,115 +266,6 @@ Page({
       wx.showToast({ title: err?.message || '操作失败', icon: 'none' });
     }
   },
-
-  async openCreateChallenge() {
-    if (this.data.creating) return;
-
-    // 输入活动名称（wx.showModal editable 模式）
-    const nameResult = await wx.showModal({
-      title: '活动名称',
-      placeholderText: '如：五一阅读挑战赛',
-      editable: true,
-      confirmText: '下一步',
-      cancelText: '取消',
-    });
-    if (!nameResult.confirm || !nameResult.content) return;
-    const name = nameResult.content.trim();
-    if (!name) return;
-
-    // 输入活动描述
-    const descResult = await wx.showModal({
-      title: '活动描述',
-      placeholderText: '简要描述（可选）',
-      editable: true,
-      confirmText: '下一步',
-      cancelText: '取消',
-    });
-    const desc = descResult.content?.trim() || '';
-
-    // 选择开始日期
-    const { dateStr: startPicker } = await this.chooseDate('开始日期');
-    if (!startPicker) return;
-
-    // 选择结束日期
-    const { dateStr: endPicker } = await this.chooseDate('结束日期');
-    if (!endPicker) return;
-
-    const startDate = new Date(startPicker).getTime();
-    const endDate = new Date(endPicker + ' 23:59:59').getTime();
-
-    if (endDate <= startDate) {
-      wx.showToast({ title: '结束日期需晚于开始', icon: 'none' });
-      return;
-    }
-
-    this.setData({ creating: true });
-    try {
-      await adminCreateChallenge(name, desc, startDate, endDate);
-      wx.showToast({ title: '已创建', icon: 'success' });
-      await this.loadChallenges();
-    } catch (e) {
-      wx.showToast({ title: e?.message || '创建失败', icon: 'none' });
-    } finally {
-      this.setData({ creating: false });
-    }
-  },
-
-  async createDailyReadingCheckinTemplate() {
-    if (this.data.creating || this.data.templateCreating) return;
-
-    const confirm = await wx.showModal({
-      title: '一键创建活动',
-      content: '将创建「每日阅读打卡」活动：今天开始，持续 7 天。',
-      confirmText: '创建',
-      cancelText: '取消'
-    });
-    if (!confirm.confirm) return;
-
-    const name = '每日阅读打卡';
-    const desc = '每天读一点，坚持更容易。写金句或心得，也会自动完成当天打卡。';
-
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
-    end.setHours(23, 59, 59, 999);
-
-    this.setData({ templateCreating: true });
-    try {
-      await adminCreateChallenge(name, desc, start.getTime(), end.getTime());
-      wx.showToast({ title: '已创建', icon: 'success' });
-    } catch (e) {
-      wx.showToast({ title: e?.message || '创建失败', icon: 'none' });
-    } finally {
-      this.setData({ templateCreating: false });
-    }
-  },
-
-  chooseDate(title = '输入日期') {
-    return new Promise((resolve) => {
-      wx.showModal({
-        title,
-        editable: true,
-        placeholderText: '格式：2026-05-01',
-        confirmText: '确定',
-        success: (res) => {
-          if (res.confirm && res.content) {
-            const val = res.content.trim();
-            if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-              resolve({ dateStr: val });
-            } else {
-              wx.showToast({ title: '日期格式错误', icon: 'none' });
-              resolve({ dateStr: null });
-            }
-          } else {
-            resolve({ dateStr: null });
-          }
-        },
-        fail: () => resolve({ dateStr: null })
-      });
-    });
-  },
-
-  // start/end/list 等运营功能先隐藏，后续再设计
+  // 活动创建/模板等运营功能先移除，后续再设计
 });
 
