@@ -56,6 +56,7 @@ export async function addNote(bookId, noteData) {
   const result = assertCloudCallResult(res);
 
   // 自动打卡提示（仅当天首次记笔记时提示）
+  console.log('[addNote] result.autoCheckedIn:', result?.autoCheckedIn);
   if (result?.autoCheckedIn) {
     try {
       wx.showToast({ title: '📖 已自动打卡', icon: 'none', duration: 1500 });

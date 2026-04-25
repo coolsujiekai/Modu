@@ -615,13 +615,15 @@ async function addNote(event) {
   // ── 自动打卡 ─────────────────────────────────
   let autoCheckedIn = false;
   try {
-    const today = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}-${pad2(new Date().getDate())}`;
+    const now = Date.now();
+    const today = `${new Date(now).getFullYear()}-${pad2(new Date(now).getMonth() + 1)}-${pad2(new Date(now).getDate())}`;
+    console.log('[autoCheckin] openid:', openid, 'today:', today);
     const existing = await db.collection('checkins')
       .where({ _openid: openid, date: today })
       .limit(1)
       .get();
+    console.log('[autoCheckin] existing:', JSON.stringify(existing.data));
     if (!existing.data || existing.data.length === 0) {
-      const now = Date.now();
       await db.collection('checkins').add({
         data: {
           _openid: openid,
@@ -633,8 +635,12 @@ async function addNote(event) {
         }
       });
       autoCheckedIn = true;
+      console.log('[autoCheckin] 新增打卡成功');
+    } else {
+      console.log('[autoCheckin] 今日已有打卡记录，跳过');
     }
   } catch (e) {
+    console.error('[autoCheckin] 失败:', e.message);
     // 打卡失败不影响笔记保存
   }
   // ── ─────────────────────────────────────────

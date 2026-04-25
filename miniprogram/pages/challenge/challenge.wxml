@@ -82,8 +82,7 @@
           class="calendar-day {{item.isToday ? 'calendar-day--today' : ''}} {{item.isChecked ? 'calendar-day--checked' : ''}} {{item.isFuture ? 'calendar-day--future' : ''}}"
         >
           <text class="calendar-day__num">{{item.date}}</text>
-          <view class="calendar-day__dot" wx:if="{{item.isChecked && !item.isToday}}"></view>
-          <view class="calendar-day__dot calendar-day__dot--today" wx:if="{{item.isToday && item.isChecked}}"></view>
+          <text class="calendar-day__check" wx:if="{{item.isChecked}}">✓</text>
         </view>
       </block>
     </view>
