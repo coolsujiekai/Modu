@@ -1,6 +1,7 @@
 import { getTodayStatus, manualCheckin, cancelTodayCheckin, getMonthData, getTodayNotes, invalidateAllCaches } from '../../services/checkinService.js';
 import { listReadingBooks, createBook } from '../../services/bookService.js';
 import { formatNoteTime } from '../../services/noteService.js';
+import { db, withRetry } from '../../utils/db.js';
 
 Page({
   data: {
@@ -80,7 +81,7 @@ Page({
         timeText: formatNoteTime(n.timestamp, 'relative')
       }));
 
-      const recommendTop3 = this.pickDailyTop3();
+      const recommendTop3 = await this.pickDailyTop3();
 
       this.setData({
         loading: false,
@@ -208,31 +209,54 @@ Page({
 
   // ─── 推荐 ─────────────────────────────────────────
 
-  pickDailyTop3() {
-    const pool = [
-      { title: '活着', author: '余华' },
-      { title: '平凡的世界', author: '路遥' },
-      { title: '百年孤独', author: '加西亚·马尔克斯' },
-      { title: '小王子', author: '圣·埃克苏佩里' },
-      { title: '解忧杂货店', author: '东野圭吾' },
-      { title: '人类简史', author: '尤瓦尔·赫拉利' },
-      { title: '月亮与六便士', author: '毛姆' },
-      { title: '围城', author: '钱钟书' },
-      { title: '三体', author: '刘慈欣' },
-      { title: '追风筝的人', author: '卡勒德·胡赛尼' }
-    ];
+  async pickDailyTop3() {
+    // 尝试从 public_rankings.today_pool 读取推荐池
+    let pool = [];
+    try {
+      const res = await withRetry(() =>
+        db.collection('public_rankings').doc('today_pool').get()
+      );
+      const items = res?.data?.items;
+      if (Array.isArray(items) && items.length > 0) {
+        pool = items.map(it => ({
+          title: String(it.title || it.name || it || '').trim(),
+          author: String(it.author || '').trim()
+        })).filter(it => it.title);
+      }
+    } catch (e) {}
+
+    // 兜底静态推荐池
+    if (pool.length === 0) {
+      pool = [
+        { title: '活着', author: '余华' },
+        { title: '平凡的世界', author: '路遥' },
+        { title: '小王子', author: '圣·埃克苏佩里' },
+        { title: '解忧杂货店', author: '东野圭吾' },
+        { title: '人类简史', author: '尤瓦尔·赫拉利' },
+        { title: '围城', author: '钱钟书' }
+      ];
+    }
+
+    return this._dailyPick(pool, 3);
+  },
+
+  // 每日稳定随机抽取（seed 基于日期，同一天所有用户结果一致）
+  _dailyPick(arr, k) {
+    if (!Array.isArray(arr) || arr.length === 0) return [];
+    const n = arr.length;
+    if (n <= k) return arr.slice(0, k);
     const d = new Date();
     const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
     let x = seed ^ 2166136261;
-    x = Math.imul(x ^ (x >>> 16), 1540483477) | 0;
+    x = (Math.imul(x ^ (x >>> 16), 1540483477)) | 0;
     const used = new Set();
     const picked = [];
-    while (picked.length < 3 && used.size < pool.length) {
-      x = (Math.imul(1664525, (x ^ (x >>> 16) >>> 0) >>> 0) + 1013904223) >>> 0;
-      const idx = x % pool.length;
+    while (picked.length < k && used.size < n) {
+      x = (Math.imul(1664525, ((x ^ (x >>> 16)) >>> 0)) + 1013904223) >>> 0;
+      const idx = x % n;
       if (!used.has(idx)) {
         used.add(idx);
-        picked.push(pool[idx]);
+        picked.push(arr[idx]);
       }
     }
     return picked;

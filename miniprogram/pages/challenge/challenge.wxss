@@ -315,19 +315,30 @@
   color: var(--text-light);
 }
 
+.calendar-day--checked {
+  /* 已打卡日期：数字用强调色 */
+}
+
 .calendar-day--checked .calendar-day__num {
   font-weight: 700;
+  color: var(--accent);
 }
 
 .calendar-day__dot {
-  font-size: 10rpx;
-  color: #E8895A;
-  line-height: 1;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: #E0632A;
   margin-top: 4rpx;
+  line-height: 1;
 }
 
 .calendar-day__dot--today {
-  color: #E8895A;
+  background: #E0632A;
+  border: 2rpx solid var(--accent);
+  width: 10rpx;
+  height: 10rpx;
+  box-sizing: border-box;
 }
 
 /* ─── 统计行 ──────────────────────────────── */
@@ -489,21 +500,36 @@
   left: 0; right: 0; top: 0; bottom: 0;
   background: var(--overlay-mask);
   z-index: 998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modal-mask.show {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .modal-create {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  width: 600rpx;
+  max-width: calc(100vw - 80rpx);
   background: var(--bg-surface);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-modal);
   z-index: 999;
-  padding: 0 0 calc(24rpx + env(safe-area-inset-bottom));
-  transform: translateY(100%);
-  transition: transform 0.25s ease;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .modal-create--open {
-  transform: translateY(0);
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .modal-create__header {

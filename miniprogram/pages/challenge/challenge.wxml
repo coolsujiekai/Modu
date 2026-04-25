@@ -82,8 +82,8 @@
           class="calendar-day {{item.isToday ? 'calendar-day--today' : ''}} {{item.isChecked ? 'calendar-day--checked' : ''}} {{item.isFuture ? 'calendar-day--future' : ''}}"
         >
           <text class="calendar-day__num">{{item.date}}</text>
-          <text class="calendar-day__dot" wx:if="{{item.isChecked && !item.isToday}}">●</text>
-          <text class="calendar-day__dot calendar-day__dot--today" wx:if="{{item.isToday}}">◎</text>
+          <view class="calendar-day__dot" wx:if="{{item.isChecked && !item.isToday}}"></view>
+          <view class="calendar-day__dot calendar-day__dot--today" wx:if="{{item.isToday && item.isChecked}}"></view>
         </view>
       </block>
     </view>
@@ -173,7 +173,7 @@
   <view class="safe-area"></view>
 
   <!-- ── 快速建书遮罩 ─────────────────────────── -->
-  <view class="modal-mask" wx:if="{{createBookVisible}}" bindtap="closeCreateBook"></view>
+  <view class="modal-mask {{createBookVisible ? 'show' : ''}}" bindtap="closeCreateBook"></view>
   <view class="modal-create {{createBookVisible ? 'modal-create--open' : ''}}">
     <view class="modal-create__header">
       <text class="modal-create__title">添加在读</text>
