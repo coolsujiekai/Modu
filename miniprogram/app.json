@@ -47,7 +47,7 @@
       },
       {
         "pagePath": "pages/history/history",
-        "text": "已读"
+        "text": "书架"
       },
       {
         "pagePath": "pages/profile/profile",

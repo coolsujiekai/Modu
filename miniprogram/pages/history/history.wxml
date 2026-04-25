@@ -1,6 +1,6 @@
 <view class="page" bindtap="onPageTap">
   <view class="hero">
-    <view class="hero-title">已读回顾</view>
+    <view class="hero-title">书架统计</view>
     <view class="hero-sub">累计读完 {{finishedCount}} 本 · 心得 {{totalThoughts}} 条 · 金句 {{totalQuotes}} 条</view>
   </view>
 

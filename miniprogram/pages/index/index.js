@@ -260,7 +260,7 @@ Page({
           slideButtons: [{
             text: '删除',
             extClass: 'slide-btn-delete',
-            data: { noteId: n._id, ts: Number(n.timestamp || 0), bookId: n.bookId }
+            data: { ts: Number(n.timestamp || 0), bookId: n.bookId }
           }]
         }))
         .filter((n) => n.bookId && n.timestamp && n.text);
@@ -275,15 +275,12 @@ Page({
   // ─── 最近笔记滑动删除 ──────────────────────
 
   onRecentNoteSlideButtonTap(e) {
-    const { noteid, ts, bookid } = e.detail?.data || {};
-    if (!noteid) {
-      wx.showToast({ title: '笔记标识缺失', icon: 'none' });
-      return;
-    }
-    this.deleteRecentNote(noteid, bookid, ts);
+    const { ts, bookid } = e.detail?.data || {};
+    if (!ts || !bookid) return;
+    this.deleteRecentNote(bookid, ts);
   },
 
-  async deleteRecentNote(noteId, bookId, timestamp) {
+  async deleteRecentNote(bookId, timestamp) {
     const confirm = await wx.showModal({
       title: '删除这条记录？',
       content: '删除后不可恢复。',
@@ -293,7 +290,7 @@ Page({
     if (!confirm.confirm) return;
     try {
       await deleteNote(bookId, Number(timestamp));
-      const updated = this.data.recentNotes.filter(n => n._id !== noteId);
+      const updated = this.data.recentNotes.filter(n => Number(n.timestamp) !== Number(timestamp));
       this.setData({ recentNotes: updated });
       wx.showToast({ title: '已删除', icon: 'none', duration: 700 });
     } catch (e) {
