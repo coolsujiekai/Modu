@@ -3,6 +3,7 @@ import { formatDate } from '../../utils/util.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 import { formatNoteTime, addNote as addNoteToCloud, deleteNote as deleteNoteFromCloud, recognizePrintedText } from '../../services/noteService.js';
 import { loadBook as fetchBook, finishBook, unfinishBook } from '../../services/bookService.js';
+import { autoCheckinByNote } from '../../services/challengeService.js';
 
 let siManager = null;
 
@@ -611,6 +612,16 @@ Page({
         this.setData({ savedHintType: '' });
       }, 900);
       wx.showToast({ title: '已保存', icon: 'success', duration: 700 });
+
+      // 自动打卡（失败不影响笔记保存）
+      try {
+        const res = await autoCheckinByNote(this.data.book._id, type, Date.now());
+        if (res?.checked) {
+          wx.showToast({ title: '已记录，并完成今日打卡 ✅', icon: 'none', duration: 1200 });
+        }
+      } catch (e2) {
+        // ignore
+      }
     } catch (e) {
       wx.showToast({ title: e?.message ? `保存失败: ${e.message}` : '保存失败', icon: 'none' });
     }

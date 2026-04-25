@@ -17,6 +17,19 @@ function getOpenid() {
   return cloud.getWXContext().OPENID;
 }
 
+function formatDateKey(ts = Date.now()) {
+  const d = new Date(Number(ts || 0) || Date.now());
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+async function getActiveChallengeDoc() {
+  const res = await db.collection(CHALLENGES_COLLECTION).where({ status: 'active' }).limit(1).get();
+  return (res.data || [])[0] || null;
+}
+
 async function ensureReadingBookExists(openid, bookNameRaw) {
   const bookName = String(bookNameRaw || '').trim();
   if (!bookName) return null;
@@ -53,14 +66,85 @@ async function ensureReadingBookExists(openid, bookNameRaw) {
   return addRes?._id || null;
 }
 
+async function getMyParticipant(challengeId, openid) {
+  const res = await db
+    .collection(PARTICIPANTS_COLLECTION)
+    .where({ challengeId, _openid: openid })
+    .limit(1)
+    .get();
+  return (res.data || [])[0] || null;
+}
+
+async function ensureParticipant(challengeId, openid) {
+  const existing = await getMyParticipant(challengeId, openid);
+  if (existing?._id) return existing;
+
+  const now = Date.now();
+  const addRes = await db.collection(PARTICIPANTS_COLLECTION).add({
+    data: {
+      challengeId,
+      _openid: openid,
+      selectedBookId: '',
+      selectedBookName: '',
+      checkinDays: 0,
+      lastCheckinDate: '',
+      joinedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    }
+  });
+
+  const created = await db.collection(PARTICIPANTS_COLLECTION).doc(addRes._id).get();
+  return created?.data || null;
+}
+
+async function computeCheckinDays(challengeId, openid) {
+  // MVP: scan my checkins (bounded) and count unique checkinDate
+  const res = await db
+    .collection(CHECKINS_COLLECTION)
+    .where({ challengeId, _openid: openid })
+    .field({ checkinDate: true, checkedAt: true, createdAt: true })
+    .limit(500)
+    .get();
+  const list = res.data || [];
+  const set = new Set();
+  list.forEach((c) => {
+    const key = String(c.checkinDate || '').trim() || formatDateKey(c.checkedAt || c.createdAt || 0);
+    if (key) set.add(key);
+  });
+  return set.size;
+}
+
+async function getMyCheckins(challengeId, openid, limitN = 20) {
+  const res = await db
+    .collection(CHECKINS_COLLECTION)
+    .where({ challengeId, _openid: openid })
+    .orderBy('checkedAt', 'desc')
+    .limit(limitN)
+    .get();
+  return res.data || [];
+}
+
+async function hasCheckedToday(challengeId, openid, dateKey) {
+  const res = await db
+    .collection(CHECKINS_COLLECTION)
+    .where({ challengeId, _openid: openid, checkinDate: dateKey })
+    .limit(1)
+    .get();
+  return (res.data || []).length > 0;
+}
+
+async function ensureBookOwned(openid, bookId) {
+  const r = await db.collection('books').doc(bookId).get();
+  const book = r?.data || null;
+  if (!book || book._openid !== openid) return null;
+  return { _id: bookId, bookName: book.bookName || '', status: book.status || '' };
+}
+
 // 获取当前进行中的活动
 async function getActiveChallenge() {
   try {
-    const res = await db.collection(CHALLENGES_COLLECTION)
-      .where({ status: 'active' })
-      .limit(1)
-      .get();
-    const challenge = (res.data || [])[0] || null;
+    const challenge = await getActiveChallengeDoc();
     return { ok: true, challenge };
   } catch (e) {
     return { ok: false, error: e?.message || String(e) };
@@ -77,6 +161,247 @@ async function getEndedChallenge() {
       .get();
     const challenge = (res.data || [])[0] || null;
     return { ok: true, challenge };
+  } catch (e) {
+    return { ok: false, error: e?.message || String(e) };
+  }
+}
+
+// 极简：获取我的活动状态（页面主接口）
+async function getMyChallengeStatus(event) {
+  const openid = getOpenid();
+  if (!openid) return { ok: false, error: 'missing openid' };
+  const challengeId = String(event.challengeId || '').trim();
+  if (!challengeId) return { ok: false, error: 'challengeId is required' };
+
+  try {
+    const challengeRes = await db.collection(CHALLENGES_COLLECTION).doc(challengeId).get();
+    const challenge = challengeRes?.data || null;
+    if (!challenge) return { ok: true, challenge: null, participant: null, todayChecked: false, selectedBook: null, checkins: [] };
+
+    const participant = await getMyParticipant(challengeId, openid);
+    const todayKey = formatDateKey(Date.now());
+    const todayChecked = participant ? (String(participant.lastCheckinDate || '') === todayKey || await hasCheckedToday(challengeId, openid, todayKey)) : false;
+
+    let selectedBook = null;
+    if (participant?.selectedBookId) {
+      selectedBook = await ensureBookOwned(openid, participant.selectedBookId);
+      if (!selectedBook) {
+        // keep display fallback if book deleted
+        selectedBook = participant.selectedBookName ? { _id: '', bookName: participant.selectedBookName } : null;
+      }
+    }
+
+    const checkins = participant ? await getMyCheckins(challengeId, openid, 20) : [];
+    const checkinDays = participant ? Number(participant.checkinDays || 0) || (await computeCheckinDays(challengeId, openid)) : 0;
+    return { ok: true, challenge, participant, todayChecked, selectedBook, checkins, checkinDays };
+  } catch (e) {
+    return { ok: false, error: e?.message || String(e) };
+  }
+}
+
+// 选择已有在读书，设为当前打卡书
+async function selectBook(event) {
+  const openid = getOpenid();
+  if (!openid) return { ok: false, error: 'missing openid' };
+  const challengeId = String(event.challengeId || '').trim();
+  const bookId = String(event.bookId || '').trim();
+  if (!challengeId) return { ok: false, error: 'challengeId is required' };
+  if (!bookId) return { ok: false, error: 'bookId is required' };
+
+  try {
+    const book = await ensureBookOwned(openid, bookId);
+    if (!book) return { ok: false, error: 'book not found' };
+
+    // If not reading, flip to reading
+    if (book.status && book.status !== 'reading') {
+      await db.collection('books').doc(bookId).update({ data: { status: 'reading', updatedAt: Date.now() } });
+    }
+
+    const participant = await ensureParticipant(challengeId, openid);
+    const now = Date.now();
+    await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).update({
+      data: { selectedBookId: bookId, selectedBookName: book.bookName || '', updatedAt: now }
+    });
+
+    const latest = await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).get();
+    const todayKey = formatDateKey(now);
+    const todayChecked = String(latest?.data?.lastCheckinDate || '') === todayKey || (await hasCheckedToday(challengeId, openid, todayKey));
+    const checkins = await getMyCheckins(challengeId, openid, 20);
+    const checkinDays = Number(latest?.data?.checkinDays || 0) || (await computeCheckinDays(challengeId, openid));
+    return { ok: true, participant: latest?.data || participant, todayChecked, selectedBook: { _id: bookId, bookName: book.bookName || '' }, checkins, checkinDays };
+  } catch (e) {
+    return { ok: false, error: e?.message || String(e) };
+  }
+}
+
+// 新增书籍并自动完成今日打卡
+async function createBookAndCheckin(event) {
+  const openid = getOpenid();
+  if (!openid) return { ok: false, error: 'missing openid' };
+  const challengeId = String(event.challengeId || '').trim();
+  const bookName = String(event.bookName || '').trim();
+  if (!challengeId) return { ok: false, error: 'challengeId is required' };
+  if (!bookName) return { ok: false, error: 'bookName is required' };
+
+  try {
+    const bookId = await ensureReadingBookExists(openid, bookName);
+    if (!bookId) return { ok: false, error: 'failed to create book' };
+
+    // set participant selected book
+    const participant = await ensureParticipant(challengeId, openid);
+    const now = Date.now();
+    await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).update({
+      data: { selectedBookId: bookId, selectedBookName: bookName, updatedAt: now }
+    });
+
+    // auto checkin today
+    const todayKey = formatDateKey(now);
+    const already = await hasCheckedToday(challengeId, openid, todayKey);
+    if (!already) {
+      await db.collection(CHECKINS_COLLECTION).add({
+        data: {
+          challengeId,
+          _openid: openid,
+          bookId,
+          bookName,
+          checkinDate: todayKey,
+          source: 'button',
+          noteId: '',
+          checkedAt: now,
+          createdAt: now,
+        }
+      });
+    }
+
+    const days = await computeCheckinDays(challengeId, openid);
+    await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).update({
+      data: { lastCheckinDate: todayKey, checkinDays: days, updatedAt: Date.now() }
+    });
+
+    const latest = await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).get();
+    const checkins = await getMyCheckins(challengeId, openid, 20);
+    return {
+      ok: true,
+      participant: latest?.data || participant,
+      todayChecked: true,
+      selectedBook: { _id: bookId, bookName },
+      checkins,
+      checkinDays: days,
+    };
+  } catch (e) {
+    return { ok: false, error: e?.message || String(e) };
+  }
+}
+
+// 今日打卡（每天最多一次）
+async function checkinToday(event) {
+  const openid = getOpenid();
+  if (!openid) return { ok: false, error: 'missing openid' };
+  const challengeId = String(event.challengeId || '').trim();
+  const bookId = String(event.bookId || '').trim();
+  if (!challengeId) return { ok: false, error: 'challengeId is required' };
+  if (!bookId) return { ok: false, error: 'bookId is required' };
+
+  try {
+    const book = await ensureBookOwned(openid, bookId);
+    if (!book) return { ok: false, error: 'book not found' };
+
+    const participant = await ensureParticipant(challengeId, openid);
+    const now = Date.now();
+    const todayKey = formatDateKey(now);
+
+    const already = await hasCheckedToday(challengeId, openid, todayKey);
+    if (!already) {
+      await db.collection(CHECKINS_COLLECTION).add({
+        data: {
+          challengeId,
+          _openid: openid,
+          bookId,
+          bookName: book.bookName || '',
+          checkinDate: todayKey,
+          source: 'button',
+          noteId: '',
+          checkedAt: now,
+          createdAt: now,
+        }
+      });
+    }
+
+    const days = await computeCheckinDays(challengeId, openid);
+    await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).update({
+      data: {
+        selectedBookId: bookId,
+        selectedBookName: book.bookName || '',
+        lastCheckinDate: todayKey,
+        checkinDays: days,
+        updatedAt: Date.now(),
+      }
+    });
+
+    const latest = await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).get();
+    const checkins = await getMyCheckins(challengeId, openid, 20);
+    return {
+      ok: true,
+      alreadyChecked: already,
+      participant: latest?.data || participant,
+      todayChecked: true,
+      selectedBook: { _id: bookId, bookName: book.bookName || '' },
+      checkins,
+      checkinDays: days,
+    };
+  } catch (e) {
+    return { ok: false, error: e?.message || String(e) };
+  }
+}
+
+// 书籍页添加笔记后自动打卡
+async function autoCheckinByNote(event) {
+  const openid = getOpenid();
+  if (!openid) return { ok: false, error: 'missing openid' };
+  const bookId = String(event.bookId || '').trim();
+  if (!bookId) return { ok: false, error: 'bookId is required' };
+
+  try {
+    const challenge = await getActiveChallengeDoc();
+    if (!challenge?._id) return { ok: true, skipped: true, reason: 'no active challenge' };
+
+    const book = await ensureBookOwned(openid, bookId);
+    if (!book) return { ok: true, skipped: true, reason: 'book not found' };
+
+    const challengeId = challenge._id;
+    const now = Date.now();
+    const todayKey = formatDateKey(now);
+    const already = await hasCheckedToday(challengeId, openid, todayKey);
+    if (already) return { ok: true, alreadyChecked: true };
+
+    const participant = await ensureParticipant(challengeId, openid);
+
+    await db.collection(CHECKINS_COLLECTION).add({
+      data: {
+        challengeId,
+        _openid: openid,
+        bookId,
+        bookName: book.bookName || '',
+        checkinDate: todayKey,
+        source: 'note',
+        noteId: '',
+        checkedAt: now,
+        createdAt: now,
+      }
+    });
+
+    const days = await computeCheckinDays(challengeId, openid);
+    await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).update({
+      data: {
+        selectedBookId: bookId,
+        selectedBookName: book.bookName || '',
+        lastCheckinDate: todayKey,
+        checkinDays: days,
+        updatedAt: Date.now()
+      }
+    });
+
+    return { ok: true, checked: true, checkinDays: days };
   } catch (e) {
     return { ok: false, error: e?.message || String(e) };
   }
@@ -295,6 +620,11 @@ exports.main = async (event, context) => {
     if (action === 'getActiveChallenge') return await getActiveChallenge();
     if (action === 'getEndedChallenge') return await getEndedChallenge();
     if (action === 'getMyStatus') return await getMyStatus(event.challengeId);
+    if (action === 'getMyChallengeStatus') return await getMyChallengeStatus(event);
+    if (action === 'selectBook') return await selectBook(event);
+    if (action === 'createBookAndCheckin') return await createBookAndCheckin(event);
+    if (action === 'checkinToday') return await checkinToday(event);
+    if (action === 'autoCheckinByNote') return await autoCheckinByNote(event);
     if (action === 'join') return await joinChallenge(event);
     if (action === 'submitCheckin') return await submitCheckin(event);
     if (action === 'markCompleted') return await markCompleted(event);
