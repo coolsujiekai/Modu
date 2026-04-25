@@ -6,16 +6,7 @@
  * - 读操作（loadBook / listXxx）：直接读 DB，openid 过滤由 withOpenIdFilter + 云端安全规则双重保护
  * - 写操作（createBook / finishBook / unfinishBook / deleteBook / updateBookInfo）：走云函数 bookOperations
  */
-import { db, _, withRetry, withOpenIdFilter, callCloudFunctionWithRetry } from '../utils/db.js';
-
-function assertCloudCallResult(res) {
-  const errMsg = String(res?.errMsg || '');
-  if (errMsg && !errMsg.toLowerCase().includes(':ok')) {
-    throw new Error(errMsg);
-  }
-  if (res?.result?.error) throw new Error(res.result.error);
-  return res?.result;
-}
+import { db, _, withRetry, withOpenIdFilter, callCloudFunctionWithRetry, assertCloudCallResult } from '../utils/db.js';
 
 /**
  * 加载单本书籍（读操作，直接 DB），不包含笔记

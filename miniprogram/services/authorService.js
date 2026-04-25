@@ -6,17 +6,8 @@
  * - 读操作（searchAuthors）：直接读 DB，openid 过滤由 withOpenIdFilter + 云端安全规则保护
  * - 写操作（findOrCreateAuthor）：走云函数 bookOperations
  */
-import { db, withRetry, withOpenIdFilter, callCloudFunctionWithRetry } from '../utils/db.js';
+import { db, withRetry, withOpenIdFilter, callCloudFunctionWithRetry, assertCloudCallResult } from '../utils/db.js';
 import { normalizeAuthorName } from '../utils/author.js';
-
-function assertCloudCallResult(res) {
-  const errMsg = String(res?.errMsg || '');
-  if (errMsg && !errMsg.toLowerCase().includes(':ok')) {
-    throw new Error(errMsg);
-  }
-  if (res?.result?.error) throw new Error(res.result.error);
-  return res?.result;
-}
 
 /**
  * 根据输入文字查找作者（前缀匹配 + 模糊包含）

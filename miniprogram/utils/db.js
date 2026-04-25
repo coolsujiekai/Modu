@@ -40,6 +40,19 @@ export function getErrorMessage(error) {
   return String(error?.errMsg || error?.message || error);
 }
 
+/**
+ * 校验云函数调用结果，失败时抛出异常，成功时返回 result。
+ * @param {object} res - wx.cloud.callFunction 返回结果
+ */
+export function assertCloudCallResult(res) {
+  const errMsg = String(res?.errMsg || '');
+  if (errMsg && !errMsg.toLowerCase().includes(':ok')) {
+    throw new Error(errMsg);
+  }
+  if (res?.result?.error) throw new Error(res.result.error);
+  return res?.result;
+}
+
 function isTimeoutLikeError(error) {
   const msg = getErrorMessage(error).toLowerCase();
   return msg.includes('timeout') || msg.includes('time out');

@@ -6,17 +6,8 @@
  * - 读操作（notes 直接在 book.js / bookNotes.js 里已读取，不在此层）
  * - 写操作（addNote / editNote / deleteNote / recalcNoteCounts）：走云函数 bookOperations
  */
-import { db, withRetry, callCloudFunctionWithRetry } from '../utils/db.js';
+import { db, withRetry, callCloudFunctionWithRetry, assertCloudCallResult } from '../utils/db.js';
 import { formatDate } from '../utils/util.js';
-
-function assertCloudCallResult(res) {
-  const errMsg = String(res?.errMsg || '');
-  if (errMsg && !errMsg.toLowerCase().includes(':ok')) {
-    throw new Error(errMsg);
-  }
-  if (res?.result?.error) throw new Error(res.result.error);
-  return res?.result;
-}
 
 /**
  * 格式化笔记时间（支持相对/绝对/两者混合模式）
