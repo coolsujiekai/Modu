@@ -42,3 +42,25 @@ export async function markCompleted(challengeId) {
 export async function getRankings(challengeId) {
   return assertCloudOk(await cloud('getRankings', { challengeId }));
 }
+
+// ---- 极简打卡新接口（优先使用）----
+
+export async function getMyChallengeStatus(challengeId) {
+  return assertCloudOk(await cloud('getMyChallengeStatus', { challengeId }));
+}
+
+export async function selectBook(challengeId, bookId) {
+  return assertCloudOk(await cloud('selectBook', { challengeId, bookId }));
+}
+
+export async function createBookAndCheckin(challengeId, bookName) {
+  return assertCloudOk(await cloud('createBookAndCheckin', { challengeId, bookName }));
+}
+
+export async function checkinToday(challengeId, bookId) {
+  return assertCloudOk(await cloud('checkinToday', { challengeId, bookId }));
+}
+
+export async function autoCheckinByNote(bookId, noteType, noteTimestamp) {
+  return assertCloudOk(await cloud('autoCheckinByNote', { bookId, noteType, noteTimestamp }));
+}

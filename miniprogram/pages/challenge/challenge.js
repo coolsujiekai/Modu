@@ -1,37 +1,26 @@
 import {
   getActiveChallenge,
-  getEndedChallenge,
-  getMyStatus,
-  joinChallenge,
-  submitCheckin,
-  markCompleted,
-  getRankings
+  getMyChallengeStatus,
+  selectBook,
+  createBookAndCheckin,
+  checkinToday
 } from '../../services/challengeService.js';
 import { db } from '../../utils/db.js';
 import { logger } from '../../utils/logger.js';
 
 Page({
   data: {
-    challenge: null,       // 当前活动
-    joined: false,         // 是否已报名
-    checkins: [],          // 我的打卡记录
-    checkinDays: 0,
-    checkinBooks: [],
-    completed: false,
-    activeTab: 'participate',
-    rankings: [],
     loading: true,
-    joining: false,
-    submitting: false,
-    markingDone: false,
+    operating: false,
 
-    // 录入表单
+    challenge: null,         // 当前活动
+    participant: null,       // 参与记录（自动创建）
+    todayChecked: false,
+    checkinDays: 0,
+
+    selectedBook: null,      // { _id, bookName, status? }
     readingBooks: [],
-    bookIndex: -1,
-    selectedBookName: '',
-    customBookName: '',
-    checkinContent: '',
-    canSubmit: false,  // computed
+    checkins: [],            // 最近打卡
 
     // 日历
     weekdays: ['日', '一', '二', '三', '四', '五', '六'],
@@ -41,33 +30,23 @@ Page({
   },
 
   async onLoad() {
-    await this.loadData();
+    await this.loadPage();
   },
 
   async onShow() {
-    if (this.data.challenge) {
-      await this.loadMyStatus();
-    }
+    // keep it simple: refresh status when returning
+    if (this.data.challenge) await this.refreshStatus();
   },
 
-  async loadData() {
+  async loadPage() {
     wx.showLoading({ title: '加载中', mask: true });
     try {
-      // 优先加载进行中的活动
-      let res = await getActiveChallenge();
+      const res = await getActiveChallenge();
       const challenge = res?.challenge || null;
+      this.setData({ challenge, loading: false });
+      if (!challenge) return;
 
-      // 如果没有进行中的活动，尝试加载已结束的（显示排行榜入口）
-      if (!challenge) {
-        res = await getEndedChallenge();
-      }
-
-      this.setData({ challenge: res?.challenge || null, loading: false });
-
-      if (this.data.challenge) {
-        await this.loadMyStatus();
-        await this.loadReadingBooks();
-      }
+      await Promise.all([this.refreshStatus(), this.loadReadingBooks()]);
     } catch (e) {
       this.setData({ loading: false });
     } finally {
@@ -75,28 +54,20 @@ Page({
     }
   },
 
-  async loadMyStatus() {
+  async refreshStatus() {
     const challenge = this.data.challenge;
     if (!challenge) return;
 
     try {
-      const res = await getMyStatus(challenge._id);
-      const joined = !!res?.participant;
-      const checkins = res?.checkins || [];
-      const checkinBooks = joined ? (res?.participant?.books || []) : [];
-      const completed = !!res?.participant?.completed;
+      const res = await getMyChallengeStatus(challenge._id);
+      const participant = res?.participant || null;
+      const todayChecked = !!res?.todayChecked;
+      const selectedBook = res?.selectedBook || null;
+      const checkins = Array.isArray(res?.checkins) ? res.checkins : [];
+      const checkinDays = Number(res?.checkinDays || participant?.checkinDays || 0) || 0;
 
-      this.setData({
-        joined,
-        checkins,
-        checkinDays: joined ? (res?.participant?.checkinDays || 0) : 0,
-        checkinBooks,
-        completed,
-      });
-
-      if (joined) {
-        this.buildCalendar();
-      }
+      this.setData({ participant, todayChecked, selectedBook, checkins, checkinDays });
+      this.buildCalendar();
     } catch (e) {
       // ignore
     }
@@ -131,6 +102,113 @@ Page({
     }
   },
 
+  async openBookPicker() {
+    const books = this.data.readingBooks || [];
+    if (books.length <= 0) {
+      wx.showToast({ title: '还没有在读书籍', icon: 'none' });
+      return;
+    }
+    try {
+      const res = await wx.showActionSheet({
+        itemList: books.map((b) => `《${b.bookName || '未命名'}》`)
+      });
+      const idx = Number(res?.tapIndex ?? -1);
+      const picked = books[idx] || null;
+      if (!picked?._id) return;
+      await this.selectExistingBook(picked._id);
+    } catch (e) {
+      // canceled
+    }
+  },
+
+  async selectExistingBook(bookId) {
+    const challenge = this.data.challenge;
+    if (!challenge || !bookId) return;
+    if (this.data.operating) return;
+    this.setData({ operating: true });
+    try {
+      const res = await selectBook(challenge._id, bookId);
+      this.setData({
+        participant: res?.participant || this.data.participant,
+        selectedBook: res?.selectedBook || this.data.selectedBook,
+        todayChecked: !!res?.todayChecked,
+        checkins: Array.isArray(res?.checkins) ? res.checkins : this.data.checkins,
+        checkinDays: Number(res?.checkinDays || this.data.checkinDays) || 0
+      });
+      this.buildCalendar();
+      wx.showToast({ title: '已选择', icon: 'success', duration: 700 });
+    } catch (e) {
+      wx.showToast({ title: e?.message || '选择失败', icon: 'none' });
+    } finally {
+      this.setData({ operating: false });
+    }
+  },
+
+  async addBookAndCheckin() {
+    const challenge = this.data.challenge;
+    if (!challenge) return;
+    if (this.data.operating) return;
+    const modal = await wx.showModal({
+      title: '新增一本书',
+      editable: true,
+      placeholderText: '请输入书名',
+      confirmText: '确认',
+      cancelText: '取消'
+    });
+    if (!modal.confirm) return;
+    const bookName = String(modal.content || '').trim();
+    if (!bookName) return;
+
+    this.setData({ operating: true });
+    try {
+      const res = await createBookAndCheckin(challenge._id, bookName);
+      this.setData({
+        participant: res?.participant || null,
+        selectedBook: res?.selectedBook || null,
+        todayChecked: !!res?.todayChecked,
+        checkins: Array.isArray(res?.checkins) ? res.checkins : [],
+        checkinDays: Number(res?.checkinDays || 0) || 0
+      });
+      this.buildCalendar();
+      await this.loadReadingBooks();
+      wx.showToast({ title: '已加入在读，并完成今日打卡', icon: 'none', duration: 1200 });
+    } catch (e) {
+      wx.showToast({ title: e?.message || '操作失败', icon: 'none' });
+    } finally {
+      this.setData({ operating: false });
+    }
+  },
+
+  async onCheckinToday() {
+    const challenge = this.data.challenge;
+    const bookId = this.data.selectedBook?._id || '';
+    if (!challenge || !bookId) return;
+    if (this.data.operating) return;
+    this.setData({ operating: true });
+    try {
+      const res = await checkinToday(challenge._id, bookId);
+      this.setData({
+        participant: res?.participant || this.data.participant,
+        selectedBook: res?.selectedBook || this.data.selectedBook,
+        todayChecked: !!res?.todayChecked,
+        checkins: Array.isArray(res?.checkins) ? res.checkins : this.data.checkins,
+        checkinDays: Number(res?.checkinDays || this.data.checkinDays) || 0
+      });
+      this.buildCalendar();
+      wx.showToast({ title: res?.alreadyChecked ? '今天已经打过卡了' : '今日打卡完成 ✅', icon: 'none', duration: 900 });
+    } catch (e) {
+      wx.showToast({ title: e?.message || '打卡失败', icon: 'none' });
+    } finally {
+      this.setData({ operating: false });
+    }
+  },
+
+  goBookDetail() {
+    const id = this.data.selectedBook?._id || '';
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/book/book?id=${id}&focus=1` });
+  },
+
   buildCalendar() {
     const challenge = this.data.challenge;
     if (!challenge) return;
@@ -149,11 +227,18 @@ Page({
 
     logger.debug('[challenge] buildCalendar:', { calYear, calMonth, checkinCount: this.data.checkins.length });
 
-    // 收集打卡日期
+    // 收集打卡日期（兼容旧数据：若无 checkinDate 则用 checkedAt 推导）
     const checkinMap = {};
     for (const c of this.data.checkins) {
-      const d = new Date(c.checkedAt);
-      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const dateKey = String(c.checkinDate || '').trim();
+      if (dateKey) {
+        checkinMap[dateKey] = true;
+        continue;
+      }
+      const ts = Number(c.checkedAt || c.createdAt || 0);
+      if (!ts) continue;
+      const d = new Date(ts);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       checkinMap[key] = true;
     }
 
@@ -169,7 +254,7 @@ Page({
       const date = new Date(calYear, calMonth, d);
       const dateEnd = new Date(calYear, calMonth, d, 23, 59, 59);
       const inRange = date >= start && date <= end && date <= today;
-      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const hasCheckin = !!checkinMap[key];
       days.push({ day: d, inRange, hasCheckin });
     }
@@ -185,140 +270,5 @@ Page({
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
-  },
-
-  switchTab(e) {
-    const tab = e?.currentTarget?.dataset?.tab;
-    if (!tab) return;
-    this.setData({ activeTab: tab });
-    if (tab === 'rank') {
-      this.loadRankings();
-    }
-  },
-
-  async join() {
-    const challenge = this.data.challenge;
-    if (!challenge) return;
-    if (this.data.joining) return;
-
-    this.setData({ joining: true });
-    try {
-      await joinChallenge(challenge._id);
-      wx.showToast({ title: '报名成功', icon: 'success' });
-      await this.loadMyStatus();
-    } catch (e) {
-      wx.showToast({ title: e?.message || '报名失败', icon: 'none' });
-    } finally {
-      this.setData({ joining: false });
-    }
-  },
-
-  onBookChange(e) {
-    const idx = Number(e?.detail?.value || -1);
-    const books = this.data.readingBooks;
-    const book = books[idx];
-    this.setData({
-      bookIndex: idx,
-      selectedBookName: book?.bookName || '',
-      customBookName: '',
-    });
-    this.updateCanSubmit();
-  },
-
-  onCustomBookInput(e) {
-    this.setData({
-      customBookName: e?.detail?.value || '',
-      selectedBookName: '',
-      bookIndex: -1,
-    });
-    this.updateCanSubmit();
-  },
-
-  onContentInput(e) {
-    const val = e?.detail?.value || '';
-    this.setData({ checkinContent: val });
-    this.updateCanSubmit();
-  },
-
-  updateCanSubmit() {
-    const { selectedBookName, customBookName, checkinContent } = this.data;
-    const hasBook = selectedBookName || customBookName.trim();
-    const hasContent = checkinContent.trim();
-    const canSubmit = !!(hasBook && hasContent);
-    logger.debug('[challenge] updateCanSubmit:', { canSubmit });
-    this.setData({ canSubmit });
-  },
-
-  async submitCheckin() {
-    const challenge = this.data.challenge;
-    if (!challenge) return;
-    if (this.data.submitting) return;
-
-    const { selectedBookName, customBookName, checkinContent } = this.data;
-
-    const bookName = selectedBookName || customBookName.trim();
-    const content = checkinContent.trim();
-
-    if (!bookName || !content) {
-      wx.showToast({ title: '请填写书名和内容', icon: 'none' });
-      return;
-    }
-
-    this.setData({ submitting: true });
-    try {
-      await submitCheckin(challenge._id, bookName, content);
-      wx.showToast({ title: '打卡成功', icon: 'success' });
-      this.setData({ checkinContent: '', selectedBookName: '', customBookName: '', bookIndex: -1 });
-      await this.loadMyStatus();
-      await this.loadReadingBooks();
-    } catch (e) {
-      logger.error('[challenge] submitCheckin error:', e);
-      wx.showToast({ title: e?.message || '提交失败', icon: 'none' });
-    } finally {
-      this.setData({ submitting: false });
-    }
-  },
-
-  async markDone() {
-    const challenge = this.data.challenge;
-    if (!challenge || this.data.completed) return;
-
-    const confirm = await wx.showModal({
-      title: '确认完成？',
-      content: '标记为已读完挑战书籍',
-      confirmText: '确认',
-      confirmColor: '#07C160'
-    });
-    if (!confirm.confirm) return;
-
-    this.setData({ markingDone: true });
-    try {
-      await markCompleted(challenge._id);
-      this.setData({ completed: true });
-      wx.showToast({ title: '已标记完成', icon: 'success' });
-    } catch (e) {
-      wx.showToast({ title: '操作失败', icon: 'none' });
-    } finally {
-      this.setData({ markingDone: false });
-    }
-  },
-
-  async loadRankings() {
-    const challenge = this.data.challenge;
-    if (!challenge) return;
-
-    // 如果活动已结束，从 rankings 获取；否则显示提示
-    if (challenge.status !== 'ended') return;
-
-    try {
-      const res = await getRankings(challenge._id);
-      const participants = (res?.participants || []).map((p, i) => ({
-        ...p,
-        rank: i + 1,
-      }));
-      this.setData({ rankings: participants });
-    } catch (e) {
-      this.setData({ rankings: [] });
-    }
   },
 });
