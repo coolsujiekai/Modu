@@ -50,7 +50,7 @@
             <text class="book-cover__title">{{item.bookName}}</text>
           </view>
         </view>
-        <text class="book-name">{{item.bookName}}</text>
+      
       </view>
 
       <!-- 快速建书入口 -->
@@ -58,7 +58,7 @@
         <view class="book-cover book-cover--add">
           <text class="book-cover__plus">+</text>
         </view>
-        <text class="book-name book-name--muted">添加</text>
+      
       </view>
     </view>
   </view>
@@ -118,20 +118,22 @@
     </view>
 
     <view wx:if="{{todayNotes.length > 0}}" class="notes-list">
-      <view
-        wx:for="{{todayNotes}}"
-        wx:key="timestamp"
-        class="note-item"
-        bindtap="openBook"
-        data-id="{{item.bookId}}"
-      >
-        <view class="note-item__top">
-          <view class="note-type-tag {{item.type === 'quote' ? 'tag--quote' : 'tag--thought'}}">
-            {{item.type === 'quote' ? '金句' : '想法'}}
+      <view wx:for="{{todayNotes}}" wx:key="timestamp" class="slide-row">
+        <slideview buttons="{{item.slideButtons}}" bind:buttontap="onTodayNoteSlideButtonTap">
+          <view
+            class="note-item"
+            bindtap="openBook"
+            data-id="{{item.bookId}}"
+          >
+            <view class="note-item__top">
+              <view class="note-type-tag {{item.type === 'quote' ? 'tag--quote' : 'tag--thought'}}">
+                {{item.type === 'quote' ? '金句' : '想法'}}
+              </view>
+              <text class="note-item__book muted">《{{item.bookName}}》</text>
+            </view>
+            <text class="note-item__text">"{{item.text}}"</text>
           </view>
-          <text class="note-item__book muted">《{{item.bookName}}》</text>
-        </view>
-        <text class="note-item__text">"{{item.text}}"</text>
+        </slideview>
       </view>
     </view>
 

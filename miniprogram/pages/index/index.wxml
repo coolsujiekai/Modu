@@ -48,8 +48,7 @@
             <text class="book-cover__title">{{item.bookName}}</text>
           </view>
         </view>
-        <!-- 书名（封面外） -->
-        <text class="book-name">{{item.bookName}}</text>
+       
       </view>
 
       <!-- 加书 -->
@@ -57,7 +56,7 @@
         <view class="book-cover book-cover--add">
           <text class="book-cover__plus">+</text>
         </view>
-        <text class="book-name book-name--muted">添加</text>
+  
       </view>
     </view>
   </view>
@@ -76,23 +75,25 @@
     </view>
 
     <view class="notes-list">
-      <view
-        wx:for="{{recentNotes}}"
-        wx:key="key"
-        class="note-item"
-        catchtap="onRecentNoteTap"
-        data-bookid="{{item.bookId}}"
-        data-text="{{item.text}}"
-        data-key="{{item.key}}"
-      >
-        <view class="note-item__top">
-          <van-tag wx:if="{{item.type === 'quote'}}" type="warning" size="small" round>金句</van-tag>
-          <van-tag wx:elif="{{item.type === 'note'}}" type="primary" size="small" round>笔记</van-tag>
-          <van-tag wx:else type="default" size="small" round>心得</van-tag>
-          <text class="note-item__book">{{item.bookName}}</text>
-        </view>
-        <text class="note-item__text">{{item.text}}</text>
-        <text class="note-item__time">{{item.timeText}}</text>
+      <view wx:for="{{recentNotes}}" wx:key="key" class="slide-row">
+        <slideview buttons="{{item.slideButtons}}" bind:buttontap="onRecentNoteSlideButtonTap">
+          <view
+            class="note-item"
+            catchtap="onRecentNoteTap"
+            data-bookid="{{item.bookId}}"
+            data-text="{{item.text}}"
+            data-key="{{item.key}}"
+          >
+            <view class="note-item__top">
+              <van-tag wx:if="{{item.type === 'quote'}}" type="warning" size="small" round>金句</van-tag>
+              <van-tag wx:elif="{{item.type === 'note'}}" type="primary" size="small" round>笔记</van-tag>
+              <van-tag wx:else type="default" size="small" round>心得</van-tag>
+              <text class="note-item__book">{{item.bookName}}</text>
+            </view>
+            <text class="note-item__text">{{item.text}}</text>
+            <text class="note-item__time">{{item.timeText}}</text>
+          </view>
+        </slideview>
       </view>
     </view>
   </view>

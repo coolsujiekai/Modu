@@ -3,5 +3,7 @@
   "navigationBarBackgroundColor": "#ffffff",
   "navigationBarTextStyle": "black",
   "backgroundColor": "#FAFAF8",
-  "usingComponents": {}
+  "usingComponents": {
+    "slideview": "weui-miniprogram/slideview/slideview"
+  }
 }

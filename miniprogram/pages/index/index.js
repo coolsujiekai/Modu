@@ -1,7 +1,7 @@
 import { db, withRetry, traced, withOpenIdFilter } from '../../utils/db.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 import { deleteBook, finishBook } from '../../services/bookService.js';
-import { formatNoteTime } from '../../services/noteService.js';
+import { formatNoteTime, deleteNote } from '../../services/noteService.js';
 import { cacheGet, cacheSet, cacheRemove, CacheKeys, CacheTTL } from '../../utils/cache.js';
 import { getTodayStatus } from '../../services/checkinService.js';
 
@@ -255,7 +255,12 @@ Page({
           text: (n.text || '').trim(),
           type: n.type || 'thought',
           timestamp: Number(n.timestamp || 0),
-          timeText: formatNoteTime(Number(n.timestamp || 0), 'relative')
+          timeText: formatNoteTime(Number(n.timestamp || 0), 'relative'),
+          slideButtons: [{
+            text: '删除',
+            extClass: 'slide-btn-delete',
+            data: { ts: Number(n.timestamp || 0), bookId: n.bookId }
+          }]
         }))
         .filter((n) => n.bookId && n.timestamp && n.text);
 
@@ -263,6 +268,32 @@ Page({
       cacheSet(CacheKeys.RECENT_NOTES, recentNotes, CacheTTL.RECENT_NOTES);
     } catch (e) {
       this.setData({ recentNotes: [] });
+    }
+  },
+
+  // ─── 最近笔记滑动删除 ──────────────────────
+
+  onRecentNoteSlideButtonTap(e) {
+    const { ts, bookid } = e.detail?.data || {};
+    if (!ts || !bookid) return;
+    this.deleteRecentNote(bookid, ts);
+  },
+
+  async deleteRecentNote(bookId, timestamp) {
+    const confirm = await wx.showModal({
+      title: '删除这条记录？',
+      content: '删除后不可恢复。',
+      confirmColor: '#C07D6B',
+      confirmText: '删除'
+    });
+    if (!confirm.confirm) return;
+    try {
+      await deleteNote(bookId, timestamp);
+      const updated = this.data.recentNotes.filter(n => Number(n.timestamp) !== Number(timestamp));
+      this.setData({ recentNotes: updated });
+      wx.showToast({ title: '已删除', icon: 'none', duration: 700 });
+    } catch (e) {
+      wx.showToast({ title: '删除失败', icon: 'none' });
     }
   },
 

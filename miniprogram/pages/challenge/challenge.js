@@ -1,6 +1,6 @@
 import { getTodayStatus, manualCheckin, cancelTodayCheckin, getMonthData, getTodayNotes, invalidateAllCaches } from '../../services/checkinService.js';
 import { listReadingBooks, createBook } from '../../services/bookService.js';
-import { formatNoteTime } from '../../services/noteService.js';
+import { formatNoteTime, deleteNote } from '../../services/noteService.js';
 import { db, withRetry } from '../../utils/db.js';
 
 Page({
@@ -75,10 +75,17 @@ Page({
       ]);
 
       const todayNotes = (notes || []).slice(0, 5).map(n => ({
+        bookId: n.bookId,
         text: n.text || '',
         type: n.type || 'thought',
         bookName: n.bookName || '未命名',
-        timeText: formatNoteTime(n.timestamp, 'relative')
+        timeText: formatNoteTime(n.timestamp, 'relative'),
+        timestamp: Number(n.timestamp || 0),
+        slideButtons: [{
+          text: '删除',
+          extClass: 'slide-btn-delete',
+          data: { ts: Number(n.timestamp || 0), bookId: n.bookId }
+        }]
       }));
 
       const recommendTop3 = await this.pickDailyTop3();
@@ -352,6 +359,32 @@ Page({
       wx.navigateTo({ url: `/pages/quickNote/quickNote?bookId=${books[0]._id}` });
     } else {
       this.openCreateBook();
+    }
+  },
+
+  // ─── 今日笔记滑动删除 ────────────────────────
+
+  onTodayNoteSlideButtonTap(e) {
+    const { ts, bookid } = e.detail?.data || {};
+    if (!ts || !bookid) return;
+    this.deleteTodayNote(bookid, ts);
+  },
+
+  async deleteTodayNote(bookId, timestamp) {
+    const confirm = await wx.showModal({
+      title: '删除这条记录？',
+      content: '删除后不可恢复。',
+      confirmColor: '#C07D6B',
+      confirmText: '删除'
+    });
+    if (!confirm.confirm) return;
+    try {
+      await deleteNote(bookId, timestamp);
+      const updated = this.data.todayNotes.filter(n => Number(n.timestamp) !== Number(timestamp));
+      this.setData({ todayNotes: updated });
+      wx.showToast({ title: '已删除', icon: 'none', duration: 700 });
+    } catch (e) {
+      wx.showToast({ title: '删除失败', icon: 'none' });
     }
   },
 
