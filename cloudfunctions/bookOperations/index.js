@@ -24,6 +24,214 @@ function getOpenid(event) {
   return cloud.getWXContext().OPENID;
 }
 
+// ─── 阅读打卡联动（写笔记=自动打卡）──────────────────────────────
+
+const CHALLENGES_COLLECTION = 'reading_challenges';
+const PARTICIPANTS_COLLECTION = 'challenge_participants';
+const CHECKINS_COLLECTION = 'challenge_checkins';
+const CONFIG_COLLECTION = 'app_config';
+const FEATURE_FLAG_DOC_ID = 'rc_feature';
+
+async function isChallengeFeatureEnabled() {
+  // Default enabled when config is missing
+  try {
+    const res = await db.collection(CONFIG_COLLECTION).doc(FEATURE_FLAG_DOC_ID).get();
+    const enabled = res?.data?.enabled;
+    return enabled !== false;
+  } catch (e) {
+    return true;
+  }
+}
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function formatDateKey(ts = Date.now()) {
+  const d = new Date(Number(ts || 0) || Date.now());
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function getMonthKey(ts = Date.now()) {
+  const d = new Date(Number(ts || 0) || Date.now());
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+}
+
+function monthStartEnd(ts = Date.now()) {
+  const d = new Date(Number(ts || 0) || Date.now());
+  const y = d.getFullYear();
+  const m = d.getMonth();
+  const start = new Date(y, m, 1, 0, 0, 0, 0).getTime();
+  const end = new Date(y, m + 1, 0, 23, 59, 59, 999).getTime();
+  return { start, end };
+}
+
+async function hasCheckedToday(challengeId, openid, dateKey) {
+  const res = await db
+    .collection(CHECKINS_COLLECTION)
+    .where({ challengeId, _openid: openid, checkinDate: dateKey })
+    .limit(1)
+    .get();
+  return (res.data || []).length > 0;
+}
+
+async function computeCheckinDays(challengeId, openid) {
+  const res = await db
+    .collection(CHECKINS_COLLECTION)
+    .where({ challengeId, _openid: openid })
+    .field({ checkinDate: true, checkedAt: true, createdAt: true })
+    .limit(500)
+    .get();
+  const list = res.data || [];
+  const set = new Set();
+  list.forEach((c) => {
+    const key = String(c.checkinDate || '').trim() || formatDateKey(c.checkedAt || c.createdAt || 0);
+    if (key) set.add(key);
+  });
+  return set.size;
+}
+
+async function getMyParticipant(challengeId, openid) {
+  const res = await db
+    .collection(PARTICIPANTS_COLLECTION)
+    .where({ challengeId, _openid: openid })
+    .limit(1)
+    .get();
+  return (res.data || [])[0] || null;
+}
+
+async function ensureParticipant(challengeId, openid) {
+  const existing = await getMyParticipant(challengeId, openid);
+  if (existing?._id) return existing;
+  const now = Date.now();
+  const addRes = await db.collection(PARTICIPANTS_COLLECTION).add({
+    data: {
+      challengeId,
+      _openid: openid,
+      selectedBookId: '',
+      selectedBookName: '',
+      checkinDays: 0,
+      lastCheckinDate: '',
+      joinedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    }
+  });
+  const created = await db.collection(PARTICIPANTS_COLLECTION).doc(addRes._id).get();
+  return created?.data || null;
+}
+
+async function getOrCreateActiveChallengeDoc() {
+  const now = Date.now();
+  const monthKey = getMonthKey(now);
+
+  // Prefer current-month monthly activity
+  const existing = await db.collection(CHALLENGES_COLLECTION)
+    .where({ type: 'rc_monthly', monthKey, status: 'active' })
+    .limit(1)
+    .get()
+    .catch(() => ({ data: [] }));
+  const hit = (existing.data || [])[0] || null;
+  if (hit) return hit;
+
+  // Any other active activity
+  const any = await db.collection(CHALLENGES_COLLECTION)
+    .where({ status: 'active' })
+    .limit(1)
+    .get()
+    .catch(() => ({ data: [] }));
+  const anyActive = (any.data || [])[0] || null;
+  if (anyActive) return anyActive;
+
+  // Auto-create current-month activity (best-effort)
+  const { start, end } = monthStartEnd(now);
+  try {
+    // End any previous rc_monthly active challenges
+    const prevActive = await db.collection(CHALLENGES_COLLECTION)
+      .where({ type: 'rc_monthly', status: 'active' })
+      .limit(20)
+      .get()
+      .catch(() => ({ data: [] }));
+    const prevList = prevActive.data || [];
+    for (const it of prevList) {
+      if (!it?._id) continue;
+      await db.collection(CHALLENGES_COLLECTION).doc(it._id).update({
+        data: { status: 'ended', endedAt: now, updatedAt: now }
+      });
+    }
+
+    const name = `${new Date(now).getMonth() + 1}月每日阅读打卡`;
+    const desc = '每天读一点，坚持更容易。写金句或心得，也会自动完成当天打卡。';
+    const addRes = await db.collection(CHALLENGES_COLLECTION).add({
+      data: {
+        type: 'rc_monthly',
+        monthKey,
+        name,
+        desc,
+        startDate: start,
+        endDate: end,
+        status: 'active',
+        startedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      }
+    });
+    const createdId = addRes?._id;
+    if (!createdId) return null;
+    const created = await db.collection(CHALLENGES_COLLECTION).doc(createdId).get();
+    return created?.data || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function maybeAutoCheckinAfterNote({ openid, bookId, bookName, note }) {
+  // Only count quote/thought as checkin
+  const t = String(note?.type || '').trim();
+  if (t !== 'quote' && t !== 'thought') return { ok: true, skipped: true, reason: 'note type not eligible' };
+
+  const enabled = await isChallengeFeatureEnabled();
+  if (!enabled) return { ok: true, skipped: true, reason: 'feature disabled' };
+
+  const challenge = await getOrCreateActiveChallengeDoc();
+  if (!challenge?._id) return { ok: true, skipped: true, reason: 'no active challenge' };
+
+  const challengeId = challenge._id;
+  const now = Date.now();
+  const todayKey = formatDateKey(now);
+
+  const already = await hasCheckedToday(challengeId, openid, todayKey);
+  if (already) return { ok: true, alreadyChecked: true };
+
+  await db.collection(CHECKINS_COLLECTION).add({
+    data: {
+      challengeId,
+      _openid: openid,
+      bookId,
+      bookName: String(bookName || '').trim(),
+      checkinDate: todayKey,
+      source: 'note',
+      noteId: String(note?.timestamp || ''),
+      checkedAt: now,
+      createdAt: now,
+    }
+  });
+
+  const participant = await ensureParticipant(challengeId, openid);
+  const days = await computeCheckinDays(challengeId, openid);
+  await db.collection(PARTICIPANTS_COLLECTION).doc(participant._id).update({
+    data: {
+      selectedBookId: bookId,
+      selectedBookName: String(bookName || '').trim(),
+      lastCheckinDate: todayKey,
+      checkinDays: days,
+      updatedAt: Date.now(),
+    }
+  });
+
+  return { ok: true, checked: true, challengeId, checkinDays: days };
+}
+
 // ─── AI：读书心得生成（客户端流式 + 云端落库/配额）─────────────────────
 
 const AI_PROMPT_VERSION = 'reflection_v1';
@@ -589,7 +797,22 @@ async function addNote(event) {
   });
   await trimRecentNotes(openid, RECENT_NOTES_KEEP);
 
-  return { thoughtCount, quoteCount, notesCount: notes.length };
+  // Auto check-in: treat note as today's checkin (best-effort; never fail note save).
+  let autoCheckin = null;
+  try {
+    autoCheckin = await maybeAutoCheckinAfterNote({
+      openid,
+      bookId,
+      bookName: book.data.bookName,
+      note
+    });
+    console.log('[autoCheckinAfterNote]', autoCheckin);
+  } catch (e) {
+    autoCheckin = { ok: false, error: e?.message || String(e) };
+    console.error('[autoCheckinAfterNote.error]', e);
+  }
+
+  return { thoughtCount, quoteCount, notesCount: notes.length, autoCheckin };
 }
 
 /**
