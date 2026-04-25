@@ -53,16 +53,25 @@ App({
 
   async maybeForceIntro(route, runId = 'intro-v2') {
     if (this._introRedirecting) return;
+    if (this._introChecked) return;
     if (!route || isRouteAllowed(route)) return;
 
-    // ── 优先读本地 flag，快速返回，避免每次都请求云函数 ──
+    // 优先读本地 flag，快速返回，避免每次启动都请求云函数。
+    // _profile_v2_done 是旧逻辑留下的完成标记，这里顺手迁移到统一的 _intro_v2_seen。
     try {
-      if (safeGet(INTRO_SEEN_KEY) === '1') return;
+      if (safeGet(INTRO_SEEN_KEY) === '1' || safeGet(PROFILE_DONE_KEY) === '1') {
+        safeSet(INTRO_SEEN_KEY, '1');
+        this._introChecked = true;
+        return;
+      }
     } catch (e) {}
 
-    // openid 未就绪时跳过，等下次路由变化再试
+    // openid 未就绪时跳过，等 openid ready 后再检查一次。
     const openid = this.globalData?.openid || '';
     if (!openid) return;
+
+    // 启动期间只检查一次，避免页面切换时反复查云端 / 反复跳转。
+    this._introChecked = true;
 
     // 云函数查询用户是否已有昵称（已有用户不再弹引导）
     try {
@@ -83,13 +92,16 @@ App({
         return;
       }
     } catch (e) {
-      // 云函数未部署或调用失败，走本地 flag 逻辑，不弹引导
+      // 云函数未部署或调用失败：不弹引导，避免老用户被异常打断。
+      return;
     }
 
-    // 新用户：跳引导页（仅首次）
+    // 新用户：只在首次启动时进入引导页。
     try {
       this._introRedirecting = true;
-      wx.redirectTo({ url: '/pages/intro/intro' });
+      // Set flag before navigation so intro won't re-appear if navigation is interrupted.
+      safeSet(INTRO_SEEN_KEY, '1');
+      wx.navigateTo({ url: '/pages/intro/intro' });
     } finally {
       this._introRedirecting = false;
     }
@@ -141,6 +153,9 @@ App({
                 try { cb(res.result.openid); } catch (e) {}
               });
             }
+            const pages = getCurrentPages ? getCurrentPages() : [];
+            const currentRoute = pages?.[pages.length - 1]?.route || '';
+            this.maybeForceIntro(currentRoute, 'intro-v2-openid-ready');
           }
         },
         fail: (err) => {

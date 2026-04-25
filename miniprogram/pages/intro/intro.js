@@ -231,6 +231,7 @@ Page({
 
   skipProfile() {
     safeSet(PROFILE_SKIPPED_KEY, '1');
+    safeSet(INTRO_SEEN_KEY, '1');
     // Continue to book step or finish.
     this.bootstrap();
   },
