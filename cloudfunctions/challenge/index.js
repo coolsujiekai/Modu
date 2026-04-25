@@ -19,6 +19,22 @@ function getOpenid() {
   return cloud.getWXContext().OPENID;
 }
 
+function getMonthKey(ts = Date.now()) {
+  const d = new Date(Number(ts || 0) || Date.now());
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+function monthStartEnd(ts = Date.now()) {
+  const d = new Date(Number(ts || 0) || Date.now());
+  const y = d.getFullYear();
+  const m = d.getMonth();
+  const start = new Date(y, m, 1, 0, 0, 0, 0).getTime();
+  const end = new Date(y, m + 1, 0, 23, 59, 59, 999).getTime();
+  return { start, end };
+}
+
 async function isFeatureEnabled() {
   // Default enabled when config is missing
   try {
@@ -39,8 +55,66 @@ function formatDateKey(ts = Date.now()) {
 }
 
 async function getActiveChallengeDoc() {
+  const now = Date.now();
+  const monthKey = getMonthKey(now);
+
+  // Prefer the auto monthly activity
+  try {
+    const existing = await db.collection(CHALLENGES_COLLECTION)
+      .where({ type: 'rc_monthly', monthKey, status: 'active' })
+      .limit(1)
+      .get();
+    const hit = (existing.data || [])[0] || null;
+    if (hit) return hit;
+  } catch (e) {
+    // ignore and fallback to generic query below
+  }
+
+  // If there's any active (manual) challenge, keep compatibility and return it.
+  // But when none exists, we auto-create the monthly one so the entry always shows.
   const res = await db.collection(CHALLENGES_COLLECTION).where({ status: 'active' }).limit(1).get();
-  return (res.data || [])[0] || null;
+  const anyActive = (res.data || [])[0] || null;
+  if (anyActive) return anyActive;
+
+  // Auto-create current month's activity and end previous monthly actives.
+  const { start, end } = monthStartEnd(now);
+  try {
+    // End any previous rc_monthly active challenges
+    const prevActive = await db.collection(CHALLENGES_COLLECTION)
+      .where({ type: 'rc_monthly', status: 'active' })
+      .limit(20)
+      .get();
+    const prevList = prevActive.data || [];
+    for (const it of prevList) {
+      if (!it?._id) continue;
+      await db.collection(CHALLENGES_COLLECTION).doc(it._id).update({
+        data: { status: 'ended', endedAt: now, updatedAt: now }
+      });
+    }
+
+    const name = `${new Date(now).getMonth() + 1}月每日阅读打卡`;
+    const desc = '每天读一点，坚持更容易。写金句或心得，也会自动完成当天打卡。';
+    const addRes = await db.collection(CHALLENGES_COLLECTION).add({
+      data: {
+        type: 'rc_monthly',
+        monthKey,
+        name,
+        desc,
+        startDate: start,
+        endDate: end,
+        status: 'active',
+        startedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      }
+    });
+    const createdId = addRes?._id;
+    if (!createdId) return null;
+    const created = await db.collection(CHALLENGES_COLLECTION).doc(createdId).get();
+    return created?.data || null;
+  } catch (e2) {
+    return null;
+  }
 }
 
 async function ensureReadingBookExists(openid, bookNameRaw) {
