@@ -32,6 +32,7 @@ Page({
 
     challenges: [],
     creating: false,
+    templateCreating: false,
     startingId: '',
     endingId: '',
   },
@@ -320,6 +321,37 @@ Page({
       wx.showToast({ title: e?.message || '创建失败', icon: 'none' });
     } finally {
       this.setData({ creating: false });
+    }
+  },
+
+  async createDailyReadingCheckinTemplate() {
+    if (this.data.creating || this.data.templateCreating) return;
+
+    const confirm = await wx.showModal({
+      title: '一键创建活动',
+      content: '将创建「每日阅读打卡」活动：今天开始，持续 7 天。',
+      confirmText: '创建',
+      cancelText: '取消'
+    });
+    if (!confirm.confirm) return;
+
+    const name = '每日阅读打卡';
+    const desc = '每天读一点，坚持更容易。写金句或心得，也会自动完成当天打卡。';
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+    end.setHours(23, 59, 59, 999);
+
+    this.setData({ templateCreating: true });
+    try {
+      await adminCreateChallenge(name, desc, start.getTime(), end.getTime());
+      wx.showToast({ title: '已创建', icon: 'success' });
+      await this.loadChallenges();
+    } catch (e) {
+      wx.showToast({ title: e?.message || '创建失败', icon: 'none' });
+    } finally {
+      this.setData({ templateCreating: false });
     }
   },
 

@@ -83,6 +83,7 @@
         <button wx:if="{{item.status === 'active'}}" class="mini-btn warn" bindtap="endChallenge" data-id="{{item._id}}" loading="{{endingId === item._id}}">结束</button>
       </view>
     </view>
+    <button class="weui-btn weui-btn_default" bindtap="createDailyReadingCheckinTemplate" loading="{{templateCreating}}" disabled="{{creating || templateCreating}}">一键创建：每日阅读打卡</button>
     <button class="weui-btn weui-btn_default" bindtap="openCreateChallenge" loading="{{creating}}">发起新活动</button>
   </view>
 
