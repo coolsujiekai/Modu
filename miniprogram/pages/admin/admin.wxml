@@ -77,18 +77,6 @@
         <switch checked="{{challengeFeatureEnabled}}" disabled="{{challengeFeatureLoading}}" bindchange="onToggleChallengeFeature" />
       </view>
     </view>
-    <view wx:if="{{!challenges || challenges.length === 0}}" class="muted">暂无活动</view>
-    <view wx:for="{{challenges}}" wx:key="_id" class="challenge-row">
-      <view class="challenge-info">
-        <view class="challenge-name">{{item.name}}</view>
-        <view class="challenge-meta muted">{{formatDate(item.startDate)}} ~ {{formatDate(item.endDate)}}</view>
-        <view class="challenge-status status-{{item.status}}">{{statusLabel(item.status)}}</view>
-      </view>
-      <view class="challenge-actions">
-        <button wx:if="{{item.status === 'pending'}}" class="mini-btn" bindtap="startChallenge" data-id="{{item._id}}" loading="{{startingId === item._id}}">开始</button>
-        <button wx:if="{{item.status === 'active'}}" class="mini-btn warn" bindtap="endChallenge" data-id="{{item._id}}" loading="{{endingId === item._id}}">结束</button>
-      </view>
-    </view>
     <button class="weui-btn weui-btn_default" bindtap="createDailyReadingCheckinTemplate" loading="{{templateCreating}}" disabled="{{creating || templateCreating}}">一键创建：每日阅读打卡</button>
     <button class="weui-btn weui-btn_default" bindtap="openCreateChallenge" loading="{{creating}}">发起新活动</button>
   </view>

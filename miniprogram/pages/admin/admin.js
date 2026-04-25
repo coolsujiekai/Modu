@@ -1,4 +1,4 @@
-import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback, adminListChallenges, adminCreateChallenge, adminStartChallenge, adminEndChallenge, adminGetChallengeFeatureFlag, adminSetChallengeFeatureFlag } from '../../services/adminService.js';
+import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback, adminCreateChallenge, adminGetChallengeFeatureFlag, adminSetChallengeFeatureFlag } from '../../services/adminService.js';
 
 Page({
   data: {
@@ -30,13 +30,10 @@ Page({
     feedbackHasMore: true,
     feedbackLoadingMore: false,
 
-    challenges: [],
     creating: false,
     templateCreating: false,
     challengeFeatureEnabled: true,
     challengeFeatureLoading: false,
-    startingId: '',
-    endingId: '',
   },
 
   async onLoad() {
@@ -44,7 +41,6 @@ Page({
     await this.loadTestDevices();
     await this.refresh();
     await this.loadFeedback(true);
-    await this.loadChallenges();
     await this.loadChallengeFeatureFlag();
   },
 
@@ -250,15 +246,6 @@ Page({
     return this.loadFeedback(false);
   },
 
-  async loadChallenges() {
-    try {
-      const res = await adminListChallenges('');
-      this.setData({ challenges: res.items || [] });
-    } catch (e) {
-      // ignore
-    }
-  },
-
   async loadChallengeFeatureFlag() {
     this.setData({ challengeFeatureLoading: true });
     try {
@@ -280,21 +267,6 @@ Page({
       this.setData({ challengeFeatureLoading: false });
       wx.showToast({ title: err?.message || '操作失败', icon: 'none' });
     }
-  },
-
-  formatDate(ts) {
-    const n = Number(ts || 0);
-    if (!n) return '-';
-    const d = new Date(n);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  },
-
-  statusLabel(status) {
-    const map = { pending: '待开始', active: '进行中', ended: '已结束' };
-    return map[status] || status;
   },
 
   async openCreateChallenge() {
@@ -373,7 +345,6 @@ Page({
     try {
       await adminCreateChallenge(name, desc, start.getTime(), end.getTime());
       wx.showToast({ title: '已创建', icon: 'success' });
-      await this.loadChallenges();
     } catch (e) {
       wx.showToast({ title: e?.message || '创建失败', icon: 'none' });
     } finally {
@@ -406,38 +377,6 @@ Page({
     });
   },
 
-  async startChallenge(e) {
-    const id = e?.currentTarget?.dataset?.id;
-    if (!id) return;
-    const confirm = await wx.showModal({ title: '确认开始？', content: '活动开始后将显示在用户端。', confirmText: '开始', confirmColor: '#07C160' });
-    if (!confirm.confirm) return;
-    this.setData({ startingId: id });
-    try {
-      await adminStartChallenge(id);
-      wx.showToast({ title: '已开始', icon: 'success' });
-      await this.loadChallenges();
-    } catch (e) {
-      wx.showToast({ title: e?.message || '操作失败', icon: 'none' });
-    } finally {
-      this.setData({ startingId: '' });
-    }
-  },
-
-  async endChallenge(e) {
-    const id = e?.currentTarget?.dataset?.id;
-    if (!id) return;
-    const confirm = await wx.showModal({ title: '确认结束？', content: '结束后排行榜将公开。', confirmText: '结束', confirmColor: '#C07D6B' });
-    if (!confirm.confirm) return;
-    this.setData({ endingId: id });
-    try {
-      await adminEndChallenge(id);
-      wx.showToast({ title: '已结束', icon: 'success' });
-      await this.loadChallenges();
-    } catch (e) {
-      wx.showToast({ title: e?.message || '操作失败', icon: 'none' });
-    } finally {
-      this.setData({ endingId: '' });
-    }
-  }
+  // start/end/list 等运营功能先隐藏，后续再设计
 });
 
