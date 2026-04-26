@@ -106,15 +106,15 @@ page {
   --border-dark-faint: rgba(0, 0, 0, 0.06);
 
   /* ===== 深色模式 ===== */
-  --bg-dark-page: #1E1D1B;
-  --bg-dark-surface: #2B2A27;
-  --bg-dark-surface-2: #3B3A36;
-  --bg-dark-surface-3: #4B4A46;
-  --border-dark: rgba(255, 255, 255, 0.10);
-  --text-dark-primary: #F0EFEB;
-  --text-dark-secondary: #C8C6C0;
-  --text-dark-highlight: #FAFAF8;
-  --text-dark-stats: #BEBDB8;
+  --bg-dark-page: var(--bg-primary);
+  --bg-dark-surface: var(--bg-surface);
+  --bg-dark-surface-2: var(--bg-surface-muted);
+  --bg-dark-surface-3: var(--bg-surface-subtle-2);
+  --border-dark: var(--border-color);
+  --text-dark-primary: var(--text-primary);
+  --text-dark-secondary: var(--text-secondary);
+  --text-dark-highlight: var(--text-primary);
+  --text-dark-stats: var(--text-light);
 
   /* ===== 封面配色 — 纸色系柔和渐变 ===== */
   --book-tone-1: linear-gradient(155deg, #EDECF2 0%, #E3E2ED 100%);
@@ -137,4 +137,88 @@ page {
   --cover-title-color: #2C2B28;
   --cover-author-color: #8A8984;
   --cover-title-shadow: 0 2rpx 8rpx rgba(255, 255, 255, 0.10);
+}
+
+/* ============================================
+   暗色模式切换 — 通过 .dark-theme 触发
+   覆盖所有亮色变量为暗色值
+   ============================================ */
+.dark-theme {
+  --bg-primary: #1E1D1B;
+  --bg-surface: #2B2A27;
+  --bg-surface-soft: #353430;
+  --bg-surface-muted: #3B3A36;
+  --bg-surface-subtle: #3B3A36;
+  --bg-surface-subtle-2: #454440;
+  --bg-surface-accent: rgba(168, 144, 122, 0.10);
+  --bg-surface-tag: rgba(168, 144, 122, 0.11);
+  --bg-divider: rgba(255, 255, 255, 0.06);
+
+  --text-primary: #F0EFEB;
+  --text-secondary: #C8C6C0;
+  --text-light: #9A9892;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.04);
+  --border-muted: rgba(255, 255, 255, 0.05);
+  --border-overlay-soft: rgba(255, 255, 255, 0.04);
+  --border-overlay-strong: rgba(255, 255, 255, 0.10);
+  --border-overlay-stronger: rgba(255, 255, 255, 0.16);
+
+  --accent: #B8A898;
+  --accent-hover: #A89888;
+  --accent-light: rgba(184, 168, 152, 0.12);
+
+  --shadow-xs: 0 1rpx 4rpx rgba(0, 0, 0, 0.12);
+  --shadow-soft: 0 1rpx 0 rgba(255, 255, 255, 0.02), 0 4rpx 20rpx rgba(0, 0, 0, 0.14);
+  --shadow-card: 0 1rpx 0 rgba(255, 255, 255, 0.02), 0 8rpx 36rpx rgba(0, 0, 0, 0.18);
+  --shadow-modal: 0 1rpx 0 rgba(255, 255, 255, 0.02), 0 16rpx 56rpx rgba(0, 0, 0, 0.22);
+  --shadow-book-cover: 0 1rpx 0 rgba(255, 255, 255, 0.02), 0 4rpx 16rpx rgba(0, 0, 0, 0.16);
+  --shadow-floating: 0 1rpx 0 rgba(255, 255, 255, 0.02), 0 20rpx 60rpx rgba(0, 0, 0, 0.20);
+  --shadow-inset-soft: inset 0 1rpx 0 rgba(255, 255, 255, 0.06);
+
+  --tap-active-bg: rgba(255, 255, 255, 0.04);
+
+  --text-danger: #D4A0A0;
+  --text-success: #90AE90;
+
+  --text-neutral-700: #B0AEA8;
+  --text-neutral-500: #8A8882;
+  --text-brand-soft: rgba(184, 168, 152, 0.60);
+  --text-brand-info: rgba(184, 168, 152, 0.70);
+  --text-overlay: rgba(0, 0, 0, 0.92);
+  --text-brand-muted: rgba(255, 255, 255, 0.35);
+
+  --border-accent: rgba(184, 168, 152, 0.22);
+  --border-soft-2: rgba(255, 255, 255, 0.10);
+  --border-light: #4A4A46;
+  --border-gold-soft: rgba(184, 168, 152, 0.24);
+  --border-gold-light: rgba(184, 168, 152, 0.12);
+  --border-dark-soft: rgba(255, 255, 255, 0.14);
+  --border-dark-faint: rgba(255, 255, 255, 0.08);
+
+  --overlay-white-20: rgba(0, 0, 0, 0.2);
+  --overlay-white-30: rgba(0, 0, 0, 0.3);
+  --overlay-mask: rgba(0, 0, 0, 0.40);
+  --overlay-mask-strong: rgba(0, 0, 0, 0.52);
+  --overlay-mask-stronger: rgba(0, 0, 0, 0.64);
+  --overlay-screen: rgba(0, 0, 0, 0.80);
+  --overlay-line: rgba(255, 255, 255, 0.06);
+  --overlay-brand-faint: rgba(184, 168, 152, 0.06);
+
+  --hero-bg-gradient: linear-gradient(180deg, #2B2A27 0%, #1E1D1B 100%);
+
+  --cover-title-color: #F0EFEB;
+  --cover-author-color: #9A9892;
+  --cover-title-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.16);
+
+  --bg-dark-page: #1E1D1B;
+  --bg-dark-surface: #2B2A27;
+  --bg-dark-surface-2: #3B3A36;
+  --bg-dark-surface-3: #4B4A46;
+  --border-dark: rgba(255, 255, 255, 0.10);
+  --text-dark-primary: #F0EFEB;
+  --text-dark-secondary: #C8C6C0;
+  --text-dark-highlight: #FAFAF8;
+  --text-dark-stats: #BEBDB8;
 }

@@ -1,4 +1,4 @@
-<view class="page">
+<view class="page {{isDark ? 'dark-theme' : ''}}">
   <view class="card">
     <view class="h1">热门书单</view>
     <view class="p muted">按“想读书单”标题聚合。</view>

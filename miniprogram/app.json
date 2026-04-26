@@ -25,12 +25,11 @@
     "pages/challenge/challenge"
   ],
   "window": {
-    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarBackgroundColor": "#F7F6F2",
     "navigationBarTitleText": "翻书随手记",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#FAFAF8"
+    "backgroundColor": "#F7F6F2"
   },
-  "darkmode": true,
   "plugins": {
     "WechatSI": {
       "version": "0.3.5",
@@ -39,7 +38,7 @@
   },
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#8B7355",
+    "selectedColor": "#A8907A",
     "list": [
       {
         "pagePath": "pages/index/index",

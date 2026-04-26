@@ -5,6 +5,7 @@ import { findOrCreateAuthor, searchAuthors } from '../../services/authorService.
 
 Page({
   data: {
+    isDark: false,
     bookId: '',
     bookName: '',
     authorQuery: '',

@@ -3,7 +3,12 @@ import { createBook } from '../../services/bookService.js';
 import { findOrCreateAuthor, searchAuthors } from '../../services/authorService.js';
 
 Page({
+  onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
+  },
+
   data: {
+    isDark: false,
     bookName: '',
     authorQuery: '',
     authorSuggestions: [],

@@ -4,6 +4,7 @@ import { debounce, escapeRegExp, highlightText } from '../../utils/util.js';
 
 Page({
   data: {
+    isDark: false,
     searchType: 'book',
     searchQuery: '',
     searchLoading: false,

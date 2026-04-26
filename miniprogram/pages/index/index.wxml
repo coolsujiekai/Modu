@@ -1,4 +1,4 @@
-<view class="page home-page">
+<view class="page home-page {{isDark ? 'dark-theme' : ''}}">
   <!-- 顶部间距 -->
   <view class="top-bar"></view>
 

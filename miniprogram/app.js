@@ -1,3 +1,5 @@
+import { applyTheme } from './utils/theme.js';
+
 function isRouteAllowed(route) {
   // Avoid redirect loops while onboarding / creating book.
   return (
@@ -94,6 +96,9 @@ App({
 
     this.globalData = {};
 
+    // 初始化主题（auto / light / dark）
+    applyTheme();
+
     // Fetch openid for client-side security filtering (defense in depth)
     // Note: Requires cloud function `quickstartFunctions` to be deployed
     const fetchOpenId = () => {
@@ -136,11 +141,17 @@ App({
     fetchOpenId();
     console.log(`[Perf] App.onLaunch took ${Date.now() - launchStart}ms`);
 
-    // Route-driven onboarding check (no artificial delays).
+    // Route-driven onboarding check + theme push (no artificial delays).
     if (typeof wx.onAppRoute === 'function') {
       wx.onAppRoute(() => {
         const pages = getCurrentPages ? getCurrentPages() : [];
         const currentRoute = pages?.[pages.length - 1]?.route || '';
+        // 每次路由切换时，推送主题到新页面
+        pages.forEach(page => {
+          if (page && typeof page.setData === 'function') {
+            page.setData({ isDark: this.globalData?.isDark || false });
+          }
+        });
         this.maybeForceIntro(currentRoute, 'intro-v2');
       });
     }

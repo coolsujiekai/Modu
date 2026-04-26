@@ -4,6 +4,7 @@ import { deleteBook } from '../../services/bookService.js';
 
 Page({
   data: {
+    isDark: false,
     loading: true,
     authorId: '',
     authorName: '',

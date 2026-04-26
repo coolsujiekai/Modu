@@ -2,14 +2,21 @@ import {
   getPersonalizeSettings,
   savePersonalizeSettings
 } from '../../utils/personalize';
+import { getThemeMode, setThemeMode } from '../../utils/theme.js';
 
 Page({
   data: {
+    isDark: false,
     settings: getPersonalizeSettings(),
+    themeMode: getThemeMode(),
   },
 
   onShow() {
-    this.setData({ settings: getPersonalizeSettings() });
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
+    this.setData({
+      settings: getPersonalizeSettings(),
+      themeMode: getThemeMode(),
+    });
   },
 
   updateSettings(patch) {
@@ -40,5 +47,14 @@ Page({
       shareTemplateId: templateId,
       shareFirstRunConfigured: true
     });
+  },
+
+  setTheme(e) {
+    const mode = e?.currentTarget?.dataset?.mode;
+    if (mode !== 'auto' && mode !== 'light' && mode !== 'dark') return;
+    if (this.data.themeMode === mode) return;
+    setThemeMode(mode);
+    this.setData({ themeMode: mode });
+    wx.showToast({ title: mode === 'dark' ? '已切换深色' : mode === 'light' ? '已切换浅色' : '跟随系统', icon: 'success', duration: 800 });
   },
 });

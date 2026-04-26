@@ -1,4 +1,4 @@
-<view class="page">
+<view class="page {{isDark ? 'dark-theme' : ''}}">
 
   <!-- ── 头部状态卡 ─────────────────────────────── -->
   <view class="status-card">

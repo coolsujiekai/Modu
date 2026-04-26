@@ -82,7 +82,7 @@
   height: 30rpx;
 }
 
-[data-weui-theme="dark"] .icon-wrap {
+.dark-theme .icon-wrap {
   background: var(--bg-dark-surface-3);
   border-color: var(--border-dark);
 }

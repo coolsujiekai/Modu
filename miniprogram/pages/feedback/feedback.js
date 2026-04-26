@@ -1,7 +1,12 @@
 import { db, withRetry } from '../../utils/db.js';
 
 Page({
+  onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
+  },
+
   data: {
+    isDark: false,
     content: '',
     saving: false,
   },

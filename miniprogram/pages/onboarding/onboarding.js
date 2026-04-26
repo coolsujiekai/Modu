@@ -2,6 +2,7 @@ const ONBOARDING_DISMISSED_KEY = '_onboarding_v1_dismissed';
 
 Page({
   onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     // Show only once (even if user just browses).
     wx.setStorageSync('_onboarding_v1_seen', '1');
   },

@@ -5,6 +5,7 @@ import { cacheGet, cacheSet, cacheRemove, CacheKeys, CacheTTL } from '../../util
 
 Page({
   data: {
+    isDark: false,
     groupedBooks: [],
     readingCount: 0,
     finishedCount: 0,
@@ -14,6 +15,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     this.loadOverview();
     this.loadFinishedBooks();
     this.loadStats();

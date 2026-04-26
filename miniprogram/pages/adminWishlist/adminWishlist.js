@@ -2,6 +2,7 @@ import { adminListWishlistHot } from '../../services/adminService.js';
 
 Page({
   data: {
+    isDark: false,
     mode: 'top10', // top10 | all
     items: [],
     offset: 0,
@@ -10,6 +11,7 @@ Page({
   },
 
   async onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     await this.refresh(true);
   },
 

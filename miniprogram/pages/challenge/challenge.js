@@ -5,6 +5,7 @@ import { db, withRetry } from '../../utils/db.js';
 
 Page({
   data: {
+    isDark: false,
     loading: true,
 
     // 打卡状态
@@ -49,6 +50,7 @@ Page({
   },
 
   onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const now = new Date();
     this.setData({
       viewYear: now.getFullYear(),

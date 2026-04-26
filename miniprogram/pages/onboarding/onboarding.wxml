@@ -1,4 +1,4 @@
-<view class="page onboarding-page">
+<view class="page onboarding-page {{isDark ? 'dark-theme' : ''}}">
   <view class="onboarding-hero">
     <view class="onboarding-title">翻书随手记</view>
     <view class="onboarding-sub muted">把触动你的句子，随手记下来。</view>

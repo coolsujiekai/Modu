@@ -65,16 +65,16 @@
   letter-spacing: 0.04em;
 }
 
-[data-weui-theme="dark"] .checkin-banner {
+.dark-theme .checkin-banner {
   background: var(--bg-dark-surface-2);
   border-color: var(--border-dark);
 }
 
-[data-weui-theme="dark"] .checkin-banner__text {
+.dark-theme .checkin-banner__text {
   color: var(--text-dark-highlight);
 }
 
-[data-weui-theme="dark"] .checkin-banner--done {
+.dark-theme .checkin-banner--done {
   background: var(--bg-dark-surface-3);
 }
 
@@ -423,34 +423,34 @@
 }
 
 /* ============ 暗色模式 ============ */
-[data-weui-theme="dark"] .spinner {
+.dark-theme .spinner {
   border-color: var(--bg-dark-surface-3);
   border-top-color: var(--accent);
 }
 
-[data-weui-theme="dark"] .tag-quote {
+.dark-theme .tag-quote {
   background: #3A3028;
   color: #C0A080;
 }
 
-[data-weui-theme="dark"] .tag-note {
+.dark-theme .tag-note {
   background: #202838;
   color: #8098C0;
 }
 
-[data-weui-theme="dark"] .tag-thought {
+.dark-theme .tag-thought {
   background: #2A2A2A;
   color: #A0A0A0;
 }
 
-[data-weui-theme="dark"] .shelf-empty__btn {
+.dark-theme .shelf-empty__btn {
   background: var(--accent);
 }
 
-[data-weui-theme="dark"] .arrow-icon {
+.dark-theme .arrow-icon {
   color: var(--accent);
 }
 
-[data-weui-theme="dark"] .arrow-icon--done {
+.dark-theme .arrow-icon--done {
   color: var(--text-light);
 }

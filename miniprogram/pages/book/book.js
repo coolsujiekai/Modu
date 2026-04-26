@@ -8,6 +8,7 @@ let siManager = null;
 
 Page({
   data: {
+    isDark: false,
     loading: true,
     bookId: '',
     book: null,

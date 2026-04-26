@@ -16,6 +16,7 @@ Page({
   LONG_QUOTE_LIMIT_2: 42,
 
   data: {
+    isDark: false,
     bookId: '',
     bookName: '',
     authorName: '',

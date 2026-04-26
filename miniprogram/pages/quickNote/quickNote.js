@@ -9,6 +9,7 @@ let siManager = null;
 
 Page({
   data: {
+    isDark: false,
     draft: '',
     draftLength: 0,
     draftHasText: false,

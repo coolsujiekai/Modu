@@ -13,6 +13,7 @@ function typeToText(type) {
 
 Page({
   data: {
+    isDark: false,
     loading: true,
     bookId: '',
     type: 'thought',

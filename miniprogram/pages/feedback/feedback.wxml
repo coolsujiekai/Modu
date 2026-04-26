@@ -1,4 +1,4 @@
-<view class="page">
+<view class="page {{isDark ? 'dark-theme' : ''}}">
   <view class="card">
     <view class="h1">留言与反馈</view>
     <view class="p muted">欢迎告诉我你想要的功能，或遇到的问题。</view>

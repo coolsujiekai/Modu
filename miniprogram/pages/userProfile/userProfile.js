@@ -7,6 +7,7 @@ function safeSet(key, value) {
 
 Page({
   data: {
+    isDark: false,
     loading: true,
     saving: false,
 
@@ -38,6 +39,7 @@ Page({
   },
 
   async onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const { male, female } = this.buildAvatarOptions();
     this.setData({ avatarOptionsMale: male, avatarOptionsFemale: female });
     this.ensureDefaultAvatarSelected({ male, female });

@@ -3,10 +3,12 @@ import { formatDateTime } from '../../utils/util.js';
 
 Page({
   data: {
+    isDark: false,
     items: []
   },
 
   onShow() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     this.load();
   },
 

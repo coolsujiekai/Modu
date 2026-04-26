@@ -7,6 +7,7 @@ import { getTodayStatus } from '../../services/checkinService.js';
 
 Page({
   data: {
+    isDark: false,
     loading: true,
     readingBooks: [],
     readingCount: 0,
@@ -38,6 +39,7 @@ Page({
     };
   },
   onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     // runtime-only fields; avoid putting complex values on Page() definition
     this._recentTap = { key: '', at: 0, timer: null };
     this._shelfTipTimer = null;

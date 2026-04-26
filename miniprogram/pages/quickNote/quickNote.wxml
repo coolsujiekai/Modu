@@ -1,4 +1,4 @@
-<view class="qn-page">
+<view class="qn-page {{isDark ? 'dark-theme' : ''}}">
   <textarea
     class="qn-input"
     placeholder="快速记下刚打动你的那句话，或闪过的念头…"

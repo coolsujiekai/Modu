@@ -3,10 +3,12 @@ import { adminMe } from '../../services/adminService.js';
 
 Page({
   data: {
+    isDark: false,
     isAdmin: false
   },
 
   onShow() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     this.checkAdmin();
   },
 

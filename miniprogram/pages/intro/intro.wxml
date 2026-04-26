@@ -1,4 +1,4 @@
-<view class="page intro-page">
+<view class="page intro-page {{isDark ? 'dark-theme' : ''}}">
   <view class="intro-hero">
     <view class="intro-title">翻书随手记</view>
     <view class="intro-sub muted">把触动你的句子，随手记下来。</view>

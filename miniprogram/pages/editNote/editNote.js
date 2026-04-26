@@ -2,6 +2,7 @@ import { editNote } from '../../services/noteService.js';
 
 Page({
   data: {
+    isDark: false,
     bookId: '',
     ts: 0,
     type: '',

@@ -13,7 +13,12 @@ function normalizeType(t) {
 }
 
 Page({
+  onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
+  },
+
   data: {
+    isDark: false,
     running: false,
     hasResult: false,
     booksScanned: 0,

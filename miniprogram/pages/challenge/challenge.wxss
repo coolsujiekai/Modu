@@ -638,43 +638,43 @@
 }
 
 /* ─── 深色模式 ───────────────────────────── */
-[data-weui-theme="dark"] .page {
+.dark-theme .page {
   background: var(--bg-dark-page);
 }
 
-[data-weui-theme="dark"] .status-card,
-[data-weui-theme="dark"] .section {
+.dark-theme .status-card,
+.dark-theme .section {
   background: var(--bg-dark-surface);
 }
 
-[data-weui-theme="dark"] .status-streak__num,
-[data-weui-theme="dark"] .status-streak__unit,
-[data-weui-theme="dark"] .status-streak__label,
-[data-weui-theme="dark"] .section-label,
-[data-weui-theme="dark"] .calendar-title,
-[data-weui-theme="dark"] .stat-item__val,
-[data-weui-theme="dark"] .note-item__text,
-[data-weui-theme="dark"] .recommend-item__title,
-[data-weui-theme="dark"] .book-name {
+.dark-theme .status-streak__num,
+.dark-theme .status-streak__unit,
+.dark-theme .status-streak__label,
+.dark-theme .section-label,
+.dark-theme .calendar-title,
+.dark-theme .stat-item__val,
+.dark-theme .note-item__text,
+.dark-theme .recommend-item__title,
+.dark-theme .book-name {
   color: var(--text-dark-primary);
 }
 
-[data-weui-theme="dark"] .book-cover--add {
+.dark-theme .book-cover--add {
   background: var(--bg-dark-surface-2);
   border-color: var(--border-dark);
 }
 
-[data-weui-theme="dark"] .note-item {
+.dark-theme .note-item {
   background: var(--bg-dark-surface-2);
 }
 
-[data-weui-theme="dark"] .form-input {
+.dark-theme .form-input {
   background: var(--bg-dark-surface-2);
   border-color: var(--border-dark);
   color: var(--text-dark-primary);
 }
 
-[data-weui-theme="dark"] .modal-create {
+.dark-theme .modal-create {
   background: var(--bg-dark-surface);
 }
 

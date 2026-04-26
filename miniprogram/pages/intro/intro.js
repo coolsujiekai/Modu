@@ -15,6 +15,7 @@ function safeSet(key, value) {
 
 Page({
   data: {
+    isDark: false,
     step: 'profile', // 'profile' | 'book' | 'done'
     saving: false,
 
@@ -60,6 +61,7 @@ Page({
   },
 
   onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     // Mark intro as seen early to prevent redirect loops.
     safeSet(INTRO_SEEN_KEY, '1');
 

@@ -2,6 +2,7 @@ import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTe
 
 Page({
   data: {
+    isDark: false,
     stats: {
       registeredUsers: 0,
       booksReading: 0,
@@ -35,6 +36,7 @@ Page({
   },
 
   async onLoad() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     await this.guard();
     await this.loadTestDevices();
     await this.refresh();
