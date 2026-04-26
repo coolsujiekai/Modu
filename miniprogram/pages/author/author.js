@@ -21,6 +21,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     this.loadData();
   },
 

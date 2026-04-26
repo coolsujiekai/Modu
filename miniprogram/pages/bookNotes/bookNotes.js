@@ -26,6 +26,7 @@ Page({
   _dblTap: { key: '', at: 0 },
 
   onLoad(options) {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const bookId = options.bookId || '';
     const type = normalizeType(options.type || '');
     const typeText = typeToText(type);

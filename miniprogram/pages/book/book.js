@@ -40,6 +40,7 @@ Page({
   _dblTap: { key: '', at: 0 },
 
   onLoad(options) {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const shouldFocus = options.focus === '1' || options.focus === 1;
     this.setData({
       bookId: options.id || '',

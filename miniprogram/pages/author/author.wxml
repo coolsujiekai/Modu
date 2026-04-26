@@ -1,4 +1,4 @@
-<view class="page" bindtap="onPageTap">
+<view class="page {{isDark ? 'dark-theme' : ''}}" bindtap="onPageTap">
   <view class="hero">
     <view class="hero-title">{{authorName}}</view>
     <view class="hero-sub muted">在读 {{readingBooks.length}} 本 · 已读 {{finishedBooks.length}} 本</view>

@@ -1,4 +1,5 @@
-page {
+page,
+.page {
   /* ===== 背景 — 和纸色系 ===== */
   --bg-primary: #F7F6F2;
   --bg-surface: #FCFCFA;
@@ -211,6 +212,17 @@ page {
   --cover-title-color: #F0EFEB;
   --cover-author-color: #9A9892;
   --cover-title-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.16);
+
+  --book-tone-1: linear-gradient(155deg, #3A3845 0%, #2E2C3A 100%);
+  --book-tone-2: linear-gradient(155deg, #3A3E38 0%, #2E322C 100%);
+  --book-tone-3: linear-gradient(155deg, #3E3530 0%, #322B26 100%);
+  --book-tone-4: linear-gradient(155deg, #353E33 0%, #2A3228 100%);
+  --book-tone-5: linear-gradient(155deg, #38353E 0%, #2C2935 100%);
+  --book-tone-shine-1: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 34%);
+  --book-tone-shine-2: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 34%);
+  --book-tone-shine-3: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 32%);
+  --book-tone-shine-4: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 32%);
+  --book-tone-shine-5: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 32%);
 
   --bg-dark-page: #1E1D1B;
   --bg-dark-surface: #2B2A27;

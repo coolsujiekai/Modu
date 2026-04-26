@@ -43,6 +43,7 @@ Page({
   },
 
   onLoad(options) {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const stored = this.readDraft();
     const lastType = this.getLastUsedType();
     const draftHasText = Boolean(String(stored || '').trim());

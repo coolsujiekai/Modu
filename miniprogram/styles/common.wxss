@@ -1,4 +1,3 @@
-page,
 .page {
   background: var(--bg-primary) !important;
   color: var(--text-primary);

@@ -9,13 +9,13 @@
   background: var(--bg-surface);
   border-radius: var(--radius-md);
   padding: 32rpx 16rpx;
-border: 1rpx solid var(--border-warm);
+
   margin-bottom: 16rpx;
 }
 
 .h1 {
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: var(--font-title-weight);
   color: var(--text-title);
 }
 
@@ -23,7 +23,7 @@ border: 1rpx solid var(--border-warm);
   margin-top: 16rpx;
   margin-bottom: 16rpx;
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: var(--font-title-weight);
   color: var(--text-title);
 }
 
@@ -48,7 +48,7 @@ border: 1rpx solid var(--border-warm);
 
 .label {
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: var(--font-title-weight);
   color: var(--text-title);
 }
 
@@ -86,7 +86,7 @@ border: 1rpx solid var(--border-warm);
 .seg-item.active {
   background: var(--bg-surface);
   color: var(--text-accent);
-  font-weight: 700;
+  font-weight: var(--font-title-weight);
 }
 
 .profile {
@@ -109,7 +109,7 @@ border: 1rpx solid var(--border-warm);
 
 .name {
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: var(--font-title-weight);
   color: var(--text-primary);
   margin-bottom: 16rpx;
 }

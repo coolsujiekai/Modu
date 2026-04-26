@@ -12,6 +12,7 @@ Page({
   },
 
   onLoad(e) {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const type = e?.type || 'book';
     const isBook = type === 'book';
     this.setData({

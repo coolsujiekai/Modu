@@ -12,6 +12,7 @@ Page({
   },
 
   onLoad(options) {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const bookId = options.bookId || '';
     const ts = Number(options.ts || 0);
     const type = options.type || '';

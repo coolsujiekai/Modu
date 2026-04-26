@@ -146,10 +146,35 @@ App({
       wx.onAppRoute(() => {
         const pages = getCurrentPages ? getCurrentPages() : [];
         const currentRoute = pages?.[pages.length - 1]?.route || '';
-        // 每次路由切换时，推送主题到新页面
+        const isDark = this.globalData?.isDark || false;
+
+        // 导航栏 — wx.setNavigationBarColor 只对当前页生效，
+        // 每次路由切换必须为新页面重新设置，否则回退到 app.json 的浅色默认值。
+        const bg = isDark ? '#1E1D1B' : '#F7F6F2';
+        wx.setNavigationBarColor({
+          frontColor: isDark ? '#ffffff' : '#000000',
+          backgroundColor: bg
+        });
+        wx.setBackgroundColor({
+          backgroundColor: bg,
+          backgroundColorTop: bg,
+          backgroundColorBottom: bg
+        });
+
+        // Tab 栏 — 路由到 Tab 页面时 Tab 栏可见，此时才能成功设置。
+        // onLaunch / 非 Tab 页中调用可能因 Tab 栏不可见而静默失败。
+        wx.setTabBarStyle({
+          color: isDark ? '#8A8984' : '#999999',
+          selectedColor: isDark ? '#B8A898' : '#A8907A',
+          backgroundColor: bg,
+          borderStyle: isDark ? 'black' : 'white',
+          fail: () => {}
+        });
+
+        // 推送到所有活跃页面
         pages.forEach(page => {
           if (page && typeof page.setData === 'function') {
-            page.setData({ isDark: this.globalData?.isDark || false });
+            page.setData({ isDark });
           }
         });
         this.maybeForceIntro(currentRoute, 'intro-v2');

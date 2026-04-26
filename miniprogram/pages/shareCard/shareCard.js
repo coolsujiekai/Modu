@@ -39,6 +39,7 @@ Page({
   },
 
   onLoad(options) {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const { bookId, bookName: urlBookName = '', authorName: urlAuthorName = '', quotes: urlQuotes = '', endTime: urlEndTime = '' } = options;
 
     // Storage 中转（优先）：解决 URL 长度限制问题

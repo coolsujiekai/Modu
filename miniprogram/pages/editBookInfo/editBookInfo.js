@@ -14,6 +14,7 @@ Page({
   },
 
   async onLoad(options) {
+    this.setData({ isDark: getApp()?.globalData?.isDark || false });
     const bookId = options.id || '';
     this.setData({ bookId });
     if (!bookId) return;

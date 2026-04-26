@@ -1,4 +1,5 @@
 <!-- pages/shareCard/shareCard.wxml -->
+<view class="page {{isDark ? 'dark-theme' : ''}}">
 <canvas canvas-id="cardCanvas" class="card-canvas" />
 
 <view class="modal-mask" bindtap="onMaskTap"></view>
@@ -84,4 +85,5 @@
       <button class="preview-btn preview-btn--primary" bindtap="onPreviewClose">完成</button>
     </view>
   </view>
+</view>
 </view>
