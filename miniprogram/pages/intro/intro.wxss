@@ -135,7 +135,7 @@
   width: 112rpx;
   height: 112rpx;
   border-radius: 999rpx;
-  background: #f3f4f6;
+  background: var(--bg-surface-muted);
 }
 
 .label {
@@ -168,7 +168,7 @@
   width: 72rpx;
   height: 72rpx;
   border-radius: 999rpx;
-  background: #f3f4f6;
+  background: var(--bg-surface-muted);
   border: 1rpx solid var(--border-faint);
 }
 

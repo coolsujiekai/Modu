@@ -302,7 +302,7 @@
   height: 56rpx;
   border-radius: 18rpx;
   background: var(--bg-surface);
-  color: #B88A47;
+  color: var(--accent);
   font-size: 28rpx;
   display: flex;
   align-items: center;
