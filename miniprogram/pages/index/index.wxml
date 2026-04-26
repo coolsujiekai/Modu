@@ -10,7 +10,7 @@
     </view>
     <view class="checkin-banner__right">
       <text class="checkin-banner__streak">连续 {{checkin.streak}} 天</text>
-      <van-icon name="arrow-right" size="20rpx" color="{{checkin.checkedIn ? '#9A9A96' : '#8B7355'}}" />
+      <text class="arrow-icon {{checkin.checkedIn ? 'arrow-icon--done' : ''}}">›</text>
     </view>
   </view>
 
@@ -22,14 +22,14 @@
     </view>
 
     <view wx:if="{{loading}}" class="shelf-loading">
-      <van-loading color="#8B7355" />
+      <view class="spinner"></view>
     </view>
 
     <view wx:if="{{!loading && readingBooks.length === 0}}" class="shelf-empty">
       <view class="shelf-empty__inner">
         <text class="shelf-empty__icon">📚</text>
         <text class="shelf-empty__text">书架空无一书</text>
-        <van-button size="small" round custom-class="shelf-empty__btn" bind:tap="startReading">添加第一本</van-button>
+        <view class="shelf-empty__btn" bindtap="startReading">添加第一本</view>
       </view>
     </view>
 
@@ -70,7 +70,7 @@
       <text class="notes-label">最近笔记</text>
       <view class="notes-more" bindtap="goHistory">
         <text>全部</text>
-        <van-icon name="arrow-right" size="18rpx" color="#8B7355" />
+        <text class="arrow-icon">›</text>
       </view>
     </view>
 
@@ -85,9 +85,9 @@
             data-key="{{item.key}}"
           >
             <view class="note-item__top">
-              <van-tag wx:if="{{item.type === 'quote'}}" type="warning" size="small" round>金句</van-tag>
-              <van-tag wx:elif="{{item.type === 'note'}}" type="primary" size="small" round>笔记</van-tag>
-              <van-tag wx:else type="default" size="small" round>心得</van-tag>
+              <view class="note-tag tag-quote" wx:if="{{item.type === 'quote'}}">金句</view>
+              <view class="note-tag tag-note" wx:elif="{{item.type === 'note'}}">笔记</view>
+              <view class="note-tag tag-thought" wx:else>心得</view>
               <text class="note-item__book">{{item.bookName}}</text>
             </view>
             <text class="note-item__text">{{item.text}}</text>
