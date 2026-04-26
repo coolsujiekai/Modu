@@ -9,15 +9,48 @@
 import { db, withRetry, withOpenIdFilter } from '../utils/db.js';
 import { cacheGet, cacheSet, cacheRemove, cacheRemovePrefix } from '../utils/cache.js';
 
+// ─── 等待 openid 就绪 ─────────────────────────────────
+
+/**
+ * 确保 globalData.openid 已加载后再返回。
+ * 防止 openid 未就绪时查询/写入导致数据归属错误。
+ */
+function waitForOpenId(timeoutMs = 8000) {
+  return new Promise((resolve, reject) => {
+    const app = getApp();
+    const openid = app?.globalData?.openid;
+    if (openid) { resolve(openid); return; }
+
+    const cb = (id) => { resolve(id); };
+    if (Array.isArray(app._openidReadyCbs)) {
+      app._openidReadyCbs.push(cb);
+    }
+
+    setTimeout(() => {
+      const id = app?.globalData?.openid;
+      if (id) { resolve(id); }
+      else { reject(new Error('openid 加载超时，请检查网络后重试')); }
+    }, timeoutMs);
+  });
+}
+
 // ─── 缓存键 ───────────────────────────────────────────
 
-const CACHE_KEY_TODAY = '_checkin_today_v1';
-const CACHE_KEY_MONTH_TPL = (y, m) => `_checkin_${y}_${m}_v1`;
+function _openid() { return getApp()?.globalData?.openid || 'anon'; }
+
+const CACHE_KEY_TODAY = () => `_checkin_today_${_openid()}_v1`;
+const CACHE_KEY_MONTH_TPL = (y, m) => `_checkin_${y}_${m}_${_openid()}_v1`;
+const CACHE_PREFIX = () => `_checkin_`;
 const CACHE_TTL_TODAY = 5 * 60 * 1000;   // 5 分钟
 const CACHE_TTL_MONTH = 10 * 60 * 1000; // 10 分钟
 
 // ─── 日期工具 ─────────────────────────────────────────
 
+/**
+ * 北京时间（UTC+8）的今日日期字符串。
+ * 客户端运行在用户设备，设备时区应设为北京时间。
+ * 与云函数 todayStr() 保持一致，确保日期字符串匹配。
+ */
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -82,7 +115,7 @@ function calcLongestStreak(dateList) {
  */
 export async function getTodayStatus(bypassCache = false) {
   if (!bypassCache) {
-    const cached = cacheGet(CACHE_KEY_TODAY);
+    const cached = cacheGet(CACHE_KEY_TODAY());
     if (cached) return cached;
   }
 
@@ -104,7 +137,7 @@ export async function getTodayStatus(bypassCache = false) {
     const streak = calcStreak(dateList, today);
 
     const result = { checkedIn, streak };
-    cacheSet(CACHE_KEY_TODAY, result, CACHE_TTL_TODAY);
+    cacheSet(CACHE_KEY_TODAY(), result, CACHE_TTL_TODAY);
     return result;
   } catch (e) {
     return { checkedIn: false, streak: 0 };
@@ -112,10 +145,14 @@ export async function getTodayStatus(bypassCache = false) {
 }
 
 /**
- * 手动打卡（走云函数，防止并发重复）
- * @returns {Promise<{ ok: boolean, alreadyCheckedIn: boolean }>}
+ * 手动打卡（走云函数，防止并发重复）。
+ * 返回云函数计算的最新打卡状态（含 streak），无需再查数据库。
+ * @returns {Promise<{ ok: boolean, alreadyCheckedIn: boolean, checkedIn: boolean, streak: number }>}
  */
 export async function manualCheckin() {
+  // 等待 openid 就绪，避免打卡记录归属到错误的用户
+  await waitForOpenId();
+
   const res = await wx.cloud.callFunction({
     name: 'challenge',
     data: { action: 'checkin' }
@@ -127,11 +164,18 @@ export async function manualCheckin() {
   const result = res?.result || {};
   if (result.error) throw new Error(result.error);
 
-  // 打卡成功，使缓存失效
   if (result.ok) {
     invalidateAllCaches();
   }
-  return result;
+
+  // 云函数 doCheckin 已写库，直接返回其计算的状态和当月打卡列表，无需再查 DB
+  return {
+    ok: result.ok,
+    alreadyCheckedIn: result.alreadyCheckedIn,
+    checkedIn: true,
+    streak: typeof result.streak === 'number' ? result.streak : (result.checkedIn ? 1 : 0),
+    monthCheckins: result.monthCheckins || []
+  };
 }
 
 /**
@@ -251,6 +295,6 @@ export async function getTodayNotes() {
 // ─── 缓存失效 ─────────────────────────────────────────
 
 export function invalidateAllCaches() {
-  cacheRemove(CACHE_KEY_TODAY);
-  cacheRemovePrefix('_checkin_');
+  cacheRemove(CACHE_KEY_TODAY());
+  cacheRemovePrefix(`_checkin_${_openid()}_`);
 }

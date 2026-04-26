@@ -145,9 +145,22 @@ Page({
     } catch (e) {}
 
     try {
-      await manualCheckin();
-      this.setData({ justCheckedIn: true });
-      await this.loadAll();
+      // 云函数返回 streak 和当月打卡列表，直接用，不等 loadAll 查 DB
+      const result = await manualCheckin();
+      const calendarDays = this.buildCalendar(
+        this.data.viewYear,
+        this.data.viewMonth,
+        result.monthCheckins
+      );
+      this.setData({
+        checkedIn: result.checkedIn,
+        streak: result.streak,
+        justCheckedIn: true,
+        calendarDays
+      });
+      // 不再调用 loadAll()：loadAll() 的 monthData 查询晚于云函数写库，
+      // DB 未同步时会查不到今日打卡，导致日历打钩被覆盖消失。
+      // 用户下次进入页面时 loadAll() 会自动刷新最新数据。
       setTimeout(() => {
         this.setData({ justCheckedIn: false });
       }, 3000);

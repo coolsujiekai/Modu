@@ -91,7 +91,8 @@ Page({
 
   async loadCheckinStatus() {
     try {
-      const status = await getTodayStatus();
+      // 始终拉新数据：打卡状态变化频繁，缓存反而导致首页显示过期连续天数
+      const status = await getTodayStatus(true);
       this.setData({ checkin: status });
     } catch (e) {
       // ignore

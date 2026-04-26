@@ -17,9 +17,17 @@ function pad2(n) {
   return String(n).padStart(2, '0');
 }
 
+/**
+ * 北京时间（UTC+8）的今日日期字符串。
+ * 云函数服务器时区不确定，统一用北京时间保证客户端和服务端日期一致。
+ */
 function todayStr() {
+  // 微信云函数服务器时区未知，直接 new Date() 可能是 UTC
+  // 转为北京时间：UTC 时间 + 8 小时
   const d = new Date();
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  const beijingMs = d.getTime() + 8 * 60 * 60 * 1000;
+  const bj = new Date(beijingMs);
+  return `${bj.getFullYear()}-${pad2(bj.getMonth() + 1)}-${pad2(bj.getDate())}`;
 }
 
 /**
@@ -74,7 +82,9 @@ async function doCheckin(event) {
     .get();
 
   if (existing.data && existing.data.length > 0) {
-    return { ok: true, alreadyCheckedIn: true };
+    // 已打卡：仍返回当前状态
+    const status = await doGetTodayStatus(event);
+    return { ok: true, alreadyCheckedIn: true, checkedIn: status.checkedIn, streak: status.streak };
   }
 
   const now = Date.now();
@@ -89,7 +99,29 @@ async function doCheckin(event) {
     }
   });
 
-  return { ok: true, alreadyCheckedIn: false };
+  // 打卡成功后返回今日状态（含 streak）和当月打卡列表，客户端直接用，不查 DB
+  const status = await doGetTodayStatus(event);
+
+  // 当月打卡列表：直接查本月数据，不需要传 year/month
+  const y = new Date(Date.now() + 8 * 60 * 60 * 1000).getFullYear();
+  const m = new Date(Date.now() + 8 * 60 * 60 * 1000).getMonth() + 1;
+  const monthStr = `${y}-${pad2(m)}`;
+  const lastDay = new Date(y, m, 0).getDate();
+  const startDate = `${monthStr}-01`;
+  const endDate = `${monthStr}-${pad2(lastDay)}`;
+  const monthRes = await db.collection('checkins')
+    .where({ _openid: openid, date: _.gte(startDate).and(_.lte(endDate)) })
+    .get();
+  const monthCheckins = (monthRes.data || []).map(c => c.date);
+
+  console.log('[doCheckin] returning:', JSON.stringify({ streak: status.streak, monthCheckins }));
+  return {
+    ok: true,
+    alreadyCheckedIn: false,
+    checkedIn: status.checkedIn,
+    streak: status.streak,
+    monthCheckins
+  };
 }
 
 // ─── Action: getTodayStatus ─────────────────────────
