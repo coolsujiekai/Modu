@@ -7,29 +7,6 @@ function isRouteAllowed(route) {
   );
 }
 
-function shouldIngest() {
-  try {
-    return wx.getStorageSync('_debug_ingest') === '1';
-  } catch (e) {
-    return false;
-  }
-}
-
-function ingest(data) {
-  if (!shouldIngest()) return;
-  try {
-    wx.request({
-      url: 'http://127.0.0.1:7770/ingest/6d568e53-1533-490e-8391-dd2094f1a09b',
-      method: 'POST',
-      header: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '7934e3' },
-      data,
-      fail: () => {}
-    });
-  } catch (e) {
-    // ignore
-  }
-}
-
 function safeGet(key) {
   try { return wx.getStorageSync(key); } catch (e) { return null; }
 }
@@ -109,29 +86,10 @@ App({
 
   onLaunch: function () {
     const launchStart = Date.now();
-    ingest({
-      sessionId: '7934e3',
-      runId: 'pre-fix',
-      hypothesisId: 'H1',
-      location: 'miniprogram/app.js:onLaunch',
-      message: 'onLaunch start',
-      data: { hasCloud: !!wx.cloud },
-      timestamp: Date.now()
-    });
 
     wx.cloud.init({
       env: 'reading-log-6gz8yfff5189799d',   // 请替换为真实环境ID
       traceUser: true
-    });
-
-    ingest({
-      sessionId: '7934e3',
-      runId: 'pre-fix',
-      hypothesisId: 'H1',
-      location: 'miniprogram/app.js:onLaunch',
-      message: 'wx.cloud.init called',
-      data: { hasCloudDb: !!(wx.cloud && wx.cloud.database) },
-      timestamp: Date.now()
     });
 
     this.globalData = {};
