@@ -422,6 +422,71 @@
   height: calc(env(safe-area-inset-bottom) + 24rpx);
 }
 
+/* ============ AI 助手悬浮按钮 ============ */
+.fab-ingot {
+  position: fixed;
+  right: 50rpx;
+  bottom: calc(0rpx + env(safe-area-inset-bottom));
+  width: 100rpx;
+  height: 100rpx;
+  background: transparent;
+  border: 2rpx solid var(--accent);
+  border-radius: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  color: transparent;
+  /* 书脊：中间一条细线 */
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-size: 2rpx 44rpx;
+  background-position: 50% 52%;
+  box-shadow: 0 6rpx 24rpx rgba(168, 144, 122, 0.45);
+  animation: fab-float 3s ease-in-out infinite;
+  z-index: 100;
+  box-sizing: border-box;
+}
+.fab-ingot:active {
+  transform: scale(0.88);
+}
+
+/* 中间“一本翻开的书”（纯 CSS 伪元素绘制） */
+.fab-ingot::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 32rpx;
+  height: 44rpx;
+  transform: translate(-50%, -50%);
+  margin-left: -16rpx;
+  box-sizing: border-box;
+  border: 2rpx solid var(--accent);
+  border-right: none;
+  border-radius: 6rpx 0 0 6rpx;
+  background: rgba(168, 144, 122, 0.10);
+}
+.fab-ingot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 32rpx;
+  height: 44rpx;
+  transform: translate(-50%, -50%);
+  margin-left: 16rpx;
+  box-sizing: border-box;
+  border: 2rpx solid var(--accent);
+  border-left: none;
+  border-radius: 0 6rpx 6rpx 0;
+  background: rgba(168, 144, 122, 0.06);
+}
+@keyframes fab-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10rpx); }
+}
+
 /* ============ 暗色模式 ============ */
 .dark-theme .spinner {
   border-color: var(--bg-dark-surface-3);

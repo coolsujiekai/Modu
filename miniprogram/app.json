@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/chat/chat",
     "pages/intro/intro",
     "pages/onboarding/onboarding",
     "pages/emptyShelf/emptyShelf",
