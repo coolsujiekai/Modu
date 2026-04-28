@@ -1,4 +1,5 @@
 import { db, withRetry } from '../../utils/db.js';
+import { getUserProfile } from '../../services/userService.js';
 
 Page({
   onLoad() {
@@ -26,10 +27,19 @@ Page({
     this.setData({ saving: true });
     wx.showLoading({ title: '发送中', mask: true });
     try {
+      let nickname = '';
+      try {
+        const res = await getUserProfile();
+        nickname = String(res?.profile?.nickname || '').trim();
+      } catch (e) {
+        // ignore: allow anonymous feedback
+      }
+
       await withRetry(() =>
         db.collection('feedback').add({
           data: {
             content,
+            nickname,
             createdAt: Date.now(),
             device: ''
           }

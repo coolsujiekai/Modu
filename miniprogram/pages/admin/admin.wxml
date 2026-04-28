@@ -95,7 +95,7 @@
     <view wx:if="{{feedbackItems.length === 0}}" class="muted">暂无</view>
     <view wx:for="{{feedbackItems}}" wx:key="_id" class="msg-row">
       <view class="msg-content">{{item.content}}</view>
-      <view class="msg-meta muted">{{item.createdText}} · {{item._openid}}</view>
+      <view class="msg-meta muted">{{item.createdText}} · {{item.nickname}} · {{item._openid}}</view>
     </view>
     <button wx:if="{{feedbackHasMore}}" class="weui-btn weui-btn_default" bindtap="loadMoreFeedback" loading="{{feedbackLoadingMore}}" disabled="{{feedbackLoadingMore}}">加载更多留言</button>
   </view>

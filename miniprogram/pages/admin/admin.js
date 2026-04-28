@@ -253,6 +253,7 @@ Page({
       const items = (res.items || []).map((it) => ({
         ...it,
         content: it.content || '',
+        nickname: String(it.nickname || '').trim() || '未命名',
         createdText: this.formatTs(it.createdAt)
       }));
       const next = reset ? items : [...(this.data.feedbackItems || []), ...items];

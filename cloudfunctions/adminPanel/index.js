@@ -198,6 +198,7 @@ async function listFeedback(event) {
     .field({
       _openid: true,
       content: true,
+      nickname: true,
       createdAt: true,
       device: true,
     })
