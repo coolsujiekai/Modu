@@ -1,3 +1,6 @@
+import { isOnline } from './network.js';
+import { enqueue } from './offlineQueue.js';
+
 let dbInstance = null;
 
 function ensureDb() {
@@ -77,10 +80,29 @@ export async function withRetry(fn, options = {}) {
 }
 
 export async function callCloudFunctionWithRetry(name, data, options = {}) {
-  return withRetry(
-    () => wx.cloud.callFunction({ name, data }),
-    options
-  );
+  if (!isOnline()) {
+    enqueue(name, data);
+    return { result: { ok: true, queued: true } };
+  }
+
+  try {
+    return await withRetry(
+      () => wx.cloud.callFunction({ name, data }),
+      options
+    );
+  } catch (error) {
+    const msg = getErrorMessage(error).toLowerCase();
+    if (
+      msg.includes('timeout') ||
+      msg.includes('network') ||
+      msg.includes('offline') ||
+      msg.includes('fail')
+    ) {
+      enqueue(name, data);
+      return { result: { ok: true, queued: true } };
+    }
+    throw error;
+  }
 }
 
 export async function traced(label, fn) {

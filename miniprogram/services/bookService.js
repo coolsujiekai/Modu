@@ -7,16 +7,24 @@
  * - 写操作（createBook / finishBook / unfinishBook / deleteBook / updateBookInfo）：走云函数 bookOperations
  */
 import { db, _, withRetry, withOpenIdFilter, callCloudFunctionWithRetry, assertCloudCallResult } from '../utils/db.js';
+import { withOfflineFallback } from '../utils/offlineData.js';
 
 /**
  * 加载单本书籍（读操作，直接 DB），不包含笔记
  * @param {string} bookId
  * @returns {Promise<object|null>}
  */
+const BOOK_CACHE_TTL = 15 * 60 * 1000;   // 15 分钟
+const NOTES_CACHE_TTL = 10 * 60 * 1000;  // 10 分钟
+
 export async function loadBook(bookId) {
   if (!bookId) return null;
-  const res = await withRetry(() => db.collection('books').doc(bookId).get());
-  return res.data || null;
+  const { data } = await withOfflineFallback(
+    `_cache_book_${bookId}`,
+    BOOK_CACHE_TTL,
+    () => withRetry(() => db.collection('books').doc(bookId).get()).then(res => res.data || null)
+  );
+  return data;
 }
 
 /**
@@ -26,14 +34,18 @@ export async function loadBook(bookId) {
  */
 export async function loadBookNotes(bookId) {
   if (!bookId) return [];
-  const res = await withRetry(() =>
-    db.collection('notes')
-      .where(withOpenIdFilter({ bookId }))
-      .orderBy('timestamp', 'desc')
-      .limit(500)
-      .get()
+  const { data } = await withOfflineFallback(
+    `_cache_booknotes_${bookId}`,
+    NOTES_CACHE_TTL,
+    () => withRetry(() =>
+      db.collection('notes')
+        .where(withOpenIdFilter({ bookId }))
+        .orderBy('timestamp', 'desc')
+        .limit(500)
+        .get()
+    ).then(res => res.data || [])
   );
-  return res.data || [];
+  return data || [];
 }
 
 /**

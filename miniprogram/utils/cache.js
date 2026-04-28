@@ -3,8 +3,11 @@
  * 本地 Storage 缓存层，支持 TTL 和主动 invalidate。
  */
 
+import { isOnline } from './network.js';
+
 /**
  * 从 Storage 获取缓存，自动检查 TTL。
+ * 离线时忽略 TTL，返回过期数据作为兜底。
  * @param {string} key
  * @returns {*} 缓存数据或 null
  */
@@ -15,9 +18,30 @@ export function cacheGet(key) {
     if (raw && typeof raw === 'object' && '_cachedAt' in raw) {
       const elapsed = Date.now() - Number(raw._cachedAt || 0);
       if (raw.ttl > 0 && elapsed > raw.ttl) {
-        wx.removeStorageSync(key);
-        return null;
+        if (isOnline()) {
+          wx.removeStorageSync(key);
+          return null;
+        }
+        return raw.data;
       }
+      return raw.data;
+    }
+    return raw;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 无条件读取缓存，忽略 TTL（离线兜底专用）。
+ * @param {string} key
+ * @returns {*} 缓存数据或 null
+ */
+export function cacheGetIgnoreTTL(key) {
+  try {
+    const raw = wx.getStorageSync(key);
+    if (!raw) return null;
+    if (raw && typeof raw === 'object' && '_cachedAt' in raw) {
       return raw.data;
     }
     return raw;

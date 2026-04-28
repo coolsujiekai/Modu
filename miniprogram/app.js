@@ -1,4 +1,6 @@
 import { applyTheme } from './utils/theme.js';
+import { initNetwork } from './utils/network.js';
+import { initOfflineSync } from './utils/offlineQueue.js';
 
 function isRouteAllowed(route) {
   // Avoid redirect loops while onboarding / creating book.
@@ -98,6 +100,10 @@ App({
 
     // 初始化主题（auto / light / dark）
     applyTheme();
+
+    // 离线支持：网络检测 + 写队列 + 上线自动同步
+    initNetwork();
+    initOfflineSync();
 
     // Fetch openid for client-side security filtering (defense in depth)
     // Note: Requires cloud function `quickstartFunctions` to be deployed
