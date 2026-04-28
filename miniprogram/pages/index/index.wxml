@@ -100,7 +100,4 @@
 
   <!-- 底部安全区 -->
   <view class="safe-area"></view>
-
-  <!-- AI 阅读助手悬浮按钮 -->
-  <view class="fab-ingot" bindtap="goChat"></view>
 </view>

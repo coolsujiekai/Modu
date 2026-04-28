@@ -89,10 +89,6 @@ Page({
     wx.navigateTo({ url: '/pages/challenge/challenge' });
   },
 
-  goChat() {
-    wx.navigateTo({ url: '/pages/chat/chat' });
-  },
-
   async loadCheckinStatus() {
     try {
       // 始终拉新数据：打卡状态变化频繁，缓存反而导致首页显示过期连续天数
