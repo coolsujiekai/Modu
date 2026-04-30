@@ -17,7 +17,7 @@
 
 本项目采用“免注册”的方式：用户打开即可使用，数据隔离依赖微信云开发身份与云数据库安全规则。
 
-- **用户私有集合（必须按用户隔离）**：`books`、`wishlist`、`authors`
+- **用户私有集合（必须按用户隔离）**：`books`、`notes`、`recent_notes`、`authors`、`wishlist`、`users`、`checkins`、`ai_quota`、`client_errors`
 - **隔离原则**：仅数据创建者可读写（通过 `_openid` / `auth.openid` 规则实现）
 - **头像/昵称**：默认不获取；仅在「更多 → 个性化设置」中用户主动开启时才会请求授权
 
@@ -25,7 +25,7 @@
 
 1. 使用微信开发者工具打开本仓库根目录（项目配置见 `project.config.json`）。
 2. 开通云开发并创建环境（推荐使用正式环境ID）。
-3. **必须上传云函数**：在开发者工具中右键 `cloudfunctions/quickstartFunctions` 文件夹，选择「上传并部署 - 云函数」，确保 `quickstartFunctions` 函数部署成功。这是获取 openid 的必要步骤。
+3. **必须上传云函数**：先部署 `quickstartFunctions`（获取 openid）和 `bookOperations`（所有写操作），再按需部署 `adminPanel`（管理面板用）。
 4. 在 `miniprogram/app.js` 中确认 `wx.cloud.init({ env })` 指向你的云环境 ID（当前默认 `reading-log-6gz8yfff5189799d`，请替换为你的环境）。
 5. 如果看到 “[db] No openid...” 警告，说明云函数未成功部署或网络问题，数据隔离仍由云安全规则保护。
 
@@ -35,7 +35,7 @@
 
 ## 云函数（必须部署）
 
-本项目有两个云函数，均需部署：
+本项目核心云函数有 2 个（必须部署），另有 1 个可选（仅管理员用）：
 
 ### quickstartFunctions
 获取 openid（用于客户端 `_openid` 过滤，提供安全防御纵深）。
@@ -55,6 +55,12 @@
 
 > 注意：`bookOperations` 的 `config.json` 暂未申请 `openapi` 权限，如有额外需求请按需添加。
 
+### adminPanel（可选）
+管理员面板使用（统计、用户列表、留言、测试账号重置、功能开关等）。普通用户不需要部署。
+
+**部署步骤**：
+1. 右键 `cloudfunctions/adminPanel` 文件夹 → 「上传并部署 - 云函数」。
+
 ## 云数据库（需要你在控制台完成）
 
 ### 1) 创建集合
@@ -62,8 +68,14 @@
 在云开发控制台创建：
 
 - `books`
+- `notes`
+- `recent_notes`
 - `wishlist`
 - `authors`
+- `users`
+- `checkins`
+- `ai_quota`
+- `client_errors`（客户端错误上报兜底，用于排查线上问题）
 
 ### 2) 配置安全规则（上线前必须）
 
@@ -77,6 +89,12 @@
 | `books` | `status` ASC, `endTime` DESC | 复合 | 已读列表按结束时间排序 |
 | `books` | `authorId` ASC, `status` ASC | 复合 | 按作者筛选书籍 |
 | `books` | `_openid` ASC | 单字段 | 用户数据隔离过滤 |
+| `notes` | `bookId` ASC, `timestamp` DESC | 复合 | 按书加载笔记并按时间排序 |
+| `notes` | `_openid` ASC | 单字段 | 用户隔离过滤（防御纵深） |
+| `recent_notes` | `_openid` ASC, `timestamp` DESC | 复合 | 首页最近笔记列表 |
+| `checkins` | `_openid` ASC, `date` ASC | 复合 | 按日期查询打卡（含去重） |
+| `ai_quota` | `_openid` ASC, `bookId` ASC, `day` ASC | 复合 | 每日配额查询 |
+| `client_errors` | `_openid` ASC, `at` DESC | 复合 | 查询最近错误（按时间倒序） |
 | `authors` | `_openid` ASC | 单字段 | 作者列表过滤 |
 | `wishlist` | `_openid` ASC | 单字段 | 想读列表过滤 |
 
@@ -88,8 +106,9 @@
 
 - 云函数 `quickstartFunctions` 已上传部署（用于 openid 获取）
 - 云函数 `bookOperations` 已上传部署（v2 新增，统一处理所有写操作）
+- （可选）云函数 `adminPanel` 已上传部署（仅管理员面板需要）
 - 云环境 ID 为正式环境（非临时/测试）
-- `books`/`wishlist`/`authors` 安全规则已收紧为仅创建者可读写
+- 关键集合安全规则已收紧为仅创建者可读写（至少：`books`/`notes`/`wishlist`/`authors`）
 - **索引已创建**（必须，否则已读/在读列表可能查不出来）
 - 用两个不同微信号验证互相不可见、不可改（含搜索/联想等入口）
 - “更多”页隐私指引文案已就绪（`pages/privacy/privacy`）
