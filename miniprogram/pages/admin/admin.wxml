@@ -10,11 +10,6 @@
       <text class="setting-label">阅读打卡</text>
       <switch checked="{{checkinEnabled}}" bindchange="onToggleCheckin" color="#A8907A" />
     </view>
-    <button
-      wx:if="{{!isReleaseEnv}}"
-      class="weui-btn weui-btn_default"
-      bindtap="onTestErrorReport"
-    >测试错误上报</button>
   </view>
 
   <view class="card">
