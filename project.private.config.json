@@ -21,13 +21,6 @@
   "condition": {
     "miniprogram": {
       "list": [
-        {
-          "name": "pages/migrateNotes/migrateNotes",
-          "pathName": "pages/migrateNotes/migrateNotes",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        }
       ]
     }
   },

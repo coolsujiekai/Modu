@@ -3,6 +3,7 @@ import { formatDate } from '../../utils/util.js';
 import { getPersonalizeSettings } from '../../utils/personalize';
 import { formatNoteTime, addNote as addNoteToCloud, deleteNote as deleteNoteFromCloud, recognizePrintedText } from '../../services/noteService.js';
 import { loadBook as fetchBook, loadBookNotes as fetchBookNotes, finishBook, unfinishBook } from '../../services/bookService.js';
+import { buildTimelineGroups } from './timeline.js';
 
 let siManager = null;
 
@@ -264,7 +265,7 @@ Page({
       const quoteNotes = notes.filter(n => n.type === 'quote');
       const thoughtCount = thoughtNotes.length;
       const quoteCount = quoteNotes.length;
-      const timelineGroups = this.buildTimelineGroups(notes);
+      const timelineGroups = buildTimelineGroups(notes, this.data.noteTimeMode);
       const exportMeta = this.buildExportMeta(thoughtCount, quoteCount);
 
       this.setData({
@@ -419,69 +420,8 @@ Page({
     };
   },
 
-  formatShortTime(ts) {
-    if (!ts) return '';
-    const d = new Date(Number(ts));
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    return `${hh}:${mm}`;
-  },
-
-  getDayStart(ts) {
-    const d = new Date(Number(ts));
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  },
-
-  formatDayLabel(dayStartTs) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStart = today.getTime();
-    const diffDays = Math.round((todayStart - Number(dayStartTs)) / 86400000);
-    if (diffDays === 0) return '今天';
-    if (diffDays === 1) return '昨天';
-    return formatDate(dayStartTs);
-  },
-
   buildTimelineGroups(list) {
-    if (!Array.isArray(list) || list.length === 0) return [];
-
-    const sorted = [...list].sort((a, b) => Number(b?.timestamp || 0) - Number(a?.timestamp || 0));
-    const groups = [];
-    const indexByKey = new Map();
-
-    for (const n of sorted) {
-      const ts = Number(n?.timestamp || 0);
-      if (!ts) continue;
-      const dayStart = this.getDayStart(ts);
-      const key = String(dayStart);
-      let group = indexByKey.get(key);
-      if (!group) {
-        group = {
-          key,
-          dayStart,
-          title: this.formatDayLabel(dayStart),
-          items: []
-        };
-        indexByKey.set(key, group);
-        groups.push(group);
-      }
-      group.items.push({
-        ...n,
-        timeText: formatNoteTime(ts, this.data.noteTimeMode),
-        shortTime: this.formatShortTime(ts),
-        typeLabel: n.type === 'quote' ? '金句' : '想法',
-        slideButtons: [
-          {
-            text: '删除',
-            extClass: 'slide-btn-delete',
-            data: { ts }
-          }
-        ]
-      });
-    }
-
-    return groups.map((g) => ({ ...g, count: g.items.length }));
+    return buildTimelineGroups(list, this.data.noteTimeMode);
   },
 
   onTimelineSlideButtonTap(e) {
@@ -585,7 +525,7 @@ Page({
       const quoteList = newNotes.filter(n => n.type === 'quote');
       const thoughtCount = thoughtList.length;
       const quoteCount = quoteList.length;
-      const timelineGroups = this.buildTimelineGroups(newNotes);
+      const timelineGroups = buildTimelineGroups(newNotes, this.data.noteTimeMode);
       const exportMeta = this.buildExportMeta(thoughtCount, quoteCount);
       this.setData({
         notes: newNotes,
@@ -674,7 +614,7 @@ Page({
       const quoteList = newNotes.filter(n => n.type === 'quote');
       const thoughtCount = thoughtList.length;
       const quoteCount = quoteList.length;
-      const timelineGroups = this.buildTimelineGroups(newNotes);
+      const timelineGroups = buildTimelineGroups(newNotes, this.data.noteTimeMode);
       const exportMeta = this.buildExportMeta(thoughtCount, quoteCount);
       this.setData({
         notes: newNotes,
