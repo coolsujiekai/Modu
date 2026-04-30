@@ -107,6 +107,75 @@
   z-index: 998;
 }
 
+.export-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-surface);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  z-index: 999;
+  box-shadow: var(--shadow-modal);
+  padding: 20rpx 16rpx calc(20rpx + env(safe-area-inset-bottom));
+}
+
+.export-panel__hd {
+  padding: 8rpx 6rpx 12rpx;
+}
+
+.export-panel__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.export-panel__title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.export-panel__close {
+  flex: none;
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  text-align: center;
+  font-size: 42rpx;
+  color: var(--text-light);
+  border-radius: 14rpx;
+}
+
+.export-panel__close:active {
+  background: var(--tap-active-bg);
+}
+
+.export-panel__sub {
+  margin-top: 10rpx;
+  word-break: break-all;
+}
+
+.export-panel__actions {
+  margin-top: 10rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  align-items: center;
+}
+
+.export-btn.weui-btn {
+  margin: 0;
+  width: min(560rpx, 92vw);
+}
+
+.export-btn--ghost.weui-btn_default {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--text-light) !important;
+}
+
 .modal {
   position: fixed;
   left: 0;

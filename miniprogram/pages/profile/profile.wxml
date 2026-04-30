@@ -75,6 +75,16 @@
       <view class="weui-cell__bd">隐私指引与说明</view>
       <view class="weui-cell__ft"></view>
     </view>
+
+    <view class="weui-cell weui-cell_access" bindtap="exportMyData">
+      <view class="weui-cell__hd">
+        <view class="icon-wrap icon-wishlist">
+          <image class="cell-icon" src="/assets/icons/bookmark.svg" mode="aspectFit" />
+        </view>
+      </view>
+      <view class="weui-cell__bd">导出我的数据</view>
+      <view class="weui-cell__ft"></view>
+    </view>
     </view>
   </view>
 
@@ -89,6 +99,21 @@
       <view class="weui-cell__bd danger-text">数据管理</view>
       <view class="weui-cell__ft"></view>
     </view>
+    </view>
+  </view>
+
+  <!-- 导出文件操作面板（需用户点击触发分享手势） -->
+  <view wx:if="{{exportPanelVisible}}" class="modal-mask" bindtap="closeExportPanel"></view>
+  <view wx:if="{{exportPanelVisible}}" class="export-panel" catchtap="noop">
+    <view class="export-panel__hd">
+      <view class="export-panel__title-row">
+        <view class="export-panel__title">已生成 Markdown</view>
+        <view class="export-panel__close" bindtap="closeExportPanel">×</view>
+      </view>
+      <view class="export-panel__sub muted">{{exportFileName}}</view>
+    </view>
+    <view class="export-panel__actions">
+      <button class="weui-btn weui-btn_primary export-btn" bindtap="shareExportFile">分享到微信</button>
     </view>
   </view>
 </view>
