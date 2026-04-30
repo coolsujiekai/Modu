@@ -11,18 +11,6 @@
         focus="true"
       />
     </view>
-    <view class="search-type-tabs">
-      <view
-        class="tab {{searchType === 'book' ? 'active' : ''}}"
-        bindtap="switchSearchType"
-        data-type="book"
-      >书籍</view>
-      <view
-        class="tab {{searchType === 'author' ? 'active' : ''}}"
-        bindtap="switchSearchType"
-        data-type="author"
-      >作者</view>
-    </view>
   </view>
 
   <view class="search-body">
@@ -30,21 +18,60 @@
       <view class="loading-row">搜索中...</view>
     </block>
 
-    <block wx:elif="{{searchResults.length > 0}}">
+    <block wx:elif="{{(resultsBooks.length + resultsNotes.length + resultsAuthors.length) > 0}}">
+      <view wx:if="{{resultsBooks.length > 0}}" class="group-title">书籍</view>
       <view
-        class="result-item"
-        wx:for="{{searchResults}}"
+        wx:for="{{resultsBooks}}"
         wx:key="_id"
+        class="result-item"
         bindtap="onPickResult"
         data-id="{{item._id}}"
-        data-type="{{searchType}}"
+        data-type="book"
+      >
+        <view class="result-title">
+          <rich-text wx:if="{{item.highlightedTitle}}" class="result-rich" nodes="{{item.highlightedTitle}}" />
+          <text wx:else>{{item.bookName}}</text>
+        </view>
+        <view class="result-sub" wx:if="{{item.authorName}}">{{item.authorName}}</view>
+      </view>
+
+      <view wx:if="{{resultsNotes.length > 0}}" class="group-title">笔记</view>
+      <view
+        wx:for="{{resultsNotes}}"
+        wx:key="_id"
+        class="result-item"
+        bindtap="onPickResult"
+        data-id="{{item._id}}"
+        data-type="book"
+      >
+        <view class="result-title">
+          <rich-text wx:if="{{item.highlightedTitle}}" class="result-rich" nodes="{{item.highlightedTitle}}" />
+          <text wx:else>{{item.bookName}}</text>
+          <text class="result-badge">命中 {{item.noteHitCount}}</text>
+        </view>
+        <view class="result-sub" wx:if="{{item.authorName}}">{{item.authorName}}</view>
+        <view wx:if="{{item.noteHits && item.noteHits.length > 0}}" class="note-hit-list">
+          <view wx:for="{{item.noteHits}}" wx:key="timestamp" class="note-hit">
+            <text class="note-hit__tag">{{item.type === 'quote' ? '金句' : '心得'}}</text>
+            <rich-text class="note-hit__text" nodes="{{item.highlightedText}}" />
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{resultsAuthors.length > 0}}" class="group-title">作者</view>
+      <view
+        wx:for="{{resultsAuthors}}"
+        wx:key="_id"
+        class="result-item"
+        bindtap="onPickResult"
+        data-id="{{item._id}}"
+        data-type="author"
         data-name="{{item.name}}"
       >
         <view class="result-title">
-          <text wx:if="{{item.highlightedTitle}}" unsafe-template="true">{{item.highlightedTitle}}</text>
-          <text wx:else>{{item.bookName || item.name}}</text>
+          <rich-text wx:if="{{item.highlightedTitle}}" class="result-rich" nodes="{{item.highlightedTitle}}" />
+          <text wx:else>{{item.name}}</text>
         </view>
-        <view class="result-sub" wx:if="{{item.authorName}}">{{item.authorName}}</view>
       </view>
     </block>
 
@@ -53,7 +80,7 @@
     </block>
 
     <block wx:else>
-      <view class="empty-tip">输入关键字搜索{{searchType === 'book' ? '书籍' : '作者'}}</view>
+      <view class="empty-tip">输入关键字开始搜索</view>
     </block>
   </view>
 </view>

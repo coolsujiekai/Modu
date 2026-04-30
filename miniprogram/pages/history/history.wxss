@@ -5,6 +5,39 @@
   min-height: 100vh;
 }
 
+.top-search {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  background: var(--bg-page);
+  padding: 18rpx 18rpx 12rpx;
+}
+
+.top-search__box {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background: var(--bg-surface);
+  border: 1rpx solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 18rpx 18rpx;
+  box-shadow: var(--shadow-soft);
+}
+
+.top-search__icon {
+  flex: none;
+  font-size: 26rpx;
+  color: var(--text-light);
+  line-height: 1;
+}
+
+.top-search__placeholder {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: var(--text-warm-muted);
+}
+
 .hero {
   background: var(--bg-surface);
   border-radius: var(--radius-xl);

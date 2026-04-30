@@ -201,4 +201,8 @@ Page({
   openReadingStats() {
     wx.navigateTo({ url: '/pages/readingStats/readingStats' });
   },
+
+  openUnifiedSearch() {
+    wx.navigateTo({ url: '/pages/search/search' });
+  },
 });
