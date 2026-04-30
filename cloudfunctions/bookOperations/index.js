@@ -828,6 +828,67 @@ function buildAuthorTokens(nameNorm) {
   return [...seen];
 }
 
+// ─── 客户端错误上报（兜底：写入数据库）───────────────────────────
+
+const CLIENT_ERRORS_COLLECTION = 'client_errors';
+
+function clipTextForLog(s, maxLen) {
+  const t = String(s || '').trim();
+  if (!t) return '';
+  return t.length > maxLen ? t.slice(0, maxLen) : t;
+}
+
+function safeStringify(obj) {
+  try {
+    return JSON.stringify(obj);
+  } catch (e) {
+    return '';
+  }
+}
+
+async function reportClientError(event) {
+  const openid = getOpenid(event);
+  const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {};
+  const now = Date.now();
+
+  const error = payload?.error || {};
+  const context = payload?.context || {};
+  const route = payload?.route || {};
+  const device = payload?.device || {};
+
+  const doc = {
+    _openid: openid,
+    envVersion: clipTextForLog(payload?.envVersion, 32),
+    at: Number(payload?.at || now) || now,
+    source: clipTextForLog(context?.source, 80),
+    message: clipTextForLog(error?.message, 600),
+    stack: clipTextForLog(error?.stack, 4000),
+    raw: clipTextForLog(error?.raw, 4000),
+    route: {
+      route: clipTextForLog(route?.route, 200),
+      options: clipTextForLog(safeStringify(route?.options || {}), 1200),
+    },
+    device: {
+      brand: clipTextForLog(device?.brand, 40),
+      model: clipTextForLog(device?.model, 80),
+      system: clipTextForLog(device?.system, 80),
+      platform: clipTextForLog(device?.platform, 40),
+      version: clipTextForLog(device?.version, 40),
+      SDKVersion: clipTextForLog(device?.SDKVersion, 40),
+      screenWidth: Number(device?.screenWidth || 0) || 0,
+      screenHeight: Number(device?.screenHeight || 0) || 0,
+      pixelRatio: Number(device?.pixelRatio || 0) || 0,
+      language: clipTextForLog(device?.language, 20),
+    },
+    extra: clipTextForLog(safeStringify(payload?.extra || {}), 2000),
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await db.collection(CLIENT_ERRORS_COLLECTION).add({ data: doc });
+  return { ok: true };
+}
+
 // ─── 云函数入口 ──────────────────────────────────────────────
 
 exports.main = async (event, context) => {
@@ -849,6 +910,7 @@ exports.main = async (event, context) => {
       case 'reflectionCommit': return await commitReflection(event);
       case 'recognizeText':    return await recognizeText(event);
       case 'findOrCreateAuthor': return await findOrCreateAuthor(event);
+      case 'reportClientError': return await reportClientError(event);
       default:
         return { error: `unknown action: ${action}` };
     }

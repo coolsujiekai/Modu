@@ -1,8 +1,17 @@
 import { adminMe, adminStats, adminListUsers, adminListTestDevices, adminResetTestUser, adminListFeedback } from '../../services/adminService.js';
 
+function isRelease() {
+  try {
+    return wx.getAccountInfoSync()?.miniProgram?.envVersion === 'release';
+  } catch (e) {
+    return true;
+  }
+}
+
 Page({
   data: {
     isDark: false,
+    isReleaseEnv: true,
     stats: {
       registeredUsers: 0,
       booksReading: 0,
@@ -37,6 +46,7 @@ Page({
 
   async onLoad() {
     this.setData({ isDark: getApp()?.globalData?.isDark || false });
+    this.setData({ isReleaseEnv: isRelease() });
     await this.guard();
     await this.loadTestDevices();
     await this.refresh();
@@ -271,6 +281,12 @@ Page({
 
   loadMoreFeedback() {
     return this.loadFeedback(false);
+  },
+
+  onTestErrorReport() {
+    // 用未处理的 Promise rejection 触发 App.onUnhandledRejection
+    Promise.reject(new Error('logger smoke test'));
+    wx.showToast({ title: '已触发错误，请看日志', icon: 'none', duration: 1200 });
   },
 
 });

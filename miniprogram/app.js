@@ -1,6 +1,7 @@
 import { applyTheme } from './utils/theme.js';
 import { initNetwork } from './utils/network.js';
 import { initOfflineSync } from './utils/offlineQueue.js';
+import { logger } from './utils/logger.js';
 
 function isRouteAllowed(route) {
   // Avoid redirect loops while onboarding / creating book.
@@ -23,13 +24,11 @@ const PROFILE_DONE_KEY = '_profile_v2_done';
 
 App({
   onError(err) {
-    // 捕获脚本错误，便于定位“timeout”来源
-    console.error('[App.onError]', err);
+    logger.reportError(err, { source: 'App.onError' });
   },
 
   onUnhandledRejection(res) {
-    // 捕获未处理的 Promise rejection
-    console.error('[App.onUnhandledRejection]', res?.reason || res);
+    logger.reportError(res?.reason || res, { source: 'App.onUnhandledRejection' });
   },
 
   async maybeForceIntro(route, runId = 'intro-v2') {
