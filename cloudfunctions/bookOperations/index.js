@@ -26,10 +26,12 @@ function getOpenid(event) {
 
 // ─── AI：读书心得生成（客户端流式 + 云端落库/配额）─────────────────────
 
-const AI_PROMPT_VERSION = 'reflection_v1';
+const AI_PROMPT_VERSION = 'reflection_v2_qa_500';
 const AI_MODEL = 'hunyuan-turbos-latest';
-const AI_TARGET_CHARS = 240;
-const AI_QUOTE_MAX_CHARS = 50;
+const AI_TARGET_CHARS = 380;
+const AI_MAX_CHARS = 500;
+const AI_QUOTE_MAX_CHARS = 140;
+const AI_QUOTE_MAX_SENTENCES = 3;
 const AI_DAILY_LIMIT_PER_BOOK = 3;
 const AI_QUOTA_COLLECTION = 'ai_quota';
 
@@ -69,8 +71,9 @@ function normalizeText(s) {
 function softTrimToChars(text, target = AI_TARGET_CHARS, max = 260) {
   const t = normalizeText(text);
   if (!t) return '';
-  if (t.length <= max) return t;
-  const cut = t.slice(0, max);
+  const maxChars = Math.max(target, Number(max || AI_MAX_CHARS));
+  if (t.length <= maxChars) return t;
+  const cut = t.slice(0, maxChars);
   const last = Math.max(cut.lastIndexOf('。'), cut.lastIndexOf('！'), cut.lastIndexOf('？'), cut.lastIndexOf('；'));
   if (last > Math.max(40, target - 60)) return cut.slice(0, last + 1);
   return cut.trimEnd();
@@ -91,8 +94,8 @@ function enforceQuoteLimit(text, maxQuoteChars = AI_QUOTE_MAX_CHARS) {
   }
   if (matches.length === 0) return t;
 
-  // Remove extra quoted segments beyond the first two.
-  for (let i = 2; i < matches.length; i++) {
+  // Remove extra quoted segments beyond the first N.
+  for (let i = AI_QUOTE_MAX_SENTENCES; i < matches.length; i++) {
     t = t.replace(matches[i].full, '');
   }
 
@@ -117,35 +120,70 @@ function enforceQuoteLimit(text, maxQuoteChars = AI_QUOTE_MAX_CHARS) {
   return t;
 }
 
-function buildReflectionSystemPrompt() {
+function mapStyleLabel(style) {
+  const s = String(style || '').trim();
+  if (s === 'A') return '真诚克制（像朋友圈但不矫情）';
+  if (s === 'B') return '犀利吐槽（有观点、有锋芒）';
+  if (s === 'C') return '温柔治愈（更情绪、更共鸣）';
+  if (s === 'D') return '干货总结（像短评/书评号）';
+  if (s === 'E') return '像我平时说话（更口语、更自然）';
+  return '自然真诚';
+}
+
+function buildReflectionSystemPrompt(style = 'E') {
+  const styleLabel = mapStyleLabel(style);
   return [
-    '你是一个中文写作者，擅长把零散读书记录揉成一段文艺、自然、精炼的读书心得。',
+    '你是一个中文写作者，擅长把用户的回答与摘录整理成一段可转发的读后感。',
     '',
     '硬性要求：',
     '1) 只允许基于我提供的材料写作，不要编造书中情节、人物、情境、结局等具体事实；可以做抽象概括与情绪表达。',
-    '2) 输出为中文，语气自然克制，避免堆砌形容词与鸡汤套话。尽量保留我的措辞/口吻/反差感短句。',
-    `3) 只输出一段话，目标长度约 ${AI_TARGET_CHARS} 个中文字符（允许小幅上下浮动），不要标题、不要分条、不要表情符号。`,
-    `4) 允许出现原文引用（来自我提供的金句/片段），引用必须保持原文，不要改写；最多 2 句，且两句合计不超过 ${AI_QUOTE_MAX_CHARS} 个中文字符；超出请减少引用或不引用。`,
-    '5) 不要提到AI/模型/提示词/系统等元信息。'
+    `2) 文风：${styleLabel}。语言要像真人，不要套路鸡汤。`,
+    `3) 总字数不超过 ${AI_MAX_CHARS} 个中文字符，尽量控制在 ${AI_TARGET_CHARS} 左右。可以分 2-3 段，但不要标题、不要分条编号、不要表情符号。`,
+    `4) 原文引用（来自我提供的金句）最多 ${AI_QUOTE_MAX_SENTENCES} 句，必须保持原文不改写；引用内容合计不超过 ${AI_QUOTE_MAX_CHARS} 字。`,
+    '5) 必须出现“我的立场/我不同意/我更愿意”的表达（如果用户提供了反对点）。',
+    '6) 结尾给一个具体的推荐对象/不推荐对象（如果用户提供了）。',
+    '7) 不要提到AI/模型/提示词/系统等元信息。'
   ].join('\n');
 }
 
-function buildReflectionUserPrompt(book, thoughts, quotes) {
+function buildReflectionUserPromptV2(book, qa, selectedQuotes, material) {
   const bookName = (book?.bookName || '未命名').trim();
   const authorName = (book?.authorName || '').trim();
-  const thoughtLines = thoughts.map((t) => `- ${t}`).join('\n') || '- （无）';
-  const quoteLines = quotes.map((q) => `- ${q}`).join('\n') || '- （无）';
+  const q = qa || {};
+  const conclusion = clip(q?.conclusion, 120);
+  const touch = clip(q?.touch, 160);
+  const disagree = clip(q?.disagree, 160);
+  const scene = clip(q?.scene, 180);
+  const recommend = clip(q?.recommend, 180);
+
+  const quoteLines = (Array.isArray(selectedQuotes) ? selectedQuotes : [])
+    .map((t) => clip(t, 120))
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((t) => `- ${t}`)
+    .join('\n') || '- （无）';
+
+  const thoughts = material?.thoughts || [];
+  const thoughtLines = thoughts.slice(0, 12).map((t) => `- ${t}`).join('\n') || '- （无）';
+
   return [
     `书名：《${bookName}》`,
     authorName ? `作者：${authorName}` : '作者：未知',
     '',
-    '我的读书心得（thought）：',
-    thoughtLines,
+    '我对这本书的回答（尽量用这些内容写，优先保留我的措辞）：',
+    `- 一句话结论：${conclusion || '（无）'}`,
+    `- 触动点：${touch || '（无）'}`,
+    `- 我不同意/想反驳：${disagree || '（无）'}`,
+    `- 真实场景：${scene || '（无）'}`,
+    `- 推荐/不推荐：${recommend || '（无）'}`,
     '',
-    '我摘录的金句/原文片段（quote）：',
+    '我选的金句（原文，允许引用 1-3 条）：',
     quoteLines,
     '',
-    `请生成一段约 ${AI_TARGET_CHARS} 字的读书心得，要求文艺自然、精炼克制；可引用原文最多 2 句，且两句合计不超过 ${AI_QUOTE_MAX_CHARS} 字。`
+    '我的其他零散笔记（可作为补充材料，不要编造细节）：',
+    thoughtLines,
+    '',
+    `请写一段可转发的读后感：优先用“一句话结论/触动点/反对点/真实场景/推荐对象”组织结构，字数不超过 ${AI_MAX_CHARS}。`
   ].join('\n');
 }
 
@@ -220,6 +258,9 @@ async function prepareReflection(event) {
   const openid = getOpenid(event);
   const bookId = String(event.bookId || '').trim();
   const force = event.force === true;
+  const qa = event?.qa && typeof event.qa === 'object' ? event.qa : null;
+  const selectedQuotes = Array.isArray(event?.selectedQuotes) ? event.selectedQuotes : [];
+  const style = String(event?.style || 'E');
   const now = Date.now();
   if (!bookId) throw new Error('bookId is required');
 
@@ -248,7 +289,13 @@ async function prepareReflection(event) {
   const notes = await queryReflectionNotes(bookId);
   const { thoughts, quotes } = buildReflectionMaterialFromNotes(notes);
 
-  if (thoughts.length < 1 && quotes.length < 2) {
+  // v2: 允许无素材但必须有问答 + 至少 1 条金句；否则沿用旧素材门槛
+  const hasQaConclusion = !!clip(qa?.conclusion, 60);
+  const hasSelectedQuotes = selectedQuotes.filter(Boolean).length >= 1;
+  if (!hasQaConclusion) {
+    return { ok: false, code: 'MISSING_QA', message: 'missing conclusion' };
+  }
+  if (!hasSelectedQuotes && thoughts.length < 1 && quotes.length < 2) {
     return { ok: false, code: 'INSUFFICIENT_MATERIAL', message: 'not enough notes' };
   }
 
@@ -273,8 +320,8 @@ async function prepareReflection(event) {
       provider: 'wx.cloud.extend.AI',
       createModel: 'hunyuan-exp',
       model: AI_MODEL,
-      system: buildReflectionSystemPrompt(),
-      user: buildReflectionUserPrompt(book, thoughts, quotes)
+      system: buildReflectionSystemPrompt(style),
+      user: buildReflectionUserPromptV2(book, qa, selectedQuotes, { thoughts, quotes })
     },
     meta: { model: AI_MODEL, promptVersion: AI_PROMPT_VERSION, createdAt: now, bookId }
   };
@@ -285,6 +332,7 @@ async function commitReflection(event) {
   const bookId = String(event.bookId || '').trim();
   const force = event.force === true;
   const rawText = String(event.text || '');
+  const charge = event.charge !== false; // default true
   const now = Date.now();
   if (!bookId) throw new Error('bookId is required');
 
@@ -296,7 +344,7 @@ async function commitReflection(event) {
   // Post-process: one paragraph, length control, quote cap.
   let finalText = enforceOneParagraph(rawText);
   finalText = enforceQuoteLimit(finalText, AI_QUOTE_MAX_CHARS);
-  finalText = softTrimToChars(finalText, AI_TARGET_CHARS, 260);
+  finalText = softTrimToChars(finalText, AI_TARGET_CHARS, AI_MAX_CHARS);
 
   const day = dayKeyCN(now);
 
@@ -331,7 +379,7 @@ async function commitReflection(event) {
     const quotaSnap = await transaction.collection(AI_QUOTA_COLLECTION).doc(quotaId).get().catch(() => null);
     let quotaCount = Number(quotaSnap?.data?.count || 0);
 
-    if (quotaCount >= AI_DAILY_LIMIT_PER_BOOK) {
+    if (charge && quotaCount >= AI_DAILY_LIMIT_PER_BOOK) {
       return {
         ok: false,
         code: 'QUOTA_EXCEEDED',
@@ -353,17 +401,19 @@ async function commitReflection(event) {
       }
     });
 
-    // Charge quota after successful save.
-    if (quotaCount <= 0) {
-      await transaction.collection(AI_QUOTA_COLLECTION).doc(quotaId).set({
-        data: { _openid: openid, bookId, day, count: 1, lastAt: now }
-      });
-      quotaCount = 1;
-    } else {
-      await transaction.collection(AI_QUOTA_COLLECTION).doc(quotaId).update({
-        data: { count: _.inc(1), lastAt: now }
-      });
-      quotaCount = quotaCount + 1;
+    // Charge quota after successful save (optional for edit-save flows).
+    if (charge) {
+      if (quotaCount <= 0) {
+        await transaction.collection(AI_QUOTA_COLLECTION).doc(quotaId).set({
+          data: { _openid: openid, bookId, day, count: 1, lastAt: now }
+        });
+        quotaCount = 1;
+      } else {
+        await transaction.collection(AI_QUOTA_COLLECTION).doc(quotaId).update({
+          data: { count: _.inc(1), lastAt: now }
+        });
+        quotaCount = quotaCount + 1;
+      }
     }
 
     return {

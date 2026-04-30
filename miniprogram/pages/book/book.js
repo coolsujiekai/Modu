@@ -21,6 +21,28 @@ Page({
     aiReflectionLoading: false,
     aiReflectionError: '',
     aiQuotaRemaining: 0,
+    aiReflectionOriginal: '',
+    aiReflectionDraft: '',
+    aiReflectionEditing: false,
+    aiReflectionEditMode: false,
+    aiReflectionSaving: false,
+
+    // AI 读后感问答引导（v2）
+    reflectionWizardVisible: false,
+    reflectionStyle: 'E', // A/B/C/D/E
+    reflectionConclusionMode: 'pick', // pick | custom
+    reflectionConclusionPickIdx: -1,
+    reflectionConclusionCustom: '',
+    reflectionTouch: '',
+    reflectionDisagree: '',
+    reflectionScene: '',
+    reflectionRecommend: '',
+    reflectionSelectedQuoteIdx: [], // quoteNotes index array
+    reflectionSelectedQuoteMap: {}, // { [idx]: true }
+    reflectionMaxQuotes: 3,
+    reflectionLastFileName: '',
+    reflectionMoreVisible: false,
+    wizardThoughtOptions: [],
     noteDraft: '',
     canSaveDraft: false,
     noteFocused: false,
@@ -39,6 +61,7 @@ Page({
   },
 
   _dblTap: { key: '', at: 0 },
+  noop() {},
 
   onLoad(options) {
     this.setData({ isDark: getApp()?.globalData?.isDark || false });
@@ -272,9 +295,14 @@ Page({
         loading: false,
         book: { ...book, thoughtCount, quoteCount },
         aiReflection: String(book.aiReflection || ''),
+        aiReflectionOriginal: String(book.aiReflection || ''),
+        aiReflectionDraft: String(book.aiReflection || ''),
+        aiReflectionEditing: Boolean(String(book.aiReflection || '').trim()),
+        aiReflectionEditMode: false,
         notes: notes,
         thoughtNotes: thoughtNotes,
         quoteNotes: quoteNotes,
+        wizardThoughtOptions: this.buildWizardThoughtOptions(thoughtNotes),
         timelineGroups,
         thoughtCount,
         quoteCount,
@@ -290,6 +318,34 @@ Page({
     }
   },
 
+  toggleAiReflectionEditMode() {
+    if (!String(this.data.aiReflection || '').trim()) return;
+    const next = !this.data.aiReflectionEditMode;
+    // Entering edit mode: ensure draft mirrors current text.
+    if (next) {
+      this.setData({
+        aiReflectionEditMode: true,
+        aiReflectionDraft: String(this.data.aiReflection || '')
+      });
+      return;
+    }
+    // Leaving edit mode: keep aiReflection as current draft (already mirrored in onReflectionDraftInput).
+    this.setData({ aiReflectionEditMode: false });
+  },
+
+  resetAiReflectionDraft() {
+    const base = String(this.data.aiReflectionOriginal || '');
+    this.setData({ aiReflectionDraft: base, aiReflection: base });
+  },
+
+  buildWizardThoughtOptions(thoughtNotes) {
+    const list = Array.isArray(thoughtNotes) ? thoughtNotes : [];
+    return [...list]
+      .filter((n) => n && String(n.text || '').trim())
+      .sort((a, b) => Number(b?.timestamp || 0) - Number(a?.timestamp || 0))
+      .slice(0, 8);
+  },
+
   async onGenerateReflection() {
     if (this.data.aiReflectionLoading) return;
     const bookId = this.data.book?._id || this.data.bookId;
@@ -298,20 +354,168 @@ Page({
       wx.showToast({ title: '读完后可生成', icon: 'none' });
       return;
     }
+    this.openReflectionWizard();
+  },
 
+  openReflectionWizard() {
+    // Reset wizard each time to keep flow simple.
+    this.setData({
+      reflectionWizardVisible: true,
+      reflectionStyle: 'E',
+      reflectionConclusionMode: 'pick',
+      reflectionConclusionPickIdx: 0,
+      reflectionConclusionCustom: '',
+      reflectionTouch: '',
+      reflectionDisagree: '',
+      reflectionScene: '',
+      reflectionRecommend: '',
+      reflectionSelectedQuoteIdx: [],
+      reflectionSelectedQuoteMap: {},
+      reflectionMoreVisible: false,
+      wizardThoughtOptions: this.buildWizardThoughtOptions(this.data.thoughtNotes || [])
+    });
+  },
+
+  closeReflectionWizard() {
+    this.setData({ reflectionWizardVisible: false });
+  },
+
+  onPickReflectionStyle(e) {
+    const style = String(e?.currentTarget?.dataset?.style || '');
+    if (!['A', 'B', 'C', 'D', 'E'].includes(style)) return;
+    this.setData({ reflectionStyle: style });
+  },
+
+  onReflectionInput(e) {
+    const key = String(e?.currentTarget?.dataset?.key || '');
+    const v = String(e?.detail?.value ?? '');
+    const map = {
+      conclusionCustom: 'reflectionConclusionCustom',
+      touch: 'reflectionTouch',
+      disagree: 'reflectionDisagree',
+      scene: 'reflectionScene',
+      recommend: 'reflectionRecommend',
+    };
+    const field = map[key];
+    if (!field) return;
+    this.setData({ [field]: v });
+  },
+
+  setConclusionMode(e) {
+    const mode = String(e?.currentTarget?.dataset?.mode || '');
+    if (mode !== 'pick' && mode !== 'custom') return;
+    this.setData({ reflectionConclusionMode: mode });
+  },
+
+  pickConclusionOption(e) {
+    const idx = Number(e?.currentTarget?.dataset?.idx);
+    if (!Number.isFinite(idx)) return;
+    this.setData({ reflectionConclusionPickIdx: idx });
+  },
+
+  toggleReflectionMore() {
+    this.setData({ reflectionMoreVisible: !this.data.reflectionMoreVisible });
+  },
+
+  applyQuickFill(e) {
+    const key = String(e?.currentTarget?.dataset?.key || '');
+    const text = String(e?.currentTarget?.dataset?.text || '');
+    if (!text) return;
+    const map = {
+      touch: 'reflectionTouch',
+      disagree: 'reflectionDisagree',
+      scene: 'reflectionScene',
+      recommend: 'reflectionRecommend',
+    };
+    const field = map[key];
+    if (!field) return;
+    const cur = String(this.data[field] || '').trim();
+    const next = cur ? `${cur}\n${text}` : text;
+    this.setData({ [field]: next, reflectionMoreVisible: true });
+  },
+
+  toggleReflectionQuote(e) {
+    const idx = Number(e?.currentTarget?.dataset?.idx);
+    if (!Number.isFinite(idx)) return;
+    const picked = new Set(this.data.reflectionSelectedQuoteIdx || []);
+    const map = { ...(this.data.reflectionSelectedQuoteMap || {}) };
+    if (picked.has(idx)) {
+      picked.delete(idx);
+      delete map[idx];
+    } else {
+      if (picked.size >= Number(this.data.reflectionMaxQuotes || 3)) {
+        wx.showToast({ title: '最多选 3 条金句', icon: 'none' });
+        return;
+      }
+      picked.add(idx);
+      map[idx] = true;
+    }
+    this.setData({
+      reflectionSelectedQuoteIdx: Array.from(picked),
+      reflectionSelectedQuoteMap: map
+    });
+  },
+
+  async submitReflectionWizard() {
+    if (this.data.aiReflectionLoading) return;
+    let conclusion = '';
+    if (this.data.reflectionConclusionMode === 'custom') {
+      conclusion = String(this.data.reflectionConclusionCustom || '').trim();
+    } else {
+      const options = this.data.wizardThoughtOptions || [];
+      const idx = Number(this.data.reflectionConclusionPickIdx || 0);
+      conclusion = String(options?.[idx]?.text || '').trim();
+    }
+    if (!conclusion) {
+      wx.showToast({ title: '先写一句话结论', icon: 'none' });
+      return;
+    }
+    const idxs = this.data.reflectionSelectedQuoteIdx || [];
+    if (!Array.isArray(idxs) || idxs.length < 1) {
+      wx.showToast({ title: '至少选 1 条金句', icon: 'none' });
+      return;
+    }
+
+    const bookId = this.data.book?._id || this.data.bookId;
+    if (!bookId) return;
+
+    const selectedQuotes = idxs
+      .map((i) => this.data.quoteNotes?.[i]?.text)
+      .map((t) => String(t || '').trim())
+      .filter(Boolean)
+      .slice(0, 3);
+
+    this.setData({ reflectionWizardVisible: false });
+
+    await this.generateReflectionV2({
+      bookId,
+      style: this.data.reflectionStyle,
+      qa: {
+        conclusion,
+        touch: String(this.data.reflectionTouch || '').trim(),
+        disagree: String(this.data.reflectionDisagree || '').trim(),
+        scene: String(this.data.reflectionScene || '').trim(),
+        recommend: String(this.data.reflectionRecommend || '').trim(),
+      },
+      selectedQuotes,
+    });
+  },
+
+  async generateReflectionV2({ bookId, style, qa, selectedQuotes }) {
     this.setData({ aiReflectionLoading: true, aiReflectionError: '' });
     wx.showLoading({ title: '生成中…', mask: true });
     try {
       const pre = await wx.cloud.callFunction({
         name: 'bookOperations',
-        // 单按钮逻辑：每点一次都算一次“生成”，因此强制走 force=true，不吃缓存免扣次数
-        data: { action: 'reflectionPrepare', bookId, force: true }
+        data: { action: 'reflectionPrepare', bookId, force: true, style, qa, selectedQuotes }
       });
       const result = pre?.result || {};
       if (!result?.ok) {
         const code = result?.code || '';
-        if (code === 'INSUFFICIENT_MATERIAL') {
-          wx.showToast({ title: '素材不足：写 1 条心得或收 2 条金句', icon: 'none' });
+        if (code === 'MISSING_QA') {
+          wx.showToast({ title: '先写一句话结论', icon: 'none' });
+        } else if (code === 'INSUFFICIENT_MATERIAL') {
+          wx.showToast({ title: '素材不足：至少选 1 条金句', icon: 'none' });
         } else if (code === 'QUOTA_EXCEEDED') {
           wx.showToast({ title: '今日已用完 3 次', icon: 'none' });
         } else {
@@ -385,6 +589,10 @@ Page({
 
       this.setData({
         aiReflection: String(committed.text || acc || ''),
+        aiReflectionOriginal: String(committed.text || acc || ''),
+        aiReflectionDraft: String(committed.text || acc || ''),
+        aiReflectionEditing: true,
+        aiReflectionEditMode: true,
         aiQuotaRemaining: Number(committed?.quota?.remaining ?? 0),
         aiReflectionError: ''
       });
@@ -394,6 +602,42 @@ Page({
     } finally {
       wx.hideLoading();
       this.setData({ aiReflectionLoading: false });
+    }
+  },
+
+  onReflectionDraftInput(e) {
+    const v = String(e?.detail?.value ?? '');
+    this.setData({ aiReflectionDraft: v, aiReflection: v });
+  },
+
+  async saveReflectionAsThought() {
+    if (this.data.aiReflectionSaving) return;
+    const bookId = this.data.book?._id || this.data.bookId;
+    const bookName = this.data.book?.bookName || '';
+    if (!bookId) return;
+    const text = String(this.data.aiReflectionDraft || '').trim();
+    if (!text) {
+      wx.showToast({ title: '先写点内容再保存', icon: 'none' });
+      return;
+    }
+    this.setData({ aiReflectionSaving: true });
+    wx.showLoading({ title: '保存中…', mask: true });
+    try {
+      await addNoteToCloud(bookId, { text, type: 'thought', bookName });
+      // 同步到书籍 aiReflection，但不扣次数
+      await wx.cloud.callFunction({
+        name: 'bookOperations',
+        data: { action: 'reflectionCommit', bookId, force: true, charge: false, text }
+      });
+      wx.hideLoading();
+      wx.showToast({ title: '已保存为心得', icon: 'success', duration: 1000 });
+      // 刷新笔记列表/统计
+      this.loadBook();
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    } finally {
+      this.setData({ aiReflectionSaving: false });
     }
   },
 
