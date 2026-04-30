@@ -11,6 +11,7 @@
     "pages/editNote/editNote",
     "pages/wishlist/wishlist",
     "pages/history/history",
+    "pages/readingStats/readingStats",
     "pages/profile/profile",
     "pages/userProfile/userProfile",
     "pages/admin/admin",

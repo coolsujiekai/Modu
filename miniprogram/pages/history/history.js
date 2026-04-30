@@ -197,4 +197,8 @@ Page({
       url: `/pages/book/book?id=${book._id}`
     });
   },
+
+  openReadingStats() {
+    wx.navigateTo({ url: '/pages/readingStats/readingStats' });
+  },
 });

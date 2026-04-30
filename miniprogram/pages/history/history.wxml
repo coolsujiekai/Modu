@@ -1,7 +1,12 @@
 <view class="page {{isDark ? 'dark-theme' : ''}}" bindtap="onPageTap">
   <view class="hero">
-    <view class="hero-title">书架统计</view>
-    <view class="hero-sub">累计读完 {{finishedCount}} 本 · 心得 {{totalThoughts}} 条 · 金句 {{totalQuotes}} 条</view>
+    <view class="hero-row">
+      <view class="hero-left">
+        <view class="hero-title">书架统计</view>
+        <view class="hero-sub">累计读完 {{finishedCount}} 本 · 心得 {{totalThoughts}} 条 · 金句 {{totalQuotes}} 条</view>
+      </view>
+      <button class="weui-btn weui-btn_mini weui-btn_default hero-mini-btn" bindtap="openReadingStats">统计</button>
+    </view>
   </view>
 
   <block wx:if="{{groupedBooks.length === 0}}">

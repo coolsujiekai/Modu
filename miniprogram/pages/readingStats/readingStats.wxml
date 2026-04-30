@@ -1,0 +1,66 @@
+<view class="page {{isDark ? 'dark-theme' : ''}}">
+  <view class="hero">
+    <view class="hero-row">
+      <view class="hero-left">
+        <view class="hero-title">阅读统计</view>
+       
+      </view>
+      <view class="seg">
+        <view class="seg-item {{mode === 'month' ? 'active' : ''}}" bindtap="setMode" data-mode="month">本月</view>
+        <view class="seg-item {{mode === 'year' ? 'active' : ''}}" bindtap="setMode" data-mode="year">今年</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="stats-grid">
+    <view class="stat-card">
+      <view class="stat-num">{{viewStats.booksFinished}}</view>
+      <view class="stat-label muted">阅读完毕</view>
+    </view>
+    <view class="stat-card">
+      <view class="stat-num">{{viewStats.thoughtCount}}</view>
+      <view class="stat-label muted">心得</view>
+    </view>
+    <view class="stat-card">
+      <view class="stat-num">{{viewStats.quoteCount}}</view>
+      <view class="stat-label muted">金句</view>
+    </view>
+    <view class="stat-card">
+      <view class="stat-num">{{viewStats.readingDays}}</view>
+      <view class="stat-label muted">阅读天数</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">连续打卡</view>
+    <view class="streak-row">
+      <view class="streak-item">
+        <view class="streak-num">{{viewStats.currentStreak}}</view>
+        <view class="muted">当前</view>
+      </view>
+      <view class="streak-item">
+        <view class="streak-num">{{viewStats.longestStreak}}</view>
+        <view class="muted">最长</view>
+      </view>
+    </view>
+    <view class="muted hint" wx:if="{{viewStats.currentStreak === 0}}">今天还没打卡，写一句笔记也会自动打卡。</view>
+  </view>
+
+  <view class="card">
+    <view class="h2">常读作者 TOP 3</view>
+    <view wx:if="{{viewTopAuthors.length === 0}}" class="muted">暂无（读完书籍后会统计）</view>
+    <view wx:for="{{viewTopAuthors}}" wx:key="name" class="top-row">
+      <view class="top-left">
+        <view class="top-rank">#{{index + 1}}</view>
+        <view class="top-name">{{item.name}}</view>
+      </view>
+      <view class="top-count muted">{{item.count}} 本</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">阅读天数分布</view>
+    <view class="muted">本{{mode === 'month' ? '月' : '年'}}共 {{viewStats.readingDays}} 天有打卡。</view>
+  </view>
+</view>
+

@@ -1,0 +1,135 @@
+@import "/styles/theme.wxss";
+@import "/styles/common.wxss";
+
+.page {
+  min-height: 100vh;
+}
+
+.hero-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.hero-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.seg {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-surface-soft);
+  border: 1rpx solid var(--border-soft);
+  border-radius: 999rpx;
+  padding: 6rpx;
+  gap: 6rpx;
+}
+
+.seg-item {
+  padding: 0 18rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+.seg-item.active {
+  background: var(--bg-surface);
+  color: var(--text-title);
+  box-shadow: var(--shadow-xs);
+}
+
+.stats-grid {
+  margin-top: 16rpx;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 22rpx 22rpx;
+  border: 1rpx solid var(--border-soft);
+}
+
+.stat-num {
+  font-size: 54rpx;
+  font-weight: 800;
+  color: var(--text-title);
+  letter-spacing: -0.02em;
+}
+
+.stat-label {
+  margin-top: 10rpx;
+}
+
+.h2 {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--text-title);
+  margin-bottom: 14rpx;
+}
+
+.streak-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.streak-item {
+  flex: 1;
+  background: var(--bg-surface-muted);
+  border-radius: var(--radius-md);
+  padding: 16rpx 16rpx;
+}
+
+.streak-num {
+  font-size: 44rpx;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.hint {
+  margin-top: 12rpx;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14rpx 0;
+  border-top: 1rpx solid var(--border-soft);
+}
+
+.top-row:first-of-type {
+  border-top: none;
+}
+
+.top-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  min-width: 0;
+}
+
+.top-rank {
+  flex: none;
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+.top-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
