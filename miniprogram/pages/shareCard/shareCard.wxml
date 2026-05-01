@@ -12,11 +12,23 @@
   <view class="book-info-section">
     <view class="book-info-row">
       <text class="book-info-label">书名</text>
-      <input class="book-info-input" value="{{bookName}}" bindinput="onBookNameInput" placeholder="书名" />
+      <input
+        class="book-info-input"
+        placeholder-class="book-info-placeholder"
+        value="{{bookName}}"
+        bindinput="onBookNameInput"
+        placeholder="书名"
+      />
     </view>
     <view class="book-info-row">
       <text class="book-info-label">作者</text>
-      <input class="book-info-input" value="{{authorName}}" bindinput="onAuthorNameInput" placeholder="作者" />
+      <input
+        class="book-info-input"
+        placeholder-class="book-info-placeholder"
+        value="{{authorName}}"
+        bindinput="onAuthorNameInput"
+        placeholder="作者"
+      />
     </view>
   </view>
 
@@ -63,7 +75,8 @@
     </scroll-view>
   </view>
 
-  <view class="modal-actions">
+  <!-- 预览打开时移除此处原生 button，否则小程序原生层会叠在预览按钮上，出现「取消」压在「分享到微信」上 -->
+  <view class="modal-actions" wx:if="{{!previewVisible}}">
     <button class="btn-cancel" bindtap="onCancel">取消</button>
     <button class="btn-confirm {{!canGenerate ? 'btn-disabled' : ''}}" bindtap="onConfirm" disabled="{{!canGenerate}}">生成图片</button>
   </view>
@@ -77,12 +90,13 @@
 </view>
 
 <view wx:if="{{previewVisible}}" class="preview-overlay" catchtouchmove="noop">
+  <view class="preview-close" bindtap="onPreviewClose">×</view>
   <image class="preview-image" src="{{previewSrc}}" />
   <view class="preview-footer">
     <text class="preview-hint">{{previewSavedHint}}</text>
     <view class="preview-btns">
-      <button class="preview-btn preview-btn--secondary" bindtap="onPreviewOpenImage">打开原图</button>
-      <button class="preview-btn preview-btn--primary" bindtap="onPreviewClose">完成</button>
+      <button class="preview-btn preview-btn--primary" bindtap="onPreviewShare">分享到微信</button>
+      <button class="preview-btn preview-btn--primary" bindtap="onPreviewSave">保存到相册</button>
     </view>
   </view>
 </view>

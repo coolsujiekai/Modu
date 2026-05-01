@@ -11,9 +11,7 @@ const TEMPLATES = [
 
 Page({
   MAX_SELECT_COUNT: 3,
-  MAX_TOTAL_CHARS: 110,
-  LONG_QUOTE_LIMIT_1: 58,
-  LONG_QUOTE_LIMIT_2: 42,
+  MAX_TOTAL_CHARS: 180,
 
   data: {
     isDark: false,
@@ -35,7 +33,9 @@ Page({
     // 预览
     previewVisible: false,
     previewSrc: '',
-    previewSavedHint: ''
+    previewSavedHint: '',
+    previewSharePath: '',
+    previewSharing: false
   },
 
   onLoad(options) {
@@ -88,8 +88,8 @@ Page({
     this.setData(
       {
         bookId,
-        bookName: decodeURIComponent(bookName || ''),
-        authorName: decodeURIComponent(authorName || ''),
+        bookName: decodeURIComponent(bookName || '') || '',
+        authorName: decodeURIComponent(authorName || '') || '',
         quotes: parsedQuotes,
         finishedYmdText,
         templateId: nextTemplateId
@@ -175,13 +175,26 @@ Page({
       ? `已选 ${selectedCount} 条 · ${baseHint}`
       : baseHint;
 
-    const plan = selectedTexts.length ? this.planQuoteLayout(selectedTexts, 327, 320) : null;
+    const { quoteMaxW, panelH } = this.computeShareCardPanelMetrics(
+      this.data.bookName,
+      this.data.authorName,
+      this.data.finishedYmdText,
+      this.data.templateId,
+      375,
+      667
+    );
+    const contentBudgetH = this.getQuoteContentBudget(panelH);
+    const plan = selectedTexts.length
+      ? this.fitQuoteLayout(selectedTexts, quoteMaxW, contentBudgetH)
+      : null;
     const layoutHint = !plan
       ? ''
       : plan.reduced
         ? `内容较长，已自动展示前 ${plan.displayTexts.length} 条金句`
         : plan.clipped
-          ? '金句较长，已自动优化换行与字号'
+          ? plan.fontSize && plan.fontSize <= 13
+            ? '金句较多或较长，已自动缩小字号并截断超出部分'
+            : '金句较长，已自动优化换行（超出部分以省略号收束）'
           : '';
 
     this.setData({
@@ -202,8 +215,6 @@ Page({
     const totalChars = texts.reduce((sum, txt) => sum + txt.length, 0);
     const maxCount = this.getMaxSelectableByTexts(texts);
     if (texts.length > maxCount) {
-      if (maxCount === 1) return { ok: false, msg: '包含较长金句时，仅可选择 1 条' };
-      if (maxCount === 2) return { ok: false, msg: '包含较长金句时，最多选择 2 条' };
       return { ok: false, msg: `最多选择 ${maxCount} 条` };
     }
     if (totalChars > this.MAX_TOTAL_CHARS) {
@@ -213,57 +224,141 @@ Page({
   },
 
   getMaxSelectableByTexts(texts) {
-    const lengths = (texts || []).map((txt) => txt.length);
-    if (lengths.some((len) => len >= this.LONG_QUOTE_LIMIT_1)) return 1;
-    if (lengths.some((len) => len >= this.LONG_QUOTE_LIMIT_2)) return 2;
     return this.MAX_SELECT_COUNT;
   },
 
-  planQuoteLayout(quoteTexts, panelWidth, panelHeight) {
+  /** 与 _drawContentPanel 使用同一套行高规则，避免“预算”和画布不一致 */
+  getQuoteLineHeight(fontSize) {
+    const fs = Number(fontSize) || 15;
+    return Math.round(fs * (fs <= 14 ? 1.82 : 1.74));
+  },
+
+  /**
+   * 三模板共用：缩小顶部书名区，把纵向空间让给「摘抄·金句」面板。
+   * 须与 _drawHeader / measureShareCardHeaderBottomY 保持同步。
+   */
+  getShareCardHeaderLayout(templateId, cvWidth) {
+    const id = String(templateId || 'nebula');
+    const sunset = id === 'sunset';
+    return {
+      titleBaseY: sunset ? 112 : 86,
+      titleFontSize: 22,
+      titleLineGap: 28,
+      titleMaxLines: 2,
+      titleWrapW: cvWidth - 68,
+      authorFontSize: 11,
+      authorGap: 10,
+      dateGap: 26,
+      dateFontSize: 10,
+      dateBelowPad: 8
+    };
+  },
+
+  /** 不绘制，只计算 _drawHeader 结束后的纵向位置（供面板预算与 _drawHeader 返回值一致） */
+  measureShareCardHeaderBottomY(cvWidth, bookName, authorName, finishedYmdText, templateId) {
+    const L = this.getShareCardHeaderLayout(templateId, cvWidth);
+    const titleLines = this.clampLines(
+      this.wrapTextLines((bookName || '').trim() || '未命名书籍', L.titleWrapW, L.titleFontSize),
+      L.titleMaxLines
+    );
+    const dateLineY = L.titleBaseY + titleLines.length * L.titleLineGap + L.dateGap;
+    const finishDateLine = finishedYmdText
+      ? `${String(finishedYmdText).replace(/年(\d)月(\d)日/, '.$1.$2')} · 我读完这本书`
+      : '';
+    if (finishDateLine) return dateLineY + L.dateBelowPad;
+    return dateLineY;
+  },
+
+  /**
+   * 金句正文区可用高度（从 baseY 到面板底边留白），须与 _drawContentPanel 一致：
+   * baseY = panelY + panelQuoteTopOffset
+   */
+  getQuoteContentBudget(panelH) {
+    const panelQuoteTopOffset = 46;
+    const bottomPad = 26;
+    return Math.max(80, panelH - panelQuoteTopOffset - bottomPad);
+  },
+
+  /** 与 buildCardToTempPath / _drawTemplateCard 相同规则，用于排版预算（宽、实际 panelH） */
+  computeShareCardPanelMetrics(bookName, authorName, finishedYmdText, templateId, cvWidth, cvHeight) {
+    const panelX = 24;
+    const panelW = cvWidth - panelX * 2;
+    const footerReserved = 46;
+    const headerBottomY = this.measureShareCardHeaderBottomY(
+      cvWidth,
+      bookName,
+      authorName,
+      finishedYmdText,
+      templateId
+    );
+    const maxPanelBottom = cvHeight - footerReserved;
+    let panelY = Math.max(168, headerBottomY + 24);
+    let panelH = Math.min(492, Math.max(0, maxPanelBottom - panelY));
+    if (panelH < 220) {
+      panelY = Math.max(152, maxPanelBottom - 220);
+      panelH = Math.min(492, Math.max(0, maxPanelBottom - panelY));
+    }
+    const quotePaddingX = 28;
+    const quoteMaxW = panelW - quotePaddingX * 2;
+    return { panelX, panelY, panelW, panelH, quoteMaxW };
+  },
+
+  /**
+   * 在给定宽度/高度内拟合金句排版：优先保证不溢出面板（必要时减条数、减字号、减每条条数上限）
+   */
+  fitQuoteLayout(quoteTexts, quoteMaxW, contentBudgetH) {
     const normalized = (quoteTexts || []).filter(Boolean);
+    if (!normalized.length) {
+      return { displayTexts: [], fontSize: 15, lineHeight: this.getQuoteLineHeight(15), maxLinesEach: 8, reduced: false, clipped: false };
+    }
+
     const candidates = normalized.slice(0, this.MAX_SELECT_COUNT);
     const counts = [];
     for (let c = candidates.length; c >= 1; c--) counts.push(c);
-    const quotePaddingX = 28;
-    const fontCandidates = [16, 15, 14];
+    const fontCandidates = [16, 15, 14, 13, 12];
+    const maxLinesTable = (count) => (count === 1 ? 12 : count === 2 ? 8 : 6);
 
-    for (let ci = 0; ci < counts.length; ci++) {
-      const count = counts[ci];
+    for (const count of counts) {
       const texts = candidates.slice(0, count);
-      for (let fi = 0; fi < fontCandidates.length; fi++) {
-        const fontSize = fontCandidates[fi];
-        const lineHeight = Math.round(fontSize * 1.55);
-        const maxWidth = panelWidth - quotePaddingX * 2;
-        const maxLinesEach = count === 1 ? 8 : count === 2 ? 5 : 3;
-
-        let totalH = 0;
-        let overflowLines = 0;
-        for (let i = 0; i < texts.length; i++) {
-          const lines = this.estimateWrapLines(texts[i], maxWidth, fontSize);
-          const usedLines = Math.min(lines.length, maxLinesEach);
-          overflowLines += Math.max(0, lines.length - maxLinesEach);
-          totalH += usedLines * lineHeight + (count > 1 ? 32 : 24);
-        }
-        totalH += count > 1 ? 32 : 24;
-        const canUse = totalH <= panelHeight && (overflowLines === 0 || count === 1);
-        if (canUse) {
-          return {
-            displayTexts: texts,
-            fontSize,
-            lineHeight,
-            maxLinesEach,
-            reduced: count < normalized.length,
-            clipped: overflowLines > 0,
-            overflowLines
-          };
+      for (const fontSize of fontCandidates) {
+        const lineHeight = this.getQuoteLineHeight(fontSize);
+        let maxLinesEach = maxLinesTable(count);
+        while (maxLinesEach >= 2) {
+          let totalH = 0;
+          let overflowLines = 0;
+          const blockGap = count > 1 ? 22 : 14;
+          for (let i = 0; i < texts.length; i++) {
+            const lines = this.wrapTextLines(texts[i], quoteMaxW, fontSize);
+            const usedLines = Math.min(lines.length, maxLinesEach);
+            overflowLines += Math.max(0, lines.length - maxLinesEach);
+            const textH = usedLines * lineHeight;
+            totalH += textH;
+            if (i < texts.length - 1) totalH += blockGap;
+          }
+          const canUse = totalH <= contentBudgetH - 6;
+          if (canUse) {
+            return {
+              displayTexts: texts,
+              fontSize,
+              lineHeight,
+              maxLinesEach,
+              reduced: count < normalized.length,
+              clipped: overflowLines > 0,
+              overflowLines
+            };
+          }
+          maxLinesEach -= 1;
         }
       }
     }
+
+    const fs = 12;
+    const lh = this.getQuoteLineHeight(fs);
     return {
       displayTexts: normalized.slice(0, 1),
-      fontSize: 14,
-      lineHeight: 24,
-      maxLinesEach: 6,
+      fontSize: fs,
+      lineHeight: lh,
+      maxLinesEach: Math.max(2, Math.min(10, Math.floor(contentBudgetH / lh))),
       reduced: normalized.length > 1,
       clipped: true,
       overflowLines: 1
@@ -336,7 +431,15 @@ Page({
       .filter(Boolean);
     if (!quoteTexts.length) return;
 
-    const layoutPlan = this.planQuoteLayout(quoteTexts, 327, 320);
+    const { quoteMaxW, panelH } = this.computeShareCardPanelMetrics(
+      bookName,
+      authorName,
+      finishedYmdText,
+      templateId,
+      375,
+      667
+    );
+    const layoutPlan = this.fitQuoteLayout(quoteTexts, quoteMaxW, this.getQuoteContentBudget(panelH));
     const payload = {
       bookName: (bookName || '').trim() || '未命名书籍',
       authorName: (authorName || '').trim() || '未知作者',
@@ -362,9 +465,11 @@ Page({
       this.setData({
         previewVisible: true,
         previewSrc: tempPath,
-        previewSavedHint: '长按图片保存到相册'
+        previewSavedHint: '可保存到相册或分享到微信',
+        previewSharePath: '',
+        previewSharing: false
       });
-      wx.showToast({ title: '长按图片保存', icon: 'none', duration: 1400 });
+      wx.showToast({ title: '已生成', icon: 'success', duration: 900 });
     } catch (err) {
       const hintMsg = '保存失败，请稍后重试';
       this.setData({ previewVisible: true, previewSavedHint: hintMsg });
@@ -377,7 +482,38 @@ Page({
 
   onPreviewClose() {
     this.setData({ previewVisible: false, previewSrc: '', previewSavedHint: '' });
-    wx.navigateBack();
+  },
+
+  async onPreviewSave() {
+    const src = this.data.previewSrc;
+    if (!src) return;
+    wx.showLoading({ title: '保存中…', mask: true });
+    try {
+      await this.saveTempPathToAlbum(src);
+      wx.hideLoading();
+      wx.showToast({ title: '已保存到相册', icon: 'success', duration: 1000 });
+      this.setData({ previewSavedHint: '已保存到相册，可继续分享给微信好友' });
+    } catch (err) {
+      wx.hideLoading();
+      const code = err?.code || '';
+      if (code === 'AUTH_DENY') {
+        const res = await wx.showModal({
+          title: '需要相册权限',
+          content: '请在设置中允许保存到相册后再试。',
+          confirmText: '去设置',
+          cancelText: '取消'
+        });
+        if (res.confirm) {
+          await wx.openSetting().catch(() => {});
+        }
+        return;
+      }
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    }
+  },
+
+  onPreviewShare() {
+    this.sharePreviewToWeChat();
   },
 
   onPreviewOpenImage() {
@@ -389,18 +525,113 @@ Page({
     });
   },
 
+  async sharePreviewToWeChat() {
+    if (this.data.previewSharing) return;
+    const src = this.data.previewSrc;
+    if (!src) return;
+
+    this.setData({ previewSharing: true });
+    wx.showLoading({ title: '准备分享…', mask: true });
+    try {
+      const fs = wx.getFileSystemManager();
+      let sharePath = String(this.data.previewSharePath || '').trim();
+      if (!sharePath) {
+        const userPath = wx.env?.USER_DATA_PATH || '';
+        const safeName = `modu_share_${Date.now()}_${Math.floor(Math.random() * 1000)}.png`;
+        sharePath = userPath ? `${userPath}/${safeName}` : src;
+        if (userPath && sharePath !== src) {
+          await new Promise((resolve, reject) => {
+            fs.copyFile({
+              srcPath: src,
+              destPath: sharePath,
+              success: resolve,
+              fail: reject
+            });
+          });
+        }
+        this.setData({ previewSharePath: sharePath });
+      }
+
+      wx.hideLoading();
+      // 必须由用户手势触发：本函数从按钮点击进入
+      await wx.shareFileMessage({
+        filePath: sharePath,
+        fileName: '阅读分享.png'
+      });
+    } catch (err) {
+      wx.hideLoading();
+      const msg = String(err?.errMsg || err?.message || '');
+      if (msg.includes('user_gesture') || msg.includes('user gesture')) {
+        wx.showToast({ title: '请直接点击“分享到微信”按钮分享', icon: 'none' });
+      } else {
+        wx.showToast({ title: '分享失败，请重试', icon: 'none' });
+      }
+      console.warn('[shareCard] share failed:', err);
+    } finally {
+      this.setData({ previewSharing: false });
+    }
+  },
+
   noop() {},
 
   getPalette(templateId) {
-    // 极简留白风格：不做复杂背景，突出内容本身（用于提高传播与转化）
-    // 保留 templateId 入口（兼容个性化设置），但视觉统一走极简卡片。
+    const id = String(templateId || 'nebula');
+    if (id === 'paper') {
+      return {
+        id,
+        // background
+        bg: '#FBF7EF',
+        // text
+        title: '#1A1918',
+        subText: 'rgba(26,25,24,0.60)',
+        muted: 'rgba(26,25,24,0.56)',
+        faint: 'rgba(26,25,24,0.10)',
+        // accents
+        accent: '#6A4E2D',
+        accentLine: 'rgba(106,78,45,0.55)',
+        // panel
+        panel: 'rgba(255,255,255,0.86)',
+        panelBorder: 'rgba(106,78,45,0.14)',
+        panelHint: 'rgba(26,25,24,0.50)',
+        panelText: '#1A1918',
+        separator: 'rgba(26,25,24,0.10)',
+        // small decor
+        star: 'rgba(106,78,45,0.40)'
+      };
+    }
+    if (id === 'sunset') {
+      return {
+        id,
+        bg: '#1E1F3B',
+        title: '#FFF6ED',
+        subText: 'rgba(255,246,237,0.70)',
+        muted: 'rgba(255,246,237,0.62)',
+        faint: 'rgba(255,246,237,0.12)',
+        accent: '#FFB36B',
+        // panel (warm glass)
+        panel: 'rgba(20,16,26,0.90)',
+        panelBorder: 'rgba(255,255,255,0.18)',
+        panelHint: 'rgba(255,246,237,0.70)',
+        panelText: '#FFF6ED',
+        separator: 'rgba(255,246,237,0.14)',
+        star: 'rgba(255,179,107,0.55)'
+      };
+    }
+    // nebula default
     return {
-      bg: '#FFFFFF',
-      surface: '#FFFFFF',
-      text: '#111111',
-      muted: 'rgba(17,17,17,0.55)',
-      faint: 'rgba(17,17,17,0.10)',
-      accent: '#2C3E50'
+      id: 'nebula',
+      bg: '#0B1024',
+      title: '#F3F6FF',
+      subText: 'rgba(243,246,255,0.70)',
+      muted: 'rgba(243,246,255,0.62)',
+      faint: 'rgba(243,246,255,0.12)',
+      accent: '#8EA6FF',
+      panel: 'rgba(8,10,20,0.90)',
+      panelBorder: 'rgba(255,255,255,0.16)',
+      panelHint: 'rgba(243,246,255,0.70)',
+      panelText: '#F3F6FF',
+      separator: 'rgba(243,246,255,0.16)',
+      star: 'rgba(142,166,255,0.55)'
     };
   },
 
@@ -430,8 +661,21 @@ Page({
         ? wx.createOffscreenCanvas({ type: '2d', width: 300, height: 120 }).getContext('2d')
         : null;
 
-      // 极简分享卡：书名 + ⭐精选一句 + 其他摘录(2-3条) + 阅读时间 + 引导文案
-      this._drawMinimalCard(ctx, cvWidth, cvHeight, palette, bookName, renderQuotes, finishedYmdText);
+      // 三模板分流：背景/装饰/面板/配色各自独立
+      this._drawTemplateCard(
+        ctx,
+        cvWidth,
+        cvHeight,
+        palette,
+        {
+          bookName,
+          authorName,
+          finishedYmdText,
+          renderQuotes,
+          layoutPlan,
+          templateId
+        }
+      );
 
       let afterDrawStarted = false;
       const runAfterDraw = () => {
@@ -485,9 +729,143 @@ Page({
   },
 
   _drawBackground(ctx, cvWidth, cvHeight, palette, templateId) {
-    // 兼容旧逻辑：极简模式下只铺底色
-    ctx.setFillStyle(palette.bg || '#FFFFFF');
+    const id = String(templateId || palette?.id || 'nebula');
+    if (id === 'paper') {
+      // warm paper base
+      ctx.setFillStyle(palette.bg || '#FBF7EF');
+      ctx.fillRect(0, 0, cvWidth, cvHeight);
+      // subtle paper noise (very light)
+      ctx.save();
+      ctx.setFillStyle('rgba(0,0,0,0.018)');
+      const dots = 220;
+      for (let i = 0; i < dots; i++) {
+        const x = (i * 73) % cvWidth;
+        const y = (i * 151) % cvHeight;
+        const r = (i % 7 === 0) ? 1.2 : 0.9;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      return;
+    }
+    if (id === 'sunset') {
+      // warm dusk gradient
+      const g = ctx.createLinearGradient(0, 0, 0, cvHeight);
+      g.addColorStop(0, '#2B2D5A');
+      g.addColorStop(0.42, '#FF6E7A');
+      g.addColorStop(1, '#FFB36B');
+      ctx.setFillStyle(g);
+      ctx.fillRect(0, 0, cvWidth, cvHeight);
+      // soft vignette
+      this._drawVignette(ctx, cvWidth, cvHeight, 0.26);
+      return;
+    }
+    // nebula (night gradient)
+    const g = ctx.createLinearGradient(0, 0, 0, cvHeight);
+    g.addColorStop(0, '#0B1024');
+    g.addColorStop(0.55, '#131B3A');
+    g.addColorStop(1, '#050814');
+    ctx.setFillStyle(g);
     ctx.fillRect(0, 0, cvWidth, cvHeight);
+    this._drawVignette(ctx, cvWidth, cvHeight, 0.22);
+  },
+
+  _drawVignette(ctx, w, h, strength = 0.22) {
+    ctx.save();
+    // CanvasContext 在小程序侧通常支持 createCircularGradient，而非 createRadialGradient
+    const r = Math.max(w, h) * 0.72;
+    const g = ctx.createCircularGradient(w / 2, h / 2, r);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, `rgba(0,0,0,${Math.max(0, Math.min(0.5, strength))})`);
+    ctx.setFillStyle(g);
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+  },
+
+  _drawTemplateCard(ctx, cvWidth, cvHeight, palette, params) {
+    const {
+      bookName,
+      authorName,
+      finishedYmdText,
+      quoteTexts,
+      renderQuotes,
+      layoutPlan,
+      templateId
+    } = params || {};
+
+    // background
+    this._drawBackground(ctx, cvWidth, cvHeight, palette, templateId);
+
+    const id = String(templateId || palette?.id || 'nebula');
+
+    // decor: strictly限制在顶部，避免侵入加高后的金句面板
+    const decorClipY = 188;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, cvWidth, decorClipY);
+    ctx.clip();
+    if (id === 'nebula') this._drawNebulaDecor(ctx, cvWidth, cvHeight, palette);
+    else if (id === 'paper') this._drawPaperDecor(ctx, cvWidth, cvHeight, palette);
+    else if (id === 'sunset') this._drawSunsetDecor(ctx, cvWidth, cvHeight, palette);
+    ctx.restore();
+
+    // header (drawn above decor)
+    const headerBottomY = this._drawHeader(
+      ctx,
+      cvWidth,
+      palette,
+      (bookName || '').trim() || '未命名书籍',
+      (authorName || '').trim() || '未知作者',
+      finishedYmdText,
+      id
+    );
+    this._drawStars(ctx, cvWidth, headerBottomY, palette);
+
+    // panel metrics: keep quotes area separated from background decor
+    const panelX = 24;
+    const panelW = cvWidth - panelX * 2;
+    const footerReserved = 46;
+    const maxPanelBottom = cvHeight - footerReserved;
+    let panelY = Math.max(168, headerBottomY + 24);
+    let panelH = Math.min(492, Math.max(0, maxPanelBottom - panelY));
+    if (panelH < 220) {
+      panelY = Math.max(152, maxPanelBottom - 220);
+      panelH = Math.min(492, Math.max(0, maxPanelBottom - panelY));
+    }
+
+    const quoteTextsAll = (params.quoteTexts || [])
+      .map((t) => String(t || '').trim())
+      .filter(Boolean);
+    const layoutPlanResolved =
+      quoteTextsAll.length > 0
+        ? this.fitQuoteLayout(
+            quoteTextsAll,
+            panelW - 56,
+            this.getQuoteContentBudget(panelH)
+          )
+        : layoutPlan;
+    const renderQuotesResolved = (layoutPlanResolved?.displayTexts || renderQuotes || []).slice(0, this.MAX_SELECT_COUNT);
+
+    // content panel (quotes)
+    this._drawContentPanel(
+      ctx,
+      cvWidth,
+      palette,
+      renderQuotesResolved,
+      layoutPlanResolved,
+      id,
+      { panelX, panelY, panelW, panelH }
+    );
+
+    // footer brand
+    ctx.save();
+    ctx.setFillStyle(palette.subText || palette.muted || 'rgba(255,255,255,0.60)');
+    ctx.setFontSize(11);
+    ctx.setTextAlign('center');
+    ctx.setTextBaseline('alphabetic');
+    ctx.fillText('翻书随手记', cvWidth / 2, cvHeight - 28);
+    ctx.restore();
   },
 
   _drawMinimalCard(ctx, cvWidth, cvHeight, palette, bookName, renderQuotes, finishedYmdText) {
@@ -649,11 +1027,12 @@ Page({
     ctx.fill();
 
     const stars = [
-      { x: 45, y: 100, r: 1.5 },
-      { x: 300, y: 80, r: 1.8 },
-      { x: 55, y: 280, r: 1.2 },
-      { x: 330, y: 250, r: 1.5 },
-      { x: 320, y: 450, r: 1.0 },
+      { x: 46, y: 92, r: 1.5 },
+      { x: 310, y: 78, r: 1.8 },
+      { x: 62, y: 168, r: 1.1 },
+      { x: 330, y: 152, r: 1.4 },
+      { x: 86, y: 216, r: 1.0 },
+      { x: 292, y: 210, r: 1.2 },
     ];
     stars.forEach((s) => {
       ctx.setFillStyle('rgba(255,255,255,0.70)');
@@ -668,8 +1047,14 @@ Page({
   _drawPaperDecor(ctx, cvWidth, cvHeight, palette) {
     ctx.save();
 
-    ctx.fillStyle = palette.accentLine || '#C4A77D';
-    ctx.fillRect(cvWidth / 2 - 35, 48, 70, 1.5);
+    // title line + endpoints
+    const y = 52;
+    ctx.setFillStyle(palette.accentLine || 'rgba(106,78,45,0.55)');
+    ctx.fillRect(cvWidth / 2 - 42, y, 84, 1.5);
+    ctx.beginPath();
+    ctx.arc(cvWidth / 2 - 46, y + 0.75, 2.2, 0, Math.PI * 2);
+    ctx.arc(cvWidth / 2 + 46, y + 0.75, 2.2, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   },
@@ -707,42 +1092,47 @@ Page({
   },
 
   _drawHeader(ctx, cvWidth, palette, bookName, authorName, finishedYmdText, templateId) {
-    let titleStartY;
-    const baseY = templateId === 'sunset' ? 150 : 130;
+    const L = this.getShareCardHeaderLayout(templateId, cvWidth);
+    const titleStartY = L.titleBaseY;
 
     ctx.setFillStyle(palette.title);
-    ctx.setFontSize(30);
+    ctx.setFontSize(L.titleFontSize);
     ctx.setTextAlign('center');
     ctx.setTextBaseline('alphabetic');
-    const titleLines = this.clampLines(this.wrapTextLines(bookName, cvWidth - 80, 30), 2);
-    titleStartY = baseY;
+    const titleLines = this.clampLines(
+      this.wrapTextLines(bookName, L.titleWrapW, L.titleFontSize),
+      L.titleMaxLines
+    );
     titleLines.forEach((line, i) => {
-      ctx.fillText(line, cvWidth / 2, titleStartY + i * 38);
+      ctx.fillText(line, cvWidth / 2, titleStartY + i * L.titleLineGap);
     });
 
     ctx.setFillStyle(palette.sub || palette.subText);
-    ctx.setFontSize(13);
-    ctx.fillText(authorName || '', cvWidth / 2, titleStartY + titleLines.length * 38 + 22);
+    ctx.setFontSize(L.authorFontSize);
+    ctx.fillText(
+      authorName || '',
+      cvWidth / 2,
+      titleStartY + titleLines.length * L.titleLineGap + L.authorGap
+    );
 
-    const finishDateY = titleStartY + titleLines.length * 38 + 48;
+    const finishDateY = titleStartY + titleLines.length * L.titleLineGap + L.dateGap;
     const finishDateLine = finishedYmdText
       ? `${finishedYmdText.replace(/年(\d)月(\d)日/, '.$1.$2')} · 我读完这本书`
       : null;
     if (finishDateLine) {
       ctx.setFillStyle(palette.subText || palette.sub || 'rgba(255,255,255,0.60)');
-      ctx.setFontSize(11);
+      ctx.setFontSize(L.dateFontSize);
       ctx.setTextAlign('center');
       ctx.setTextBaseline('alphabetic');
       ctx.fillText(finishDateLine, cvWidth / 2, finishDateY);
-      return finishDateY + 18;
     }
-    return finishDateY;
+    return this.measureShareCardHeaderBottomY(cvWidth, bookName, authorName, finishedYmdText, templateId);
   },
 
   _drawStars(ctx, cvWidth, startY, palette) {
-    const starY = startY + 28;
-    const starGap = 24;
-    const starR = 6.5;
+    const starY = startY + 10;
+    const starGap = 22;
+    const starR = 5.2;
     const totalW = 5 * starGap - starGap + starR * 2;
     const xStart = (cvWidth - totalW) / 2;
 
@@ -753,43 +1143,47 @@ Page({
     }
   },
 
-  _drawContentPanel(ctx, cvWidth, palette, renderQuotes, layoutPlan, templateId) {
-    const panelX = 24;
-    const panelY = 250;
-    const panelW = cvWidth - panelX * 2;
-    const panelH = 320;
+  _drawContentPanel(ctx, cvWidth, palette, renderQuotes, layoutPlan, templateId, metrics = null) {
+    const panelX = Number(metrics?.panelX ?? 24);
+    const panelY = Number(metrics?.panelY ?? 250);
+    const panelW = Number(metrics?.panelW ?? (cvWidth - panelX * 2));
+    const panelH = Number(metrics?.panelH ?? 320);
 
     this.drawRoundRect(ctx, panelX, panelY, panelW, panelH, 12);
     ctx.setFillStyle(palette.panel);
     ctx.fill();
 
-    if (palette.panelBorder) {
-      ctx.strokeStyle = palette.panelBorder;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
+    ctx.save();
+    this.drawRoundRect(ctx, panelX, panelY, panelW, panelH, 12);
+    ctx.clip();
 
     ctx.setTextAlign('center');
     ctx.setTextBaseline('alphabetic');
     ctx.setFillStyle(palette.panelHint);
-    ctx.setFontSize(11);
-    ctx.fillText('摘抄 · 金句', cvWidth / 2, panelY + 28);
+    ctx.setFontSize(10);
+    ctx.fillText('摘抄 · 金句', cvWidth / 2, panelY + 22);
 
-    const quotePaddingX = 24;
+    const quotePaddingX = 28;
     const quoteBaseX = panelX + quotePaddingX;
     const quoteMaxW = panelW - quotePaddingX * 2;
-    const baseY = panelY + 50;
+    const baseY = panelY + 46;
     const fontSize = layoutPlan?.fontSize || 15;
-    const lineHeight = layoutPlan?.lineHeight || Math.round(fontSize * 1.6);
+    const lineHeight =
+      layoutPlan?.lineHeight || Math.round(fontSize * (fontSize <= 14 ? 1.82 : 1.74));
     const maxLinesEach = layoutPlan?.maxLinesEach || (renderQuotes.length === 1 ? 8 : renderQuotes.length === 2 ? 5 : 3);
     let currentY = baseY;
+    const innerBottom = panelY + panelH - 12;
+    const blockGap = renderQuotes.length > 1 ? 22 : 14;
 
-    renderQuotes.forEach((quote, i) => {
+    for (let i = 0; i < renderQuotes.length; i++) {
+      const quote = renderQuotes[i];
       const itemY = currentY;
-      const lines = this.clampLines(
-        this.wrapTextLines(quote, quoteMaxW, fontSize),
-        maxLinesEach
-      );
+      const isLast = i === renderQuotes.length - 1;
+      const tailReserve = isLast ? 2 : blockGap + 2;
+      const slot = innerBottom - itemY - tailReserve;
+      if (slot < lineHeight * 0.72) break;
+      const maxByHeight = Math.min(maxLinesEach, Math.max(1, Math.floor(slot / lineHeight)));
+      const lines = this.clampLines(this.wrapTextLines(quote, quoteMaxW, fontSize), maxByHeight);
       ctx.setFillStyle(palette.panelText);
       ctx.setFontSize(fontSize);
       ctx.setTextAlign('left');
@@ -799,9 +1193,8 @@ Page({
       });
 
       const textHeight = Math.max(lineHeight, lines.length * lineHeight);
-      const blockGap = renderQuotes.length > 1 ? 22 : 16;
       const nextY = itemY + textHeight + blockGap;
-      if (i < renderQuotes.length - 1) {
+      if (!isLast) {
         ctx.setStrokeStyle(palette.separator);
         ctx.beginPath();
         ctx.moveTo(quoteBaseX, nextY - 10);
@@ -809,7 +1202,16 @@ Page({
         ctx.stroke();
       }
       currentY = nextY;
-    });
+    }
+
+    ctx.restore();
+
+    if (palette.panelBorder) {
+      this.drawRoundRect(ctx, panelX, panelY, panelW, panelH, 12);
+      ctx.strokeStyle = palette.panelBorder;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
 
     return panelY + panelH;
   },
