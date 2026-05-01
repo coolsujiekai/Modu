@@ -41,11 +41,16 @@
             <view class="weui-cell weui-cell_access" catchtap="viewBookDetail" data-book="{{book}}">
               <view class="weui-cell__bd">
                 <view>{{book.bookName}}</view>
-                <view class="book-meta">{{book.endText}} 读完</view>              </view>
+                <view class="book-meta">{{book.endText}} 读完</view>
+              </view>
             </view>
           </slideview>
         </view>
       </view>
+    </view>
+    <view wx:if="{{hiddenGroups.length > 0}}" class="load-more" catchtap="showAllGroups">
+      <text class="load-more__text">展开更早的月份</text>
+      <text class="load-more__count">（{{hiddenGroups.length}} 个月）</text>
     </view>
   </block>
 </view>

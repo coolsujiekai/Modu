@@ -7,6 +7,7 @@ Page({
   data: {
     isDark: false,
     groupedBooks: [],
+    hiddenGroups: [],
     readingCount: 0,
     finishedCount: 0,
     totalThoughts: 0,
@@ -114,7 +115,8 @@ Page({
     // 尝试从缓存读取
     const cached = cacheGet(CacheKeys.FINISHED_BOOKS);
     if (cached) {
-      this.setData({ groupedBooks: cached });
+      const { visible, hidden } = this._splitGroups(cached);
+      this.setData({ groupedBooks: visible, hiddenGroups: hidden });
       // 后台静默刷新
       this._refreshFinishedBooksSilently(cached);
       return;
@@ -122,9 +124,10 @@ Page({
 
     wx.showLoading({ title: '加载中' });
     try {
-      const groupedBooks = await this._fetchFinishedBooksFromDb();
-      this.setData({ groupedBooks });
-      cacheSet(CacheKeys.FINISHED_BOOKS, groupedBooks, CacheTTL.FINISHED_BOOKS);
+      const allGroups = await this._fetchFinishedBooksFromDb();
+      const { visible, hidden } = this._splitGroups(allGroups);
+      this.setData({ groupedBooks: visible, hiddenGroups: hidden });
+      cacheSet(CacheKeys.FINISHED_BOOKS, allGroups, CacheTTL.FINISHED_BOOKS);
       wx.hideLoading();
     } catch (err) {
       wx.hideLoading();
@@ -175,12 +178,27 @@ Page({
     }));
   },
 
+  _splitGroups(allGroups) {
+    const VISIBLE_MONTHS = 3;
+    return {
+      visible: allGroups.slice(0, VISIBLE_MONTHS),
+      hidden: allGroups.slice(VISIBLE_MONTHS)
+    };
+  },
+
+  showAllGroups() {
+    const allGroups = [...this.data.groupedBooks, ...this.data.hiddenGroups];
+    this.setData({ groupedBooks: allGroups, hiddenGroups: [] });
+  },
+
   async _refreshFinishedBooksSilently(prevGrouped) {
     try {
-      const groupedBooks = await this._fetchFinishedBooksFromDb();
-      cacheSet(CacheKeys.FINISHED_BOOKS, groupedBooks, CacheTTL.FINISHED_BOOKS);
-      if (JSON.stringify(prevGrouped) !== JSON.stringify(groupedBooks)) {
-        this.setData({ groupedBooks: groupedBooks });
+      const allGroups = await this._fetchFinishedBooksFromDb();
+      cacheSet(CacheKeys.FINISHED_BOOKS, allGroups, CacheTTL.FINISHED_BOOKS);
+      const { visible, hidden } = this._splitGroups(allGroups);
+      const prevAll = [...this.data.groupedBooks, ...this.data.hiddenGroups];
+      if (JSON.stringify(prevAll) !== JSON.stringify(allGroups)) {
+        this.setData({ groupedBooks: visible, hiddenGroups: hidden });
       }
     } catch (e) {
       // 静默失败

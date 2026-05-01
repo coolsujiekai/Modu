@@ -1,9 +1,0 @@
-{
-  "name": "migrateNotes",
-  "version": "1.0.0",
-  "description": "一次性迁移：将 books 文档中的 notes 数组迁移到独立的 notes 集合",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "~2.4.0"
-  }
-}
